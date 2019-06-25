@@ -11,12 +11,15 @@
 This script reorganizes the dicoms and PARREC files for the Conte Center 1.0 data and takes an audit
 of any potentially missing files based on a csv that Dr. Keator sent via email.
 
+The newer Dicoms_Aggregate.sh script further organizes all the data from every database into one
+location.
+
 Use
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-input_dir=`echo /dfs2/yassalab/ConteCenter/1point0/RawData`
+input_dir=`echo /dfs2/yassalab/ConteCenter/1point0/HPC_DICOM_Copies`
 output_dir_audits=`echo /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One`
 output_dir_dicoms=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One`
 
