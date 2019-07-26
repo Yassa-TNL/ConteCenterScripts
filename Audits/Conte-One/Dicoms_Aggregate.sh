@@ -250,7 +250,6 @@ for sub in ${flywheel_subs}; do
   for dicom in $DICOMS ; do
     NEW=$(echo $dicom | cut -d '/' -f11).dcm
     OUTPUT=/Volumes/yassadata/ConteCenter/RawData/Conte-One/${SUBID}_${SES_ALL}_${SES_MRI}/DICOMS
-    echo ''
     echo $dicom
     echo $NEW
     echo $OUTPUT
