@@ -18,11 +18,28 @@ Use
 ###################################################################################################
 
 module load afni/v19.0.01
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/JitterOutput
+mkdir -p $output_dir
+
+#Caluclate Optimal Jitter
 
 /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/optseq2 --ntp 110 --tr 2 \
---psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 --evc 1 -1 --nkeep 6 --o \
-/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/JitterDoorsTask/Doors \
---tnullmin 1.5 --tnullmax 3.5 --nsearch 500000
+--psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 --evc 1 -1 --nkeep 6 \
+ --o ${output_dir}/Doors --tnullmin 1.5 --tnullmax 3.5 --nsearch 500000
+
+#Rearrange Output to CSV Format
+
+for file in ${output_dir}/Doors*.par ; do
+
+echo 'Now Converting '${file}' to CSV Format'
+
+csv=`echo $file | sed s@'.par'@'.csv'@g`
+echo 'TimeofTask,Duration,Condition,Contrast' > ${csv}
+cat $file | awk '{print $1,$3,$5,$2}' | sed s@' '@','@g >> ${csv}
+
+done
+
+chmod ug+wrx ${output_dir}/*
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
