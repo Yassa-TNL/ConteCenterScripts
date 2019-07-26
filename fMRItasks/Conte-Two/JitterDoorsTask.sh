@@ -20,8 +20,9 @@ Use
 module load afni/v19.0.01
 
 /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/optseq2 --ntp 110 --tr 2 \
---psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 --evc 1 -1 --nkeep 3 --o Doors --tnullmin 0.5 \
---tnullmax 6.5 --nsearch 1000000
+--psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 --evc 1 -1 --nkeep 6 --o \
+/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/JitterDoorsTask/Doors \
+--tnullmin 1.5 --tnullmax 3.5 --nsearch 500000
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
