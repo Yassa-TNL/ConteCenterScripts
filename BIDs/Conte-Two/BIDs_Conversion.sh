@@ -9,7 +9,7 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 <<Use
 
@@ -18,7 +18,7 @@ to BIDs format where they will be processed further through various pipelines.
 
 Use
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 module purge ; module load anaconda/2.7-4.3.1 ; module load flywheel/8.5.0 
@@ -33,7 +33,7 @@ fw login ${FLYWHEEL_API_TOKEN}
 
 dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two
 
-fw ls "yassalab/Conte-Two" | sed s@'rw '@''@g | grep -v test > ${dir_dicom}/SUBS_fw.txt
+fw ls "yassalab/Conte-Two" | sed s@'rw '@''@g | grep -v test | grep -v Pilot > ${dir_dicom}/SUBS_fw.txt
 ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
 NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@`
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
@@ -41,7 +41,7 @@ rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 if [ -z "$NewSubs" ]; then
   echo "Everything is up-to-date - No newly scanned subjects detected"
 else  
-  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡'
+  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ '
   echo 'Newly Scanned Subjects Detected: '$NewSubs 
 fi
 
@@ -83,7 +83,7 @@ for subid in $NewSubs ; do
 ######################################
 
   echo 'Reorganizing Directory Structure for '$subid
-  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡'
+  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ '
   mv ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/
   chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
   
@@ -94,5 +94,5 @@ for subid in $NewSubs ; do
 
 done
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
