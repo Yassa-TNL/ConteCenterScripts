@@ -1,0 +1,130 @@
+{
+    "descriptions": [
+        {
+            "dataType": "anat",
+            "modalityLabel": "T1w",
+            "criteria": {
+                "SeriesDescription": "*T1w*"
+            }
+    },
+        {
+            "dataType": "anat",
+            "modalityLabel": "T2w",
+            "customLabels": "acq-TSEcor",
+            "criteria": {
+                "SeriesDescription": "*T2w_acq-TSEcor*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude1",
+            "customLabels": "acq-dirPA",
+            "criteria": {
+                "SidecarFilename": "*mangitude1_acq-dirPA*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude2",
+            "customLabels": "acq-dirAP",
+            "criteria": {
+                "SidecarFilename": "*mangitude2_acq-dirAP*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude2",
+            "customLabels": "acq-dirPA",
+            "criteria": {
+                "SidecarFilename": "*mangitude2_acq-dirPA*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "criteria": {
+                "SeriesDescription": "*dwi"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-ZOOMcor",
+            "criteria": {
+                "SeriesDescription": "*dwi_acq-ZOOMcor*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-REST",
+            "customLabels": "run-01",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-01_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-REST",
+            "customLabels": "run-02",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-02_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-01",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-01_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-02",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-02_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-03",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-03_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-04",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-04_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-05",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-05_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-Doors",
+            "customLabels": "run-06",
+            "criteria": {
+                "SeriesDescription": "*func_task-REST_run-06_bold*"
+            }
+        }
+    ]
+}
