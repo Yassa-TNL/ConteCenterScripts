@@ -48,7 +48,7 @@ for file in $Files ; do
   if [[ ! -d "${dir_output}" ]] ; then
     echo $subid' does not aligned with any of the existing subids from previous MRI sessions'
     echo ${subid}' will not be transfered but a Log will be Stored for Future Investigating'
-    echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/PsychoPy/FailedUploads.csv
+    echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/FailedUploads.csv
     rm /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/${subid}_doorsTask_log.txt
     break
   fi
