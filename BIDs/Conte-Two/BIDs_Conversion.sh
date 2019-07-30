@@ -1,5 +1,5 @@
 #!/bin/bash
-#$ -N BIDs_DataStorm
+#$ -N DataStorm
 #$ -q ionode,ionode-lp
 #$ -R y
 #$ -ckpt blcr
