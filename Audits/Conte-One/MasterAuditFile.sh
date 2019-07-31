@@ -55,18 +55,59 @@ chmod ug+wrx $FINAL_OUTPUT
 
 rm ${dir_temp}/TEMP_MRI*
 
-##############################################################
-### Tranform the Source File So Each Row is an MRI Session ###
-##############################################################
+###############################################################
+### Add Columns Indicating if DICOMS and PARREC Files Exist ###
+###############################################################
 
-cat 
+header_og=`echo subid,Session,ScanDate`
+header_new=`echo subid,Session,ScanDate,Dicoms,PARREC`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
+dos2unix ${FINAL_OUTPUT}
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  subid=`echo $row | cut -d ',' -f1`
+  session=`echo $row | cut -d ',' -f2`
 
+  dir_dicom=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/DICOMS`
+  if [ -d "${dir_dicom}" ]; then
+    echo 'Dicoms Detected For Subject '${subid}' and Session '${session}
+    newrow=`echo ${row},1`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+  else
+    echo 'Dicoms Missing For Subject '${subid}' and Session '${session}
+    newrow=`echo $row,0`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+  fi
+done
 
+dos2unix ${FINAL_OUTPUT}
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  subid=`echo $row | cut -d ',' -f1`
+  session=`echo $row | cut -d ',' -f2`
 
+  dir_parrec=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/PARREC`
+  if [ -d "${dir_parrec}" ]; then
+    echo 'PARREC files Detected For Subject '${subid}' and Session '${session}
+    newrow=`echo ${row},1`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+  else
+    echo 'PARREC Files Missing For Subject '${subid}' and Session '${session}
+    newrow=`echo $row,0`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g> ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+  fi
+done
+chmod ug+wrx ${FINAL_OUTPUT}
 
-
-
+###############################################################
+### Add Columns Indicating if DICOMS and PARREC Files Exist ###
+###############################################################
 
 
 
