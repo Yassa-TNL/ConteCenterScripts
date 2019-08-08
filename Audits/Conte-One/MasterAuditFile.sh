@@ -4,7 +4,7 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 <<Use
 
@@ -14,7 +14,7 @@ google docs for all researchers to access
 
 Use
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 module load afni/v19.0.01
@@ -55,14 +55,16 @@ rm ${dir_temp}/TEMP_MRI*
 dos2unix ${FINAL_OUTPUT}
 chmod ug+wrx $FINAL_OUTPUT
 
-###############################################################
-### Add Columns Indicating if DICOMS and PARREC Files Exist ###
-###############################################################
+#######################################################################
+### Add Columns Indicating if DICOMS/NIFTIS and PAR/REC Files Exist ###
+#######################################################################
 
 header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},Dicoms,PARREC`
+header_new=`echo ${header_og},Dicoms/Niftis,PARREC`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+###DICOMS
 
 rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
 for row in $rows ; do
@@ -70,7 +72,8 @@ for row in $rows ; do
   session=`echo $row | cut -d ',' -f2`
 
   dir_dicom=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/DICOMS`
-  if [ -d "${dir_dicom}" ]; then
+  dir_nifti=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/NIFTIS`
+  if [ -d "${dir_dicom}" ] || [ -d "${dir_nifti}" ] ; then
     echo 'Dicoms Detected For Subject '${subid}' and Session '${session}
     newrow=`echo ${row},1`
     cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
@@ -82,6 +85,8 @@ for row in $rows ; do
     mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
   fi
 done
+
+###PAR/REC 
 
 rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
 for row in $rows ; do
@@ -136,5 +141,5 @@ done
 chmod ug+wrx ${FINAL_OUTPUT}
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
