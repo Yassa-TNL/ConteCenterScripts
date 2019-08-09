@@ -1,0 +1,66 @@
+{
+    "descriptions": [
+        {
+            "dataType": "anat",
+            "modalityLabel": "T1w",
+            "criteria": {
+                "SeriesDescription": "*T1w*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude1",
+            "customLabels": "acq-dirPA",
+            "criteria": {
+                "SidecarFilename": "*fmap-magnitude1_acq-dirPA*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude1",
+            "customLabels": "acq-dirAP",
+            "criteria": {
+                "SidecarFilename": "*fmap-magnitude1_acq-dirAP*" 
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude2",
+            "customLabels": "acq-dirPA",
+            "criteria": {
+                "SidecarFilename": "*fmap-magnitude2_acq-dirPA*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "magnitude2",
+            "customLabels": "acq-dirAP",
+            "criteria": {
+                "SidecarFilename": "*fmap-magnitude1_acq-dirAP*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "criteria": {
+                "SeriesDescription": "*dwi"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-first",
+            "criteria": {
+                "SeriesDescription": "*func_task-first_*_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-second",
+            "criteria": {
+                "SeriesDescription": "*func_task-second_*_bold*"
+            }
+        }
+    ]
+}
