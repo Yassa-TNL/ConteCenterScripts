@@ -1,0 +1,42 @@
+{
+    "descriptions": [
+        {
+            "dataType": "anat",
+            "modalityLabel": "T1w",
+            "criteria": {
+                "*Protocol*": "*MPrage*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "criteria": {
+                "*Protocol*": "*DTI*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-AMG",
+            "criteria": {
+                "*Protocol*": "*AmygdalaTask*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-REST",
+            "criteria": {
+                "*Protocol*": "*RestfMRI*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-HIPP",
+            "criteria": {
+                "*Protocol*": "*HippTask*"
+            }
+        }
+    ]
+}
