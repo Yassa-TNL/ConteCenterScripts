@@ -8,7 +8,8 @@
 ###################################################################################################
 
 set nifti_dir [lindex $argv 0]
-spawn fw import folder $nifti_dir "yassalab" "Conte-One" --no-audit-log --skip-existing
+set subid [lindex $argv 1]
+spawn fw import folder $nifti_dir "yassalab" "Conte-One" --no-audit-log --skip-existing --subject ${subid}
 expect "Confirm upload? (yes/no):"
 send "yes\n"
 interact
