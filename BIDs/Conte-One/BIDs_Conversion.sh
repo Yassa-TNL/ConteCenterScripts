@@ -21,11 +21,42 @@ Use
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-module purge ; module load anaconda/2.7-4.3.1 ; module load flywheel/8.5.0 
+module purge ; module load anaconda/2.7-4.3.1
+module load fsl/6.0.1
+module load flywheel/8.5.0
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
 export PATH=$PATH:/dfs3/som/rao_col/bin
 source ~/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
+
+##########################################################
+### Upload Newly Found RawFiles to Flywheel for BackUp ###
+##########################################################
+NewSub=105_1_1
+
+for subject in $NewSub ; do
+
+  sub=`echo $subject | cut -d '_' -f1`
+  ses=`echo $subject | cut -d '_' -f3`
+  datatype=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/`
+
+  for data in $datatype ; do
+
+  if [ $data = "DICOMS" ]; then
+    store_dir=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/DICOMS`
+    /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadDicoms.exp ${store_dir}
+  fi
+
+  if [ $data = "PARREC" ]; then
+    fw import parrec /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/${data} "yassalab" "Conte-One"
+  fi
+
+  if [ $data = "NIFTIS" ]; then
+    fw import folder /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/${data} "yassalab" "Conte-One"
+  fi
+
+  done
+done
 
 ####################################
 ### Covert Dicoms To BIDs Format ###
