@@ -13,8 +13,8 @@
 ###################################################################################################
 <<Use
 
-This script automatically downloads the raw Conte Center 2.0 data from Flywheel and converts the images
-to BIDs format where they will be processed further through various pipelines.
+This script automatically downloads the raw ORE data from Flywheel and converts the images
+to BIDs format where they will be processed further through various pipelines for Jessie's Study.
 
 Use
 ###################################################################################################
