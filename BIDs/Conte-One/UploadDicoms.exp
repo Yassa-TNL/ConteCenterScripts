@@ -8,7 +8,8 @@
 ###################################################################################################
 
 set dicom_dir [lindex $argv 0]
-spawn fw import dicom $dicom_dir "yassalab" "Conte-One" --no-audit-log --skip-existing
+set subid [lindex $argv 0]
+spawn fw import dicom $dicom_dir "yassalab" "Conte-One" --no-audit-log --skip-existing --subject ${subid}
 expect "Confirm upload? (yes/no):"
 send "yes\n"
 interact
