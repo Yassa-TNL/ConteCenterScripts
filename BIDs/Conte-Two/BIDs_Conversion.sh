@@ -21,7 +21,9 @@ Use
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-module purge ; module load anaconda/2.7-4.3.1 ; module load flywheel/8.5.0 
+module purge ; module load anaconda/2.7-4.3.1
+module load fsl/6.0.1
+module load flywheel/8.5.0
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
 export PATH=$PATH:/dfs3/som/rao_col/bin
 source ~/MyPassCodes.txt
