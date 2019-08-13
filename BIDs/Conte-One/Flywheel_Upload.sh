@@ -12,8 +12,7 @@
 ###################################################################################################
 <<Use
 
-This scripts coverts the raw Conte Center 1.0 data into BIDs Format and subseqent uploads the raw
-files onto flywheel for back up.
+This scripts uploads the raw Conte Center 1.0 data onto flywheel for back up.
 
 Use
 ###################################################################################################
@@ -78,14 +77,3 @@ done
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
-
---project
-
-root-folder
-└── group-id
-    └── project-label
-        └── subject-label
-            └── session-label
-                └── acquisition-label
-                    ├── dicom
-
