@@ -4,14 +4,14 @@
             "dataType": "anat",
             "modalityLabel": "T1w",
             "criteria": {
-                "*Protocol*": "*MPrage*"
+                "SeriesDescription": "*MPrage*"
             }
     },
         {
             "dataType": "dwi",
             "modalityLabel": "dwi",
             "criteria": {
-                "*Protocol*": "*DTI*"
+                "SeriesDescription": "*DTI*"
             }
     },
         {
@@ -19,7 +19,7 @@
             "modalityLabel": "bold",
             "customLabels": "task-AMG",
             "criteria": {
-                "*Protocol*": "*AmygdalaTask*"
+                "SeriesDescription": "*AmygdalaTask*"
             }
     },
         {
@@ -27,7 +27,7 @@
             "modalityLabel": "bold",
             "customLabels": "task-REST",
             "criteria": {
-                "*Protocol*": "*RestfMRI*"
+                "SeriesDescription": "*RestfMRI*"
             }
     },
         {
@@ -35,7 +35,7 @@
             "modalityLabel": "bold",
             "customLabels": "task-HIPP",
             "criteria": {
-                "*Protocol*": "*HippTask*"
+                "SeriesDescription": "*HippTask*"
             }
         }
     ]
