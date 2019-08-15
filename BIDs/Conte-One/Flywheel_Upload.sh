@@ -30,7 +30,7 @@ fw login ${FLYWHEEL_API_TOKEN}
 dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One
 
 fw ls "yassalab/Conte-One" | sed s@'rw '@''@g | grep -v csv | grep -v MRI | grep -v files > ${dir_dicom}/SUBS_fw.txt
-ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One | grep -v txt > ${dir_dicom}/SUBS_hpc.txt
+ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One | grep -v txt | grep -v Spooling > ${dir_dicom}/SUBS_hpc.txt
 NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | grep '>' | sed s@'> '@@g`
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
