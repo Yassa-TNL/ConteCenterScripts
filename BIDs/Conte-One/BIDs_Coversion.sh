@@ -8,7 +8,8 @@
 ###################################################################################################
 <<Use
 
-This scripts coverts the raw Conte Center 1.0 data into BIDs Format.
+This scripts coverts the raw Conte Center 1.0 data into BIDs Format & Logs Missing Files that 
+can be resolved based on PARREC data.
 
 Use
 ###################################################################################################
@@ -23,21 +24,32 @@ export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
 source ~/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
 
-###################################################
-### Define Newly Found Subjects to be Converted ###
-###################################################
+#############################################
+### Find Newly Found Files To be Coverted ###
+#############################################
 
-subjects=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/*/DICOMS | tr ' ' '\n' | cut -d '/' -f8 `
-audit_file=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/Recover_Missing_Niftis.csv
-echo 'subid,sequence' >> $audit_file
+audit_dir=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One
+echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/*/DICOMS | tr ' ' '\n' | cut -d '/' -f8 | cut -d '_' -f1,3 \
+> ${audit_dir}/tmp_dicoms.txt
+echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/*/* | tr ' ' '\n' | cut -d '-' -f3,4 | sed s@'/ses-'@'_'@g \
+> ${audit_dir}/tmp_BIDS.txt
+NewSubs=`diff ${audit_dir}/tmp_dicoms.txt ${audit_dir}/tmp_BIDS.txt | grep '<' | sed s@'< '@''@g`
+rm ${audit_dir}/tmp_dicoms.txt ${audit_dir}/tmp_BIDS.txt 
 
-for subid in $subjects ; do
+echo `date +%m-%d-%Y` >> $audit_dir/Recover_Missing_Niftis.csv
+echo 'subid,sequence' >> $audit_dir/Recover_Missing_Niftis.csv
+
+###########################################
+### Convert DICOMs files to BIDs Format ###
+###########################################
+
+for subid in $NewSubs ; do
 
   echo 'Converting Dicoms to BIDs for '$subid
   sub=`echo $subid | cut -d '_' -f1`
-  ses=`echo $subid | cut -d '_' -f3` 
-  Dicoms=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}/DICOMS
-  Residual=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${subid}
+  ses=`echo $subid | cut -d '_' -f2` 
+  Dicoms=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/DICOMS
+  Residual=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}
   mkdir -p $Residual
 
   dcm2bids -d $Dicoms -p ${sub} -s ${ses} -c \
@@ -48,10 +60,10 @@ for subid in $subjects ; do
 ### Convert PARREC files to NIFTI For Double Checking ###
 #########################################################
 
-  PARREC=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}/PARREC
+  PARREC=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/PARREC
   if [ ! -z "$PARREC" ] ; then
 
-    parrec_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${subid}/tmp_parrec2bids
+    parrec_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}/tmp_parrec2bids
     mkdir -p ${parrec_output}
     dcm2niix ${PARREC}/*
     mv `ls ${PARREC}/* | grep _PARREC_` $parrec_output
@@ -106,20 +118,22 @@ for subid in $subjects ; do
     fi
   fi
 
-############################################################
+##############################################################
 ### Move Files to Permanent Locations & Adjust Permissions ###
-############################################################
+##############################################################
 
-  mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${subid}/sub-${sub} /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/
-  chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}
+  OUTPUT=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}
+  mkdir -p ${OUTPUT}
+  mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}/sub-${sub}/ses-${ses} ${OUTPUT}
+  chmod -R 775 ${OUTPUT}
 
-  mkdir /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}/NIFTIS
-  mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${subid}/tmp_* /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}/NIFTIS/
-  chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}
+  mkdir /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS
+  mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}/tmp_* /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS/
+  chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}
 
-  cat /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/PARREC_Replacements.csv >> $audit_file
+  cat /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/PARREC_Replacements.csv >> $audit_dir/Recover_Missing_Niftis.csv
   rm -rf /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling
-  chmod 775 $audit_file
+  chmod 775 $audit_dir/Recover_Missing_Niftis.csv
 
 done
 
