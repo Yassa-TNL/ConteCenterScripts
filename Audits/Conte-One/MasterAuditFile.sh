@@ -10,7 +10,7 @@
 
 This script created a Master Spreadsheet to track the data from Conte-One. Additional Columns will be 
 added as processed data is generated. A copy of the master spreadsheet will be regularily updated on 
-google docs for all researchers to access
+google docs for all researchers to access.
 
 Use
 ###################################################################################################
@@ -124,7 +124,7 @@ for row in $rows ; do
 
   dir_dicom=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/DICOMS`
   if [ -d "${dir_dicom}" ]; then
-  	dcm=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/DICOMS/* | head -n1`
+  	dcm=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}/DICOMS/*.dcm | head -n1`
   	header=`dicom_hdr ${dcm} | grep 'ID Study Date'`
     date=`echo ${header: -8}`
     newrow=`echo ${row},${date}`
@@ -133,12 +133,59 @@ for row in $rows ; do
     echo 'Scan Completed On '${date}' of Session '${session}' For Subject '${subid}
   else
     newrow=`echo $row,NA`
-    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g> ${FINAL_OUTPUT}_NEW
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
     mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
     echo 'DICOMS Missing For Subject '${subid}' and Session '${session}
   fi
+done 
+
+###########################################################
+### Add column Auditing Nifti Files in BIDs Directories ###
+###########################################################
+
+AuditBIDsData(){
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},${2}`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  subid=`echo $row | cut -d ',' -f1`
+  session=`echo $row | cut -d ',' -f2`
+  file=`echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${subid}/ses-${session}/${1}/*${2}*.nii.gz`
+  file=`echo $file | cut -d ' ' -f1`
+
+  if [ -f ${file} ] ; then
+    newrow=`echo ${row},1`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "${1}-${2} NIFTI Detected for Subject ${subid} Session ${session}"
+  else
+    val_dicom=`echo $row | cut -d ',' -f4`
+    val_parrec=`echo $row | cut -d ',' -f5`
+    val_ses=`echo $row | cut -d ',' -f2`
+    if [[ $val_dicom -eq 0 ]] && [[ $val_parrec -eq 0 ]] || [[ $val_ses -eq 0 ]] ; then
+      newrow=`echo ${row},NA`
+      cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+      mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+      echo "${1}-${2} not expected for Subject ${subid} Session ${session}"
+    else
+      newrow=`echo ${row},0`
+      cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+      mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+      echo "${1}-${2} missing for Subject ${subid} Session ${session}"
+    fi
+  fi
 done
-chmod ug+wrx ${FINAL_OUTPUT}
+}
+
+sequences='anat_T1w dwi_dwi func_REST func_HIPP func_AMG'
+for seq in $sequences ; do
+  folder=`echo $seq | cut -d '_' -f1`
+  name=`echo $seq | cut -d '_' -f2`
+  AuditBIDsData $folder $name
+done
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
