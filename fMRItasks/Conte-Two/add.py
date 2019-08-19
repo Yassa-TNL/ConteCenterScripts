@@ -1,12 +1,18 @@
 filename=r"/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/777/777_DoorsTask_20-01_20190817.txt"
 
+def process_block(subject, block, jitter):
+	result = []
+	for row in block:
+		rowwithoutspace=row.replace(" ", "")
+		result.append('{}\t{}\t{}'.format(subject,jitter,rowwithoutspace))
+	return result
 
 
 with open("/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/777/777_DoorsTask_20-01_20190817.txt") as f:	
 	data = f.readlines()
-	FirstJitter = data[1][35]
-	SecondJitter = data[1][52]
-	ThirdJitter = data[1][69]
+	Jitter1 = data[1][35]
+	Jitter2 = data[1][52]
+	Jitter3 = data[1][69]
 	subject = data[2]
 	subject = subject.replace('Subject ID: ', '')
 	subject = subject.replace('\n', '')
@@ -17,26 +23,46 @@ with open("/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/777/777_Door
 	del alltrails[header2]
 	header3 = alltrails.index('Trial\tDoorsAppear\tResp\tRespTime\t\tFeedback\tFeedbackTime\tJitter\n')
 	del alltrails[header3]
-	maxtrails = alltrails.index('End Experiment\t\n')
-	del alltrails[maxtrails]
+	maxtrail = alltrails.index('End Experiment\t\n')
+	del alltrails[maxtrail]
 	block1 = alltrails[header1:header2]
 	block2 = alltrails[header2:header3]
-	block3 = alltrails[header3:maxtrails]
-	NUM1=header2-header1
-	results1 = []
-	for x in range(NUM1):
-		results1.append('{}\t{}\t{}'.format(subject,FirstJitter,block1[x]))
-	NUM2=header3-header2
+	block3 = alltrails[header3:maxtrail]
+	num1=header2-header1
+	num2=header3-header2
+	num3=maxtrails-header3
+
+	results1 = process_block(subject, block1, Jitter1)
+	results2 = process_block(subject, block2, num2, Jitter2)
+	results3 = process_block(subject, block3, num3, Jitter3)
+
+	
+
+	for y in range(1, 4, 1):
+		'results{}'.format(y)
+
+
 	results2 = []
 	for x in range(NUM2):
-		results2.append('{}\t{}\t{}'.format(subject,SecondJitter,block3[x]))
-	NUM3=maxtrails-header3
+		row2=block2[x]
+		rowwithoutspaces2=row2.replace(" ", "")
+		results2.append('{}\t{}\t{}'.format(subject,Jitter2,rowwithoutspaces2))
+
+
+','.join(x)
+
 	results3 = []
+	NUM3=maxtrails-header3
 	for x in range(NUM3):
-		results3.append('{}\t{}\t{}'.format(subject,ThirdJitter,block2[x]))
+		row3=block3[x]
+		rowwithoutspaces3=row3.replace(" ", "")
+		results3.append('{}\t{}\t{}'.format(subject,ThirdJitter,rowwithoutspaces3))
 	
 
 
+
+
+test.replace(" ", "")
 
 
 
