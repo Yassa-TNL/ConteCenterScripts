@@ -24,7 +24,7 @@ output_dir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Cont
 ### Caluclate Optimal Jitters ###
 #################################
 
-${output_dir}/optseq2 --ntp 146 --tr 1.5 --psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 \
+${output_dir}/optseq2 --ntp 150 --tr 1.5 --psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 \
 --evc 1 -1 --nkeep 6 --o ${output_dir}/Doors --tnullmin 1.5 --tnullmax 3.5 --nsearch 250000
 
 ######################################
