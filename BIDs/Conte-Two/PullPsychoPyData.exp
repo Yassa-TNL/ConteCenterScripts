@@ -8,7 +8,8 @@
 ###################################################################################################
 
 set password [lindex $argv 0]
-spawn sftp --r mriuser@fibre-data.rgs.uci.edu:/mridata/upload/Yassa/Conte-Two/* .
+set output_dir [lindex $argv 1]
+spawn sftp --r mriuser@fibre-data.rgs.uci.edu:/mridata/upload/Yassa/Conte-Two/DoorsTask/* $output_dir
 expect "mriuser@fibre-data.rgs.uci.edu's password:"
 send "$password\n"
 interact
