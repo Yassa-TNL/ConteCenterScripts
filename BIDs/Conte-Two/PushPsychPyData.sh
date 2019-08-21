@@ -30,31 +30,37 @@ fw login ${FLYWHEEL_API_TOKEN}
 ### Run Expect Script to Download Data from Fibre's Server ###
 ##############################################################
 
-/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp ${FIBRE_PASSWORD}
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/Spooling
+mkdir -p $output_dir
+
+/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp ${FIBRE_PASSWORD} ${output_dir}
 
 ##################################################
 ### Move Files to Subject Specific Directories ###
 ##################################################
 
-Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/*_doorsTask_log.txt`
+Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/*_DoorsTask_*-*_*.txt`
 time=`date +"%D %T" | sed s@' '@','@g`
 
 for file in $Files ; do
 
-  subid=`echo $file | cut -d '/' -f9 | cut -d '_' -f1`
-  dir_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two/${subid}/PsychoPy
+  name=`basename $file` 
+  subid=`echo $name | cut -d '_' -f1`
+  dir_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/PsychoPy
   mkdir ${dir_output}
   
   if [[ ! -d "${dir_output}" ]] ; then
-    echo $subid' does not aligned with any of the existing subids from previous MRI sessions'
-    echo ${subid}' will not be transfered but a Log will be Stored for Future Investigating'
+    echo '#########################################################################'
+    echo $subid' not transfered correctly - try running BIDs_Coversion Script First'
+    echo '             CREATING LOG FILE FOR FUTURE INVESTIGATION                  '
+    echo '#########################################################################'
     echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/FailedUploads.csv
-    rm /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/${subid}_doorsTask_log.txt
+    rm ${file}
     break
   fi
 
-  mv $file /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two/${subid}/PsychoPy/
-  chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two/${subid}
+  mv $file /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/PsychoPy/
+  chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}
 
 ################################################
 ### Upload Copies to Flywheel to be Archived ###
