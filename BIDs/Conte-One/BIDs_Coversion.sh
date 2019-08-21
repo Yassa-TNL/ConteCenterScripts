@@ -137,6 +137,36 @@ for subid in $NewSubs ; do
 
 done
 
+###############################################################
+### Define the Newly Scanned Subjects from Baseline Dataset ###
+###############################################################
+
+audit_dir=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One
+echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/*_0 | tr ' ' '\n' | cut -d '/' -f8 | cut -d '_' -f1,3 \
+> ${audit_dir}/tmp_nifti.txt
+echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-0 | tr ' ' '\n' | cut -d '-' -f3,4 | sed s@'/ses-'@'_'@g \
+> ${audit_dir}/tmp_BIDS.txt
+NewSubs=`diff ${audit_dir}/tmp_nifti.txt ${audit_dir}/tmp_BIDS.txt | grep '<' | sed s@'< '@''@g`
+rm ${audit_dir}/tmp_nifti.txt ${audit_dir}/tmp_BIDS.txt 
+
+######################################
+### Copy NIFTI Files From Baseline ###
+######################################
+
+for subid in $NewSubs ; do
+
+  echo 'Copying Niftis to BIDs for '$subid
+  sub=`echo $subid | cut -d '_' -f1`
+  ses=`echo $subid | cut -d '_' -f2` 
+
+  nifti=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS/sub-${sub}_ses-${ses}_T1w.nii.gz
+  bids_dir=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}/ses-${ses}/anat/
+  mkdir -p $bids_dir
+
+  cp $nifti $bids_dir
+  chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}
+done
+
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
