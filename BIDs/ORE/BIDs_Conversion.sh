@@ -33,11 +33,12 @@ fw login ${FLYWHEEL_API_TOKEN}
 ### Set Output Paths and Find Newly Scanned Subjects ###
 ########################################################
 
-dir_dicom=/dfs2/yassalab/rjirsara/ORE/DICOMs
+dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/ORE
+dir_bids=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/ORE
 
 fw ls "yassalab/ORE" | sed s@'rw '@''@g | grep -v test > ${dir_dicom}/SUBS_fw.txt
-ls /dfs2/yassalab/rjirsara/ORE/BIDs/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
-NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@`
+ls ${dir_bids} | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
+NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@ | grep -v 3d3 | grep -v dataset`
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
 if [ -z "$NewSubs" ]; then
@@ -100,8 +101,8 @@ for subid in $NewSubs ; do
 
   echo 'Reorganizing Directory Structure for '$subid
   echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ '
-  mv ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} /dfs2/yassalab/rjirsara/ORE/BIDs/
-  chmod -R ug+wrx /dfs2/yassalab/rjirsara/ORE/BIDs/sub-${subid}
+  mv ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} ${dir_bids}
+  chmod -R ug+wrx ${dir_bids}/sub-${subid}
   
   zip ${dir_dicom}/${subid}/${subid}_DICOMs.zip -r ${dir_dicom}/${subid}/DICOMs
   rm -rf ${dir_dicom}/${subid}/DICOMs  
