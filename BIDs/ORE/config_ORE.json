@@ -17,14 +17,6 @@
     },
         {
             "dataType": "fmap",
-            "modalityLabel": "magnitude1",
-            "customLabels": "acq-dirAP",
-            "criteria": {
-                "SidecarFilename": "*fmap-magnitude1_acq-dirAP*" 
-            }
-    },
-        {
-            "dataType": "fmap",
             "modalityLabel": "magnitude2",
             "customLabels": "acq-dirPA",
             "criteria": {
@@ -33,10 +25,18 @@
     },
         {
             "dataType": "fmap",
+            "modalityLabel": "magnitude1",
+            "customLabels": "acq-dirAP",
+            "criteria": {
+                "SidecarFilename": "*fmap-magnitude2_acq-dirAP*"
+            }
+    },
+        {
+            "dataType": "fmap",
             "modalityLabel": "magnitude2",
             "customLabels": "acq-dirAP",
             "criteria": {
-                "SidecarFilename": "*fmap-magnitude1_acq-dirAP*"
+                "SidecarFilename": "*fmap-magnitude2_acq-dirAP*"
             }
     },
         {
@@ -49,17 +49,25 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-first",
+            "customLabels": "task-REST",
             "criteria": {
-                "SeriesDescription": "*func_task-first_*_bold*"
+                "SeriesDescription": "*func_task-REST_*_bold*"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-second",
+            "customLabels": "task-Localizer",
             "criteria": {
-                "SeriesDescription": "*func_task-second_*_bold*"
+                "SeriesDescription": "*func_task-Localizer_*_bold*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-MD",
+            "criteria": {
+                "SeriesDescription": "*func_task-MD_*_bold*"
             }
         }
     ]
