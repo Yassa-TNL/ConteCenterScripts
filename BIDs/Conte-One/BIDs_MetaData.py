@@ -39,13 +39,22 @@ JSONS_Hippocampus=LocateFiles('HIPP')
 JSONS_Resting=LocateFiles('REST')
 JSONS_Amygdala=LocateFiles('AMG')
 
+###########################
+### Relabel Tasks Names ###
+###########################
+
+
+#####################################################
+### Add Phase Direction Information AP: j, PA: -j ###
+#####################################################
+
+"PhaseEncodingDirection": "j",
+"PhaseEncodingDirection": "j",
+
 ###############################################################
 ###    Slice Timing Information Based on Scanner Protocol   ###
 ### 51/42 Slices, TR: 2, Default Slice Order/Single Package ###
 ###############################################################
-
-TRsec=2
-nSlices=51
 
 def DefaultSliceTiming(TRsec,nSlices):
     TA=TRsec/nSlices
@@ -85,7 +94,8 @@ def DefaultSliceTiming(TRsec,nSlices):
         second=[]
         for y in TWO:
                 TAmaxODD=max(enumerate(first), key=operator.itemgetter(1))[1]
-                TimeofSliceEVEN=TA*y
+		y_trueval=y+1
+                TimeofSliceEVEN=TA*y_trueval
                 TimeofSliceEVEN=TimeofSliceEVEN+TAmaxODD
                 second.append(TimeofSliceEVEN)
         final=[]
@@ -98,6 +108,9 @@ def DefaultSliceTiming(TRsec,nSlices):
 STI_Resting=DefaultSliceTiming(2,51)
 STI_Hippocampus=DefaultSliceTiming(2,51)
 STI_Amygdala=DefaultSliceTiming(2,42)
+
+
+
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
