@@ -18,14 +18,14 @@ Use
 ###################################################################################################
 
 module load afni/v19.0.01
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fMRItasks/Conte-Two/optseq
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fmritasks/Conte-Two/PsychoPy/JitterOutput
 
 #################################
 ### Caluclate Optimal Jitters ###
 #################################
 
 ${output_dir}/optseq2 --ntp 150 --tr 1.5 --psdwin 0 20 0.5 --ev WIN 6 13 --ev LOSS 6 13 --tprescan -6 \
---evc 1 -1 --nkeep 6 --o ${output_dir}/Doors --tnullmin 1.5 --tnullmax 3.5 --nsearch 250000
+--evc 1 -1 --nkeep 5 --o ${output_dir}/Doors --tnullmin 1.5 --tnullmax 3.5 --nsearch 250000
 
 ######################################
 ### Rearrange Output to CSV Format ###
