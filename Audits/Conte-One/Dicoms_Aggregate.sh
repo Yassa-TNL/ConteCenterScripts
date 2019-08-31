@@ -4,7 +4,7 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 <<Use
 
@@ -13,7 +13,7 @@ in order to create a standardized and central location for them to be uploaded o
 
 Use
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 philips_dir=/Volumes/yassadata/ConteCenter/RawData/Philips
@@ -260,6 +260,29 @@ for sub in ${flywheel_subs}; do
   done
 done
 
+#################################################################################
+### Add Missing Nifitis from DBK Freesurfer Dataset Upon Coverting MGZ to NII ###
+#################################################################################
+
+module load freesurfer/6.0
+
+mgz=`ls /dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One-DBK/*_tp*/mri/T1.mgz`
+for file in $mgz ; do
+  sub=`echo $file | cut -d '/' -f8 | cut -d '_' -f1`
+  ses=`echo $file | cut -d '/' -f8 | cut -d '_' -f2 | sed s@'tp'@''@g`
+  nii=`echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}/ses-${ses}/anat/sub-${sub}_ses-${ses}_T1w.nii.gz`
+  nii_run=`echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}/ses-${ses}/anat/sub-${sub}_ses-${ses}_run-01_T1w.nii.gz`
+
+  if [ -f $nii ] || [ -f $nii_run ] ; then
+    echo "Existing nii file for subject: ${sub} session: ${ses}"
+ else
+    echo "Creating nii file for subject: ${sub} session: ${ses}"
+    mkdir -p `dirname "$nii"`
+    mri_convert ${file} ${nii}
+    chmod ug+wrx ${nii}
+ fi
+done
+
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
