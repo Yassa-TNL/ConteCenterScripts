@@ -106,7 +106,7 @@ for row in $rows ; do
     mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
   fi
 done
-chmod ug+wrx ${FINAL_OUTPUT}
+
 
 ############################################################################
 ### Add Column of Scan Date Based on Dicom Headers to Varify Source File ###
@@ -139,9 +139,9 @@ for row in $rows ; do
   fi
 done 
 
-###########################################################
-### Add column Auditing Nifti Files in BIDs Directories ###
-###########################################################
+############################################################
+### Add Columns Auditing Nifti Files in BIDs Directories ###
+############################################################
 
 AuditBIDsData(){
 header_og=`head -n1 ${FINAL_OUTPUT}`
@@ -182,11 +182,107 @@ done
 
 sequences='anat_T1w dwi_dwi func_REST func_HIPP func_AMG'
 for seq in $sequences ; do
+
   folder=`echo $seq | cut -d '_' -f1`
   name=`echo $seq | cut -d '_' -f2`
   AuditBIDsData $folder $name
+
 done
 
+############################################
+### Add Audit of DBK Freesurfer Analysis ###
+############################################
+
+Freesurfer_DBK='/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/T1w/n360_APARC+ASEG_20190829.csv'
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},Freesurfer_DBK`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  sub=`echo $row | cut -d ',' -f1`
+  ses=`echo $row | cut -d ',' -f2`
+  BIDS_T1w=`echo $row | cut -d ',' -f7`
+  oldrow=`cat $Freesurfer_DBK | grep "^${sub},${ses}," | cut -d ' ' -f1`
+  echo 
+  echo subject: $sub session: $ses bids: $BIDS_T1w
+
+  if [ -z $oldrow ] && [ $BIDS_T1w == 'NA' ] ; then
+    newrow=`echo $row,NA`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "NA:Results NOT Found and NOT Expected for Subject: ${sub} Session: ${ses}"
+  fi
+
+  if [ -n $oldrow ] && [ $BIDS_T1w == 'NA' ] ; then
+    newrow=`echo $row,999`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "999:Results Found but were NOT Expected for Subject: ${sub} Session: ${ses}"
+  fi
+
+  if [ -n $oldrow ] && [ $BIDS_T1w == '0' ] ; then
+    newrow=`echo $row,999`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "999:Results Found but were NOT Expected for Subject: ${sub} Session: ${ses}"
+  fi
+
+  if [ -z $oldrow ] && [ $BIDS_T1w == 1 ] ; then
+    newrow=`echo $row,0`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "0:Results NOT Found but were Expected for Subject: ${sub} Session: ${ses}"
+  fi
+
+  if [ -n $oldrow ] && [ $BIDS_T1w == 1 ] ; then
+    newrow=`echo $row,1`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "1:Results Found and Expected for Subject: ${sub} Session: ${ses}"
+  fi
+done
+
+###############################################################################
+### Add Demographic Information - Dataset Too Preliminary Now Need Full Set ###
+###############################################################################
+<<SKIP
+Demographics=`awk -F "\"*,\"*" '{print $2,$3,$4,$5}' \
+  /dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n275_Age+Sex_20190829.csv \
+  | sed s@' '@','@g \
+  | sed s@'"'@''@g \
+  | tail -n+2`
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},AgeAtScan,Gender_Male1`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+for row in $Demographics ; do
+
+  sub=`echo $row | cut -d ',' -f1`
+  ses=`echo $row | cut -d ',' -f2`
+  AgeAtScan=`echo $row | cut -d ',' -f3`
+  Gender=`echo $row | cut -d ',' -f4`
+  oldrow=`cat $FINAL_OUTPUT | grep ^${sub},${ses}`
+
+  if [ -z "$oldrow" ]
+
+    newrow=`echo ${oldrow},${AgeAtScan},${Gender}`
+    FINAL_OUTPUT_NEW=`cat $FINAL_OUTPUT | sed s@"$oldrow"@"$newrow"@g`
+    mv ${FINAL_OUTPUT_NEW} ${FINAL_OUTPUT}
+
+  else
+
+    newrow=`echo ${oldrow},NA,NA`
+    FINAL_OUTPUT_NEW=`cat $FINAL_OUTPUT | sed s@"$oldrow"@"$newrow"@g`
+    mv ${FINAL_OUTPUT_NEW} ${FINAL_OUTPUT}
+
+  fi
+done
+SKIP
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
