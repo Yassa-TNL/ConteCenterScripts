@@ -63,7 +63,6 @@ dataSubj <- merge(covaData, inputData, by=subjID)
 print("Loading Libraries")
 
 suppressMessages(require(ggplot2))
-suppressMessages(require(optparse))
 suppressMessages(require(base))
 suppressMessages(require(reshape2))
 suppressMessages(require(nlme))
