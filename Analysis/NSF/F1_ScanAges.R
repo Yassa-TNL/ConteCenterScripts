@@ -33,15 +33,11 @@ for (x in 1:maxsubs){
 ##### Plot MRI Timepoints Sorted By Age At Scan and Grouped By Gender #####
 ###########################################################################
 
-ggplot(data=Figure,aes(x=AgeAtScan,y=Sub_Ordered_Age,group=Sub_Ordered_Age,color=Gender)) + \
-  geom_line(size=1.1) + \
-  geom_point(aes(size=0)) +\
-  scale_color_manual(values=c("#e62929", "#2d81f7")) + \
-  theme_classic()
+ggplot(data=Figure,aes(x=AgeAtScan,y=Sub_Ordered_Age,group=Sub_Ordered_Age,color=Gender)) + geom_line(size=1.1) + geom_point(aes(size=0)) + scale_color_manual(values=c("#e62929", "#2d81f7")) + theme_classic()
 
 ### Save Figure and Dataset ###
 
-write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/Figures/n275_F1_Age+Sex_20190829.csv")
+write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/n275_Age+Sex_20190829.csv")
 
 ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1_ScanAges.pdf", device = "pdf", width = 4, height = 5.5)
 
