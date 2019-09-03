@@ -36,9 +36,9 @@ fw login ${FLYWHEEL_API_TOKEN}
 dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/ORE
 dir_bids=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/ORE
 
-fw ls "yassalab/ORE" | sed s@'rw '@''@g | grep -v test > ${dir_dicom}/SUBS_fw.txt
-ls ${dir_bids} | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
-NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@ | grep -v 3d3 | grep -v dataset`
+fw ls "yassalab/ORE" | sed s@'rw '@''@g | grep -v test | grep -v Pilot > ${dir_dicom}/SUBS_fw.txt
+ls ${dir_bids} | sed s@'sub-'@''@g | grep -v dataset > ${dir_dicom}/SUBS_hpc.txt
+NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@ | grep -v 3d3 `
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
 if [ -z "$NewSubs" ]; then
