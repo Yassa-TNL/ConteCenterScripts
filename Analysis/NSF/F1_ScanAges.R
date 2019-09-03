@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 ###################################################################################################
-##########################              CONTE Center 1.0                 ##########################
+##########################                   NSF-GRFP                    ##########################
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
@@ -41,7 +41,7 @@ ggplot(data=Figure,aes(x=AgeAtScan,y=Sub_Ordered_Age,group=Sub_Ordered_Age,color
 
 ### Save Figure and Dataset ###
 
-write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/n275_Age+Sex_20190829.csv")
+write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/Figures/n275_F1_Age+Sex_20190829.csv")
 
 ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1_ScanAges.pdf", device = "pdf", width = 4, height = 5.5)
 
