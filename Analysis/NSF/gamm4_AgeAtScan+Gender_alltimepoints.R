@@ -201,6 +201,7 @@ if (is.null(m[[1]]$s.table)) {
     COLNUM<-which(names(p.output) == COLNAME )
     p.output<-p.output[order(p.output[,COLNUM] ),]
   }
+  outsubDir<-str_replace_all(outsubDir, "_gamm4_", "_lme4_")
   write.csv(p.output, paste0(outsubDir,".csv"), row.names=F)
   Sys.chmod(list.files(dirname(outsubDir), full.names=TRUE), "775", use_umask = FALSE)
 } else {
