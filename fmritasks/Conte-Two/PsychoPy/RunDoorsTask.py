@@ -5,7 +5,7 @@
 ##########################    Robert Jirsaraie & Stephanie Doering       ##########################
 ##########################    rjirsara@uci.edu & doerings@uci.edu        ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 '''
 
@@ -14,7 +14,7 @@ was designed to be used on the 3T Seimens MRI scanner at UC Irvine.
 
 '''
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 from __future__ import absolute_import, division
@@ -95,7 +95,7 @@ imagesDir = os.path.join(currentDir, "images")
 # Initialize Intro1
 Intro1 = visual.ImageStim(
     win=win, name='Intro1',
-    image=os.path.join(imagesDir, 'Intro1.jpg'), mask=None,
+    image=os.path.join(imagesDir, 'Intro1.png'), mask=None,
     ori=0, pos=(0, 0), size=(2, 2),
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
@@ -104,7 +104,7 @@ Intro1 = visual.ImageStim(
 # Initialize Intro2
 Intro2 = visual.ImageStim(
     win=win, name='Intro2',
-    image=os.path.join(imagesDir, 'Intro2.jpg'), mask=None,
+    image=os.path.join(imagesDir, 'Intro2.png'), mask=None,
     ori=0, pos=(0, 0), size=(2, 2),
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
@@ -140,7 +140,7 @@ Fixation = visual.ImageStim(
 # Initialize Doors
 Doors = visual.ImageStim(
     win=win, name='Doors',
-    image=os.path.join(imagesDir, 'Doors.jpg'), mask=None,
+    image=os.path.join(imagesDir, 'Doors.png'), mask=None,
     ori=0, pos=(0, 0), size=(2, 2),
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
@@ -149,7 +149,7 @@ Doors = visual.ImageStim(
 # Initialize SelectLeft
 SelectLeft = visual.ImageStim(
     win=win, name='SelectLeft',
-    image=os.path.join(imagesDir, 'SelectLeft.jpg'), mask=None,
+    image=os.path.join(imagesDir, 'SelectLeft.png'), mask=None,
     ori=0, pos=(0, 0), size=(2, 2),
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
@@ -158,7 +158,7 @@ SelectLeft = visual.ImageStim(
 # Initialize SelectRight
 SelectRight = visual.ImageStim(
     win=win, name='SelectRight',
-    image=os.path.join(imagesDir, 'SelectRight.jpg'), mask=None,
+    image=os.path.join(imagesDir, 'SelectRight.png'), mask=None,
     ori=0, pos=(0, 0), size=(2, 2),
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
@@ -222,7 +222,7 @@ while continueRoutine:
         win.callOnFlip(keyresp1.clock.reset)
         event.clearEvents(eventType='keyboard')
     if keyresp1.status == STARTED:
-        theseKeys = event.getKeys(keyList=['1', '2', '3', '4', ' '])
+        theseKeys = event.getKeys(keyList=['a', 's', 'd', 'f', ' '])
         
         # check for quit:
         if "escape" in theseKeys:
@@ -282,7 +282,7 @@ while continueRoutine:
         win.callOnFlip(keyresp2.clock.reset)
         event.clearEvents(eventType='keyboard')
     if keyresp2.status == STARTED:
-        theseKeys = event.getKeys(keyList=['1', '2', '3', '4', '5', ' '])
+        theseKeys = event.getKeys(keyList=['a', 's', 'd', 'f', ' '])
         
         # check for quit:
         if "escape" in theseKeys:
@@ -349,7 +349,7 @@ for block in range(3):
                 win.callOnFlip(keyresp3.clock.reset)
                 event.clearEvents(eventType='keyboard')
             if keyresp3.status == STARTED:
-                theseKeys = event.getKeys(keyList=['1', '2', '3', '4', '5', ' '])
+                theseKeys = event.getKeys(keyList=['a', 's', 'd', 'f', ' '])
                 
                 # check for quit:
                 if "escape" in theseKeys:
@@ -709,8 +709,8 @@ for block in range(3):
             tr = "Loss"
             
         if response == None: 
-            keyRespTimeStr = "NaN"
-            response = "NaN"
+            keyRespTimeStr = "NA"
+            response = "NA"
         else:
             keyRespTimeStr = "%.10f" %(resp_rt)
             
@@ -803,7 +803,7 @@ with open(filename+ '.txt', 'r') as f:
     for row in results1:
         row[4] = str(int(row[4]))
         row[5] = str(int(float(row[5])))
-        if row[7]!='NaN':
+        if row[7]!='NA':
             row[7]=str(int(float(row[7])))
         row[9]=str(int(float(row[9])))
     
@@ -812,7 +812,7 @@ with open(filename+ '.txt', 'r') as f:
     for row in results2:
         row[4] = str(int(row[4]) + 26)
         row[5] = str(int(float(row[5]))+225)
-        if row[7]!='NaN':
+        if row[7]!='NA':
             row[7]=str(int(float(row[7]))+225)
         row[9]=str(int(float(row[9]))+225)
     
@@ -821,7 +821,7 @@ with open(filename+ '.txt', 'r') as f:
     for row in results3:
         row[4] = str(int(row[4]) + 52)
         row[5] = str(int(float(row[5])) + 450)
-        if row[7]!='NaN':
+        if row[7]!='NA':
             row[7]=str(int(float(row[7]))+450)
         row[9]=str(int(float(row[9]))+450)
         
@@ -874,6 +874,7 @@ for thisComponent in endComponents:
 
 win.close()
 core.quit()
+
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
