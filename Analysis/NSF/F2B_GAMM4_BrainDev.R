@@ -12,38 +12,50 @@ library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
 
-#######################################################################
-##### Prepare the Data to Create Figure of Sample Characteristics #####
-#######################################################################
+####################
+### Read in Data ###
+####################
 
-data<-read.csv("/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n275_Age+Sex_20190829.csv")
+data<-read.csv("/dfs2/yassalab/rjirsara/NSF/Data/COVA-n275_Age+Sex_20190829_RESP-n360_Aseg_volume_20190829/AllScans/n268_gamm4_sAgeAtScank4-Gender_random_1sub_Merged.csv")
 
-Figure <- data[order(data$AgeAtScan),] 
-Figure$Gender<-as.factor(Figure$Gender)
-Figure$Sub_Ordered_Age <- 0
-maxcol<-dim(Figure)[2]
-maxsubs<-length(unique(Figure$sub))
+########################################################################################
+### Create Subject-Level Plots of Total Gray Volume Changes by Session and AgeAtScan ###
+########################################################################################
 
-for (x in 1:maxsubs){
-  subid<-unique(Figure$sub)[x]
-  Figure[which(Figure$sub==subid),maxcol]<-x
+vars<-c(AgeAtScan ses)
+for (varname in vars){
+
+  ### Plot Connecting Points
+  ggplot(data = allscans, aes(x = varname, y = TotalGrayVol)) + 
+	geom_line() +
+	facet_wrap(~sub)
+
+  ### Plot Line of Best Fit
+  ggplot(data = allscans, aes(x = varname, y = TotalGrayVol, group = sub)) + 
+	geom_point() + 
+	stat_smooth(method = "lm",se = FALSE) + 
+	facet_wrap(~sub)
 }
 
-###########################################################################
-##### Plot MRI Timepoints Sorted By Age At Scan and Grouped By Gender #####
-###########################################################################
+#######################################################################
+### Create Group-Level Plots of Total Gray Volume Changes AgeAtScan ###
+#######################################################################
 
-ggplot(data=Figure,aes(x=AgeAtScan,y=Sub_Ordered_Age,group=Sub_Ordered_Age,color=Gender)) + \
-  geom_line(size=1.1) + \
-  geom_point(aes(size=0)) +\
-  scale_color_manual(values=c("#e62929", "#2d81f7")) + \
-  theme_classic()
+ggplot(data = allscans, aes(x=AgeAtScan, y=TotalGrayVol, group=sub))  + geom_point() + geom_line(size=.3) + geom_smooth(size=.3)
 
-### Save Figure and Dataset ###
 
-write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/n275_Age+Sex_20190829.csv")
 
-ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1_ScanAges.pdf", device = "pdf", width = 4, height = 5.5)
+, method="loess", size=2, se=F)
+
+
+
++ geom_smooth(aes(group=Group), method="lm", size=1, se=F)
+
+
+, group=ID, colour=Group
+
+aes(group=Group
+
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ####
