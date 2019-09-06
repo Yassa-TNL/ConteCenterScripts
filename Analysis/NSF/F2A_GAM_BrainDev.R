@@ -11,6 +11,8 @@ library(mgcv)
 library(ggplot2)
 library(cowplot)
 library(RColorBrewer)
+library(visreg)
+library(stringr)
 
 
 suppressMessages(require(ggplot2))
@@ -84,11 +86,20 @@ Models <- lapply(BrainRegions, function(x) {
 
 Results <- lapply(Models, summary)
 
+maxindex<-length(Models)
+
+for (x in 1:maxindex){
+  plotname<-paste("plot",x)
+  plotname<-visreg(Models[[x]],'AgeAtScan')
+}
+
+
+
 ################################################
 ### PLOT ARI as a Predictor of CT Network 18 ### 
 ################################################
 
-plotdata <- visreg(NmfModels[[18]],'ari_log',type = "conditional",scale = "linear", plot = FALSE)
+plotdata <- visreg(Models[[18]],'AgeAtScan',type = "conditional",scale = "linear", plot = FALSE)
 smooths <- data.frame(Variable = plotdata$meta$x,
                       x=plotdata$fit[[plotdata$meta$x]],
                       smooth=plotdata$fit$visregFit,
