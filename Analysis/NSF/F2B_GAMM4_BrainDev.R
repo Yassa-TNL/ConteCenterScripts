@@ -41,20 +41,14 @@ for (varname in vars){
 ### Create Group-Level Plots of Total Gray Volume Changes AgeAtScan ###
 #######################################################################
 
-ggplot(data = allscans, aes(x=AgeAtScan, y=TotalGrayVol, group=sub))  + geom_point() + geom_line(size=.3) + geom_smooth(size=.3)
+ggplot(data = allscans, aes(x=AgeAtScan, y=TotalGrayVol, group=sub)) + stat_smooth(method = "lm",se = FALSE) + facet_wrap(~Gender)
+
+#######################################################################
+### Create Group-Level Plots of Total Gray Volume Changes AgeAtScan ###
+#######################################################################
 
 
 
-, method="loess", size=2, se=F)
-
-
-
-+ geom_smooth(aes(group=Group), method="lm", size=1, se=F)
-
-
-, group=ID, colour=Group
-
-aes(group=Group
 
 
 ###################################################################################################
