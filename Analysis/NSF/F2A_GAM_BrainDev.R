@@ -81,9 +81,29 @@ Results <- lapply(Models, summary)
 gamm4(formula = i ~ s(AgeAtScan, k = 4) + Gender, list(i = as.name(x))), random=as.formula(randomFormula), data=dataSubj, REML=T)$gam
 
 
+ggplot(data_long, aes(x=Age, y=Irritability, group=ID, colour=Group + geom_line(size=.3) + geom_smooth(aes(group=Group), method="loess", size=2, se=F)+ geom_smooth(aes(group=Group), method="lm", size=1, se=F)
+
+ggplot(allscans, aes(x=AgeAtScan, y=, TotalGrayVol + geom_line(size=.3) + geom_smooth(aes(group=sub))
 
 
-ggplot(allscans, aes(x=AgeAtScan, y=, group=sub, colour=sub + geom_line(size=.3) + geom_smooth(aes(group=Group), method="loess", size=2, se=F)+ geom_smooth(aes(group=Group), method="lm", size=1, se=F)
+, method="loess", size=2, se=F)+ geom_smooth(aes(group=Group)), method="lm", size=1, se=F)
+
+
+
+ggplot(data = allscans, aes(x = AgeAtScan, y = TotalGrayVol)) + geom_line() +
+    facet_wrap(~sub)
+
+
+
+ggplot(data = allscans, aes(x = AgeAtScan, y = TotalGrayVol, group = sub)) + geom_point() + stat_smooth(method = "lm",se = FALSE) + facet_wrap(~sub)
+
+
+
+### Cool Example Image to Emulate
+ggplot(diamonds) + geom_point(aes(x=carat, y=price, color=cut)) + geom_smooth(aes(x=carat, y=price, color=cut)) 
+`geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+
+
 
 
 
