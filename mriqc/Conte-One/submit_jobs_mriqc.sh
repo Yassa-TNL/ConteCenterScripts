@@ -40,7 +40,7 @@ fi
 ##### Define New Subjects that Need to Be Processed #####
 #########################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n3`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n5`
 
 for subject in ${AllSubs} ; do
 
@@ -48,7 +48,7 @@ for subject in ${AllSubs} ; do
   ses=`echo $subject | cut -d '_' -f2`
   output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}
 
-  html=`echo ${output_base_dir}/*.html | cut -d ' ' -f1`
+  html=`echo ${output_base_dir}/sub-${sub}_ses-${ses}_*.html | cut -d ' ' -f1`
 
   if [ -f ${html} ] ; then
 
@@ -73,13 +73,15 @@ for subject in ${AllSubs} ; do
     else
 
        echo ''
-       echo "######################################################"
-       echo "#MRIQC JOB BEING SUBMITTED for sub-${sub}/ses-${ses} #"
-       echo "######################################################"
+       echo "#####################################################"
+       echo "#MRIQC JOB BEING SUBMITTED For sub-${sub}/ses-${ses} "
+       echo "#####################################################"
        echo ''
 
-       JobName=`echo QC_${sub}`
-       qsub -N ${JobName} /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/Conte-One/mriqc_pipeline.sh ${sub} ${mriqc_container}
+       JobName=`echo QC${sub}x${ses}`
+       Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/Conte-One/mriqc_pipeline.sh 
+       
+       qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${mriqc_container}
 
     fi
   fi
