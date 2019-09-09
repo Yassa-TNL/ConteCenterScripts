@@ -36,28 +36,26 @@ else
 
 fi
 
-###############################################################
-##### Define New Subjects to be Processed and Submit Jobs #####
-###############################################################
+#########################################################
+##### Define New Subjects that Need to Be Processed #####
+#########################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-* | cut -d '/' -f8,9 | sed s@'sub-'@''@g | sed s@'/ses-'@'_'@g | head -n3`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n3`
 
 for subject in ${AllSubs} ; do
 
   sub=`echo $subject | cut -d '_' -f1`
   ses=`echo $subject | cut -d '_' -f2`
-  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One
+  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}
 
-  qa=`echo ${output_base_dir}/sub-${sub}/ses-${ses}/func/sub-${sub}_ses-${ses}_task-*_bold_confounds.tsv`
-  preproc=`echo ${output_base_dir}/sub-${sub}/ses-${ses}/func/sub-${sub}_ses-${ses}_task-*_*_preproc.nii`
-  html=`echo ${output_base_dir}/sub-${sub}.html`
+  html=`echo ${output_base_dir}/*.html | cut -d ' ' -f1`
 
-  if [ -f ${qa} ] && [ -f ${preproc} ] && [ -f ${html} ] ; then
+  if [ -f ${html} ] ; then
 
     echo ''
-    echo "##################################################################"
-    echo "#sub-${sub}/ses-${ses} already ran through the fmriprep pipeline..."
-    echo "##################################################################"
+    echo "################################################################"
+    echo "#sub-${sub}/ses-${ses} already ran through the mriqc pipeline..."
+    echo "################################################################"
     echo ''
 
   else
@@ -80,12 +78,8 @@ for subject in ${AllSubs} ; do
        echo "######################################################"
        echo ''
 
-       cat /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fmriprep/Conte-One/fmriprep_preproc_pipeline.sh | sed s@"SUB"@"$sub"@g \
-       | sed s@"SES"@"$ses"@g | sed s@"CONTAINER"@"$fmriprep_container"@g > SUBMITJOB_TEMP.sh
-
-       chmod 775 SUBMITJOB_TEMP.sh
-       qsub SUBMITJOB_TEMP.sh
-       rm SUBMITJOB_TEMP.sh
+       JobName=`echo QC_${sub}`
+       qsub -N ${JobName} /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/Conte-One/mriqc_pipeline.sh ${sub} ${mriqc_container}
 
     fi
   fi
