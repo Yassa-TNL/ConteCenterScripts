@@ -48,7 +48,7 @@ logfile=`echo ${output_dir}/logs/group_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC_GROUP.e* QC_GROUP.o* 
 
-singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} group --work-dir ${working_dir}
+singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} group --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8
 
 chmod -R 775 ${output_dir}
 fi
