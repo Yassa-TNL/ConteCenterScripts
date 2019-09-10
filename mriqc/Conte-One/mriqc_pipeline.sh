@@ -1,52 +1,39 @@
 #!/bin/bash
-#$ -N qc105
-#$ -q yassalab
-#$ -pe openmp 64
+#$ -q yassalab,free*
+#$ -pe openmp 8-64
 #$ -R y
 #$ -ckpt restart
-#####################################
-### Define Input and Output Paths ###
-#####################################
+#####################
+### Define Inputs ###
+#####################
 
-bids_root_path=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One
-output_inter_dir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Spooling/One
-#log_dir=`echo $output_inter_dir/fmriprep/logs`
-#mkdir -p $log_dir
+sub=`echo $1`
+ses=`echo $2`
+mriqc_container=`echo $3`
+bids_directory=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One
+
+######################
+### Define Outputs ###
+######################
+
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}
+working_dir=${output_dir}/sub-${sub}_ses-${ses}_intermediates
+commandfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_command.txt`
+logfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_stdout.txt`
+mkdir -p ${working_dir} `dirname ${logfile}` 
+rm QC${sub}x${ses}.e* QC${sub}x${ses}.o* 
 
 #############################################################
 ### Execute Fmriprep Pipeline using Singularity Container ###
 #############################################################
 
-module purge
-module load singularity/3.0.0
+module purge 2>/dev/null 
+module load singularity/3.0.0 2>/dev/null 
 
-singularity run --cleanenv /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/mriqc-latest.simg /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One /dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One participant --participant-label 105
+echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${sub} --session-id ${ses} --work-dir ${working_dir}" > ${commandfile}
 
+singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${sub} --session-id ${ses} --work-dir ${working_dir} > ${logfile} 2>&1
 
-
-<<SKIP
-CONTAINER ${bids_root_path} ${output_inter_dir} participant --participant_label SUB --fs-license-file \
-${scripts_path}/fs_license.txt --fs-no-reconall --longitudinal --force-bbr --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc \
---write-graph --low-mem > ${log_dir}/SUBxSES_stdout.txt 2>&1
-
-######################################################
-### Move Output to Final Subject-level Directories ###
-######################################################
-
-if [ -f ${output_inter_dir}/fmriprep/sub-SUB*.html ] ; then
-
-  chmod -r 775 ${output_inter_dir}/fmriprep/sub-SUB*
-  cp -rf ${output_inter_dir}/fmriprep/sub-SUB* /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/ 
-  cp -rf ${log_dir}/SUBxSES_stdout.txt /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/logs/
-
-else
-
-  echo ''
-  echo "${SUB}x${SES} did not complete processing through the fmriprep pipeline - Check logs"
-  echo ''
-
-fi
-SKIP
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
