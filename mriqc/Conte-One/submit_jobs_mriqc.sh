@@ -44,7 +44,7 @@ fi
 ##### Define New Subjects that Need to Be Processed #####
 #########################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n15`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g`
 
 for subject in ${AllSubs} ; do
 
@@ -90,6 +90,36 @@ for subject in ${AllSubs} ; do
     fi
   fi
 done
+
+####################################
+##### Run Group-Level Analyses #####
+####################################
+
+JobStats=`qstat -u $USER | grep "QC_GROUP" | awk {'print $5'}`
+GroupHTML=`echo ${output_base_dir}/sub-${sub}_ses-${ses}_*.html | cut -d ' ' -f1`
+
+if [ "$JobStats" == "r" ] || [ "$JobStats" == "qw" ] || [ -f "$GroupHTML" ] ; then
+
+  echo ''
+  echo "############################################################"
+  echo "# Group-Level Analyses Are Completed -- Skipping Processing "
+  echo "############################################################"
+  echo ''
+
+else
+
+  echo ''
+  echo "###############################################"
+  echo "# Job Being Submitted for Group-Level Analyses "
+  echo "###############################################"
+  echo ''
+
+  JobName=`echo QC_GROUP`
+  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/Conte-One/mriqc_pipeline.sh 
+       
+  qsub -N ${JobName} ${Pipeline} GROUP ${mriqc_container}
+
+fi
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
