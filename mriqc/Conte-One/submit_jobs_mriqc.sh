@@ -95,10 +95,10 @@ done
 ##### Run Group-Level Analyses #####
 ####################################
 
-JobStats=`qstat -u $USER | grep "QC_GROUP" | awk {'print $5'}`
-GroupHTML=`echo ${output_base_dir}/sub-${sub}_ses-${ses}_*.html | cut -d ' ' -f1`
+GroupJobStats=`qstat -u $USER | grep "QC_GROUP" | awk {'print $5'}`
+GroupHTML=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/Group/*.html
 
-if [ "$JobStats" == "r" ] || [ "$JobStats" == "qw" ] || [ -f "$GroupHTML" ] ; then
+if [ "$GroupJobStats" == "r" ] || [ "$GroupJobStats" == "qw" ] || [ -f "$GroupHTML" ] ; then
 
   echo ''
   echo "############################################################"
@@ -114,10 +114,10 @@ else
   echo "###############################################"
   echo ''
 
-  JobName=`echo QC_GROUP`
+  GroupJobName=`echo QC_GROUP`
   Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/Conte-One/mriqc_pipeline.sh 
        
-  qsub -N ${JobName} ${Pipeline} GROUP ${mriqc_container}
+  qsub -N ${GroupJobName} ${Pipeline} "GROUP" ${mriqc_container}
 
 fi
 
