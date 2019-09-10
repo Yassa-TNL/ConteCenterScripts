@@ -9,29 +9,33 @@
 <<Use
 
 This script identifies subjects and processes data from Conte-One who need to be run through the 
-fmriprep preprocessing pipeline via singulatiry image.
+mriqc pipeline via singulatiry image.
 
 Use
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-module purge
-module load singularity/3.0.0
+module purge 2>/dev/null 
+module load singularity/3.0.0 2>/dev/null 
 
 #######################################################
-##### Build FMRIPREP Singularity Image if Missing #####
+##### Build MRIQC Singularity Image if Missing #####
 #######################################################
 
 mriqc_container=`echo /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/mriqc-latest.simg`
 if [ -f $mriqc_container ] ; then
 
   version=`singularity run --cleanenv $mriqc_container --version | cut -d ' ' -f2`
+  echo ''
   echo "Preprocessing will be Completed using MRIQC Singularity Image: ${version}"
+  echo ''
 
 else
 
+  echo ''
   echo "Singularity Image Not Found -- Building New Containter with Latest Version of MRIQC"
+  echo ''
   singularity build ${mriqc_container} docker://poldracklab/mriqc:latest
 
 fi
@@ -40,7 +44,7 @@ fi
 ##### Define New Subjects that Need to Be Processed #####
 #########################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n5`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-* | cut -d '/' -f8,9 | cut -d '-' -f2,3 | sed s@'/ses-'@'_'@g | head -n15`
 
 for subject in ${AllSubs} ; do
 
