@@ -50,20 +50,23 @@ fi
 
 if [ ${sub} == "GROUP" ]; then
 
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/group
-working_dir=${output_dir}/group_intermediates
-commandfile=`echo ${output_dir}/logs/group_command.txt`
-logfile=`echo ${output_dir}/logs/group_stdout.txt`
+GROUP=`ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One | grep -v data`
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/Group
+working_dir=${output_dir}/Group_intermediates
+commandfile=`echo ${output_dir}/logs/Group_command.txt`
+logfile=`echo ${output_dir}/logs/Group_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC_GROUP.e* QC_GROUP.o* 
+
+echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${GROUP} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8" > ${commandfile}
 
 singularity run --cleanenv ${mriqc_container} \
   ${bids_directory} \
   ${output_dir} \
-  group \
+  participant --participant-label ${GROUP} \
   --work-dir ${working_dir} \
   --n_procs 8 \
-  --ants-nthreads 8
+  --ants-nthreads 8 > ${logfile} 2>&1
 
 chmod -R 775 ${output_dir}
 fi
