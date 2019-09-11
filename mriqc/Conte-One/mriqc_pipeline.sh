@@ -15,9 +15,9 @@ ses=`echo $2`
 mriqc_container=`echo $3`
 bids_directory=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One
 
-##############################################################################
-### Execute Subject-Level Analysis of Fmriprep using Singularity Container ###
-##############################################################################
+###########################################################################
+### Execute Subject-Level Analysis of MRIQC using Singularity Container ###
+###########################################################################
 
 if [ ! ${sub} == "GROUP" ]; then
 
@@ -28,16 +28,25 @@ logfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC${sub}x${ses}.e* QC${sub}x${ses}.o* 
 
-echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${sub} --session-id ${ses} --work-dir ${working_dir}" --n_procs 8 --ants-nthreads 8 --fft-spikes-detector --fd_thres 0.2 > ${commandfile}
+echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${sub} --session-id ${ses} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8 --fft-spikes-detector --fd_thres 0.2" > ${commandfile}
 
-singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${sub} --session-id ${ses} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8 --fft-spikes-detector --fd_thres 0.2 > ${logfile} 2>&1
+singularity run --cleanenv ${mriqc_container} \
+  ${bids_directory} \
+  ${output_dir} \
+  participant --participant-label ${sub} \
+  --session-id ${ses} \
+  --work-dir ${working_dir} \
+  --n_procs 8 \
+  --ants-nthreads 8 \
+  --fft-spikes-detector \
+  --fd_thres 0.2 > ${logfile} 2>&1
 
 chmod -R 775 ${output_dir}
 fi
 
-#############################################################
-### Execute Fmriprep Pipeline using Singularity Container ###
-#############################################################
+##########################################################
+### Execute MRIQC Pipeline using Singularity Container ###
+##########################################################
 
 if [ ${sub} == "GROUP" ]; then
 
@@ -48,7 +57,13 @@ logfile=`echo ${output_dir}/logs/group_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC_GROUP.e* QC_GROUP.o* 
 
-singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} group --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8
+singularity run --cleanenv ${mriqc_container} \
+  ${bids_directory} \
+  ${output_dir} \
+  group \
+  --work-dir ${working_dir} \
+  --n_procs 8 \
+  --ants-nthreads 8
 
 chmod -R 775 ${output_dir}
 fi
