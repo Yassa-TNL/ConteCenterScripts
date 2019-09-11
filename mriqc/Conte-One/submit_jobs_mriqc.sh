@@ -19,9 +19,9 @@ Use
 module purge 2>/dev/null 
 module load singularity/3.0.0 2>/dev/null 
 
-#######################################################
+####################################################
 ##### Build MRIQC Singularity Image if Missing #####
-#######################################################
+####################################################
 
 mriqc_container=`echo /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/mriqc/mriqc-latest.simg`
 if [ -f $mriqc_container ] ; then
