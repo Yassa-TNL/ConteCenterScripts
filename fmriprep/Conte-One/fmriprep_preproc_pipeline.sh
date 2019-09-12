@@ -26,24 +26,9 @@ logfile=`echo ${output_dir}/logs/sub-${sub}_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm FP${sub}.e* FP${sub}.o* 
 
-echo " singularity run --cleanenv ${fmriprep_container} ${bids_directory} participant --participant_label ${sub} -w ${output_inter_dir} --fs-license-file ${scripts_path}/fs_license.txt --fs-no-reconall --longitudinal --force-bbr --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc --write-graph --low-mem" > ${commandfile}
+echo "singularity run --cleanenv ${fmriprep_container} ${bids_directory} ${output_dir} participant --participant_label ${sub} --work-dir ${working_dir} --fs-license-file ${fslicense} --skip-bids-validation --fs-no-reconall --longitudinal --nthreads 16 --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc --write-graph --stop-on-first-crash --low-mem " > ${commandfile}
 
-singularity run --cleanenv ${fmriprep_container} \
-  ${bids_directory} \
-  ${output_dir} \
-  participant --participant_label ${sub} \
-  --work-dir ${working_dir} \
-  --fs-license-file ${fslicense} \
-  --skip-bids-validation \
-  --fs-no-reconall \ 
-  --longitudinal \
-  --nthreads 16 \
-  --use-aroma \
-  --fd-spike-threshold 0.2 \
-  --use-syn-sdc \
-  --write-graph \
-  --stop-on-first-crash \
-  --low-mem > ${logfile} 2>&1
+singularity run --cleanenv ${fmriprep_container} ${bids_directory} ${output_dir} participant --participant_label ${sub} --work-dir ${working_dir} --fs-license-file ${fslicense} --skip-bids-validation --fs-no-reconall --longitudinal --nthreads 16 --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc --write-graph --stop-on-first-crash --low-mem > ${logfile} 2>&1
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
