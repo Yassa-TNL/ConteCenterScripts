@@ -44,7 +44,7 @@ fi
 ##### Define New Subjects to be Processed and Submit Jobs #####
 ###############################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n1`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n10`
 
 for sub in ${AllSubs} ; do
 
@@ -78,14 +78,14 @@ for sub in ${AllSubs} ; do
 
        echo ''
        echo "##############################################"
-       echo "#Fmriprep Job Being Submitted for sub-${sub} #"
+       echo "#Fmriprep Job Being Submitted for sub-${sub}  "
        echo "##############################################"
        echo ''
 
        JobName=`echo FP${sub}`
        Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fmriprep/Conte-One/fmriprep_preproc_pipeline.sh
        
-       qsub -N ${JobName} ${Pipeline} ${sub} ${mriqc_container}
+       qsub -N ${JobName} ${Pipeline} ${sub} ${fmriprep_container}
     fi
   fi
 done
