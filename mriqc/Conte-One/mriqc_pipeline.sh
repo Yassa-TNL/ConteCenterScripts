@@ -50,7 +50,7 @@ fi
 
 if [ ${sub} == "GROUP" ]; then
 
-GROUP=`ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One | grep -v data`
+GROUP=`ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One | grep -v data | cut -d '-' -f2`
 output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/Group
 working_dir=${output_dir}/Group_intermediates
 commandfile=`echo ${output_dir}/logs/Group_command.txt`
