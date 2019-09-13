@@ -54,38 +54,33 @@ rTP2<-GetTimepoint(2)
 rTP3<-GetTimepoint(3)
 rTP4<-GetTimepoint(4)
 
-####################################################
-##### Remove Extra 15 Scans from 4th Timepoint #####
-####################################################
+temp1<-rTP1[-c(which(rTP1$sub %in% rTP4$sub)),]
+Figure<-rbind(temp1,rTP2,rTP3,rTP4)
 
-ExcludeExtra4th<-rbind(rTP1,rTP2,rTP3)
+#############################################
+##### Redefine Session To Be Consistent #####
+#############################################
 
+data<-Figure
+fTP1<-GetTimepoint(1)
+fTP2<-GetTimepoint(2)
+fTP3<-GetTimepoint(3)
 
-Figure<-data[-c(which(rTP1$sub %in% rTP4$sub)),]
+fTP1$Session<-1
+fTP2$Session<-2
+fTP3$Session<-3
 
-
-ses4persub<-which(TP3_All$sub %in% TP4$sub)
-data<-TP3
-
-
-
-
-
-
-
-
-ses4persubTP1<-which(TP3_All[ses4persub,"ses"]==0)
-ses4persubTP2<-which(TP3_All[ses4persub,"ses"]==1)
-ses4persubTP3<-which(TP3_All[ses4persub,"ses"]==2)
-ses4persubTP4<-which(TP3_All[ses4persub,"ses"]==3)
-
-
-
-
-
+Figure<-rbind(fTP1,fTP2,fTP3)
 Figure <- Figure[order(Figure$AgeAtScan),] 
+
+###################################################################
+##### Prepare Final Dataset for Figure of Scan Age By Session #####
+###################################################################
+
+
 Figure$Gender<-as.factor(Figure$Gender)
-Figure$Sub_Ordered_Age <- 0
+Figure$Session<-as.factor(Figure$Session)
+Figure$Subject <- 0
 maxcol<-dim(Figure)[2]
 maxsubs<-length(unique(Figure$sub))
 
@@ -98,13 +93,19 @@ for (x in 1:maxsubs){
 ##### Plot MRI Timepoints Sorted By Age At Scan and Grouped By Gender #####
 ###########################################################################
 
-ggplot(data=Figure,aes(x=AgeAtScan,y=Sub_Ordered_Age,group=Sub_Ordered_Age,color=Gender)) + geom_line(size=1.1) + geom_point(aes(size=0)) + scale_color_manual(values=c("#e62929", "#2d81f7")) + theme_classic()
+Grp_Gender<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject,color=Gender)) + geom_line(size=1.1) + geom_point(aes(size=0)) + scale_color_manual(values=c("#e62929", "#2d81f7")) + theme_classic()
+
+Grp_Session<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject)) + geom_line(size=1.5) + geom_point(aes(color=Session),size=3.5) + scale_color_manual(values=c("#c40000", "#0037ff", "#1db52c")) + theme_classic()
 
 ### Save Figure and Dataset ###
 
-#write.csv(Figure, "/dfs2/yassalab/rjirsara/NSF/Data/n275_Age+Sex_20190829.csv")
+dir.create("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153")
+write.csv(Figure,"/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n153_Figure-1_20190912.csv")
+Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n153_Figure-1_20190912.csv", mode = "775")
 
-#ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1_ScanAges.pdf", device = "pdf", width = 4, height = 5.5)
+dir.create("/dfs2/yassalab/rjirsara/NSF/Figures")
+ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1A_ScanAges.pdf", device = "pdf", width = 4, height = 5.5)
+Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Figures/F1A_ScanAges.pdf", mode = "775")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
