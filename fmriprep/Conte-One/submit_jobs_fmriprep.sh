@@ -44,7 +44,7 @@ fi
 ##### Define New Subjects to be Processed and Submit Jobs #####
 ###############################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n10`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n13`
 
 for sub in ${AllSubs} ; do
 
