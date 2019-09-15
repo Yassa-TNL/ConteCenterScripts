@@ -21,8 +21,7 @@ suppressMessages(require(plyr))
 suppressMessages(require(fslr))
 suppressMessages(require(voxel))
 suppressMessages(require(stringr))
-suppressMessages(require(plotly))
-suppressMessages(require(scatterplot3d))
+suppressMessages(require(plot3D))
 
 #######################################################
 ##### Prepare Data For ScatterPlots of Each Model #####
@@ -30,72 +29,102 @@ suppressMessages(require(scatterplot3d))
 
 alltimepoints<-read.csv("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n153_Figure-1_20190912.csv")
 alltimepoints$X.1<-NULL
-alltimepoints$Gender<-as.factor(alltimepoints$Gender)
-BrainRegions <- names(alltimepoints)[6:67]
-TP1<-alltimepoints[which(alltimepoints$Session==1),]
-TP2<-alltimepoints[which(alltimepoints$Session==2),]
-TP3<-alltimepoints[which(alltimepoints$Session==3),]
 attach(alltimepoints)
 
-#############################################################
-##### Calculate Longitudinal Model on All Scans (GAMM4) #####
-#############################################################
+slopes <- read.csv("C:/cygwin64/home/Rober/n101_Slopes_20190912.csv")
+slopes$X<-NULL
+slopes$Variable<-1
+slopes$Ses1<-slopes$Variable
+slopes$Variable.1<-2
+slopes$Ses2<-slopes$Variable.1
+slopes$Variable.2<-3
+slopes$Ses3<-slopes$Variable.2
+slopes$Variable.3<-9
+slopes$Ses9<-slopes$Variable.3
 
-GAMM4_Models <- lapply(BrainRegions, function(x) {
-	gamm4(substitute(i ~ s(AgeAtScan,k=4) + Gender, list(i = as.name(x))), random=as.formula(~(1|sub)), data=alltimepoints, REML=T)$gam
-})
+##########################################################
+##### Adds Points From Each Timepoint to the 3D Plot #####
+##########################################################
 
-GAMM4_Results <- lapply(GAMM4_Models, summary)
-attach(alltimepoints)
-GAMM4_plotdata <- visreg(GAMM4_Models[[52]],'AgeAtScan',type = "conditional",scale = "linear", plot = FALSE)
-GAMM4_smooths <- data.frame(Variable = GAMM4_plotdata$meta$x,
-                      x=GAMM4_plotdata$fit[[GAMM4_plotdata$meta$x]],
-                      smooth=GAMM4_plotdata$fit$visregFit,
-                      lower=GAMM4_plotdata$fit$visregLwr,
-                      upper=GAMM4_plotdata$fit$visregUpr)
+scatter3D(alltimepoints$AgeAtScan,alltimepoints$Session,alltimepoints$TotalGrayVol, 
+           colvar= as.integer(alltimepoints$Session),
+           col = c("#2A3132","#336B87","#90AFC5"),
+           xlim=c(6,16),
+           ylim=c(1,3.5),
+           zlim=c(400000,900000),
+           pch =19,
+           cex = 0.30,
+           bty="b",
+           theta=60,
+           phi=30,
+           ticktype="detailed",
+           type="p")
 
-####################################################################
-##### Calculate Cross-Sectional Models at Each Timepoint (GAM) #####
-####################################################################
+##########################################################
+##### Adds Slopes From Each Timepoint to the 3D plot #####
+##########################################################
 
-AnalyzeSlope <- function(Timepoint){
-  attach(Timepoint)
-  GAM_Models <- lapply(BrainRegions, function(x) {
-	gam(substitute(i ~ s(AgeAtScan,k=4) + Gender, list(i = as.name(x))), method="REML", data=Timepoint)
-  })
-  GAM_Results <- lapply(GAM_Models, summary)
-  GAM_plotdata <- visreg(GAM_Models[[52]],'AgeAtScan',type = "conditional",scale = "linear", plot = FALSE)
-  GAM_smooths <- data.frame(Variable = GAM_plotdata$meta$x,
-                      x=GAM_plotdata$fit[[GAM_plotdata$meta$x]],
-                      smooth=GAM_plotdata$fit$visregFit,
-                      lower=GAM_plotdata$fit$visregLwr,
-                      upper=GAM_plotdata$fit$visregUpr)
-  detach(Timepoint)
-  return(GAM_smooths)
+scatter3D(slopes$x,slopes$Ses1,slopes$TP1vol, 
+           colvar= NULL,
+           col = c("#00ddff"),
+           pch =19,
+           cex = 1.35,
+           add=TRUE,
+           type="b")
+
+scatter3D(slopes$x.1,slopes$Ses2,slopes$TP2vol, 
+           colvar= NULL,
+           col = c("#00aaff"),
+           pch =19,
+           cex = 1.35,
+           add=TRUE,
+           type="b")
+
+scatter3D(slopes$x.2,slopes$Ses3,slopes$TP3vol, 
+           colvar= NULL,
+           col = c("#006eff"),
+           pch =19,
+           cex = 1.35,
+           add=TRUE,
+           type="b")
+
+######################################################
+##### Caculate and Add Subject-level Trajecories #####
+######################################################
+
+Subjects<-unique(alltimepoints$sub)
+#Subjects<-Subjects[1:10]
+
+for (x in Subjects){
+  Single<-alltimepoints[which(alltimepoints$sub==x),]
+  fit <- gam(TotalGrayVol ~ Session, method="REML", data=Single)
+  Output<-visreg(fit, "Session",scale = "linear", plot = FALSE)
+  age1<-Single$AgeAtScan[1]
+  age3<-Single$AgeAtScan[3]
+  increments<-(age3-age1)/101
+  Output$fit$AgeSlope<-0
+  for (y in 1:101){
+    INCREASE<-y*increments
+    Output$fit$AgeSlope[y]<-age1+INCREASE
+  }
+  DATA<-data.frame(Output$fit$Session,Output$fit$visregFit,Output$fit$AgeSlope)
+  names(DATA)<-c("SES","VOL","AGE")
+  scatter3D(DATA$AGE,DATA$SES,DATA$VOL, 
+           colvar= NULL,
+           col = c("#763626"),
+           pch =19,
+           cex = 0.35,
+           add=TRUE,
+           type="l",
+           data="DATA")
 }
 
-SlopeTP1<-AnalyzeSlope(TP1)
-SlopeTP2<-AnalyzeSlope(TP2)
-SlopeTP3<-AnalyzeSlope(TP3)
+#######################
+##### Save Figure #####
+#######################
 
-#######################################################
-### Overlap the Four Models on the Same Scatterplot ###
-#######################################################
-
-FINAL<-ggplot() + 
-     geom_smooth(data=SlopeTP1,aes(x,smooth),fill="#0037ff", colour="#0037ff", size=2.25) + 
-     geom_point(data=TP1, aes(AgeAtScan,TotalGrayVol), colour="#0037ff", size=2) + 
-     geom_smooth(data=SlopeTP2,aes(x,smooth),fill="#c40000", colour="#c40000", size=2.25) + 
-     geom_point(data=TP2, aes(AgeAtScan,TotalGrayVol), colour="#c40000", size=2) + 
-     geom_smooth(data=SlopeTP3,aes(x,smooth),fill="#1db52c", colour="#1db52c", size=2.25) + 
-     geom_point(data=TP3, aes(AgeAtScan,TotalGrayVol), colour="#1db52c", size=2) + 
-     geom_smooth(data=GAMM4_smooths, aes(x,smooth),fill="#000000", colour="#000000", size=2.75)
-
-### Save Figure ###
-
-dir.create("/dfs2/yassalab/rjirsara/NSF/Figures")
-ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1C_Between-Subs_Dev.pdf", device = "pdf", width = 4, height = 5.5)
-Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Figures/F1C_Between-Subs_Dev.pdf", mode = "775")
+ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1B_3D-WithinTraj_Dev.pdf", device = "pdf", width = 4, height = 5.5)
+Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Figures/F1B_3D-WithinTraj_Dev.pdf", mode = "775")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
