@@ -31,7 +31,7 @@ alltimepoints<-read.csv("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-
 alltimepoints$X.1<-NULL
 attach(alltimepoints)
 
-slopes <- read.csv("C:/cygwin64/home/Rober/n101_Slopes_20190912.csv")
+slopes <- read.csv("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n101_Slopes_20190912.csv")
 slopes$X<-NULL
 slopes$Variable<-1
 slopes$Ses1<-slopes$Variable
@@ -48,14 +48,14 @@ slopes$Ses9<-slopes$Variable.3
 
 scatter3D(alltimepoints$AgeAtScan,alltimepoints$Session,alltimepoints$TotalGrayVol, 
            colvar= as.integer(alltimepoints$Session),
-           col = c("#2A3132","#336B87","#90AFC5"),
+           col = c("#006eff","#00aaff","#00ddff"),
            xlim=c(6,16),
            ylim=c(1,3.5),
            zlim=c(400000,900000),
            pch =19,
            cex = 0.30,
            bty="b",
-           theta=60,
+           theta=120,
            phi=30,
            ticktype="detailed",
            type="p")
@@ -66,7 +66,7 @@ scatter3D(alltimepoints$AgeAtScan,alltimepoints$Session,alltimepoints$TotalGrayV
 
 scatter3D(slopes$x,slopes$Ses1,slopes$TP1vol, 
            colvar= NULL,
-           col = c("#00ddff"),
+           col = c("#006eff"),
            pch =19,
            cex = 1.35,
            add=TRUE,
@@ -82,7 +82,7 @@ scatter3D(slopes$x.1,slopes$Ses2,slopes$TP2vol,
 
 scatter3D(slopes$x.2,slopes$Ses3,slopes$TP3vol, 
            colvar= NULL,
-           col = c("#006eff"),
+           col = c("#00ddff"),
            pch =19,
            cex = 1.35,
            add=TRUE,
@@ -93,7 +93,6 @@ scatter3D(slopes$x.2,slopes$Ses3,slopes$TP3vol,
 ######################################################
 
 Subjects<-unique(alltimepoints$sub)
-#Subjects<-Subjects[1:10]
 
 for (x in Subjects){
   Single<-alltimepoints[which(alltimepoints$sub==x),]
@@ -111,11 +110,11 @@ for (x in Subjects){
   names(DATA)<-c("SES","VOL","AGE")
   scatter3D(DATA$AGE,DATA$SES,DATA$VOL, 
            colvar= NULL,
-           col = c("#763626"),
+           col = c("#654321"),
            pch =19,
-           cex = 0.35,
+           cex = 0.05,
            add=TRUE,
-           type="l",
+           type="b",
            data="DATA")
 }
 
