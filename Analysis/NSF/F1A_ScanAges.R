@@ -93,9 +93,9 @@ for (x in 1:maxsubs){
 ##### Plot MRI Timepoints Sorted By Age At Scan and Grouped By Gender #####
 ###########################################################################
 
-Grp_Gender<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject,color=Gender)) + geom_line(size=1.1) + geom_point(aes(size=0)) + scale_color_manual(values=c("#e62929", "#2d81f7")) + theme_classic()
+#Grp_Gender<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject,color=Gender)) + geom_line(size=1.1) + geom_point(aes(size=0)) + scale_color_manual(values=c("#e62929", "#2d81f7")) + theme_classic()
 
-Grp_Session<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject)) + geom_line(size=1.5) + geom_point(aes(color=Session),size=3.5) + scale_color_manual(values=c("#c40000", "#0037ff", "#1db52c")) + theme_classic()
+Grp_Session<-ggplot(data=Figure,aes(x=AgeAtScan,y=Subject,group=Subject)) + geom_line(aes(color="#654321"), size=1.5) + geom_point(aes(color=Session),size=3.5) + scale_color_manual(values=c("#654321","#006eff", "#00aaff", "#00ddff")) + theme_classic()
 
 ### Save Figure and Dataset ###
 
