@@ -22,6 +22,7 @@ suppressMessages(require(fslr))
 suppressMessages(require(voxel))
 suppressMessages(require(stringr))
 suppressMessages(require(plot3D))
+suppressMessages(require(scatterplot3d))
 
 #######################################################
 ##### Prepare Data For ScatterPlots of Each Model #####
