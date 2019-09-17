@@ -91,9 +91,13 @@ FINAL<-ggplot() +
      geom_point(data=TP3, aes(AgeAtScan,TotalGrayVol), colour="#00ddff", size=2) + 
      geom_smooth(data=GAMM4_smooths, aes(x,smooth),fill="#654321", colour="#654321", size=2.75)
 
-### Save Figure ###
+###############################
+### Save Figure and Dataset ###
+###############################
 
-dir.create("/dfs2/yassalab/rjirsara/NSF/Figures")
+write.csv(GAMM4_smooths,"/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n153_Within-Traj_Model.csv")
+Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Data/F1_sub-51_ses-3_scans-153/n153_Within-Traj_Model.csv", mode = "775")
+
 ggsave(file="/dfs2/yassalab/rjirsara/NSF/Figures/F1B_Between-Subs_Dev.pdf", device = "pdf", width = 4, height = 5)
 Sys.chmod("/dfs2/yassalab/rjirsara/NSF/Figures/F1B_Between-Subs_Dev.pdf", mode = "775")
 
