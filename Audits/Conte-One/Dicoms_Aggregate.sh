@@ -267,6 +267,7 @@ done
 module load freesurfer/6.0
 
 mgz=`ls /dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One-DBK/*_tp*/mri/T1.mgz`
+
 for file in $mgz ; do
   sub=`echo $file | cut -d '/' -f8 | cut -d '_' -f1`
   ses=`echo $file | cut -d '/' -f8 | cut -d '_' -f2 | sed s@'tp'@''@g`
@@ -281,6 +282,31 @@ for file in $mgz ; do
     mri_convert ${file} ${nii}
     chmod ug+wrx ${nii}
  fi
+done
+
+##################################################
+### Replace Missing Nifitis To Dicom Directory ###
+##################################################
+
+baseline=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/*/ses-0/anat/*`
+
+for file in $baseline ; do
+
+  subid=`echo $file | cut -d '/' -f11 | cut -d '-' -f2 | cut -d '_' -f1`
+  dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_0/NIFTIS`
+
+  if [ -d "$dir" ] ; then
+
+    echo "Copies were already Made for Subject: ${subid}"
+
+  else
+  
+    echo "Making Copies for Subject: ${subid}"
+    copy_dir=`echo $dir | sed s@'*'@'0'@g`
+    mkdir -p $copy_dir
+    cp $file $copy_dir
+
+  fi
 done
 
 ###################################################################################################
