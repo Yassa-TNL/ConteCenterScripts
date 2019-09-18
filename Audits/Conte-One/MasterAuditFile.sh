@@ -34,7 +34,6 @@ awk -F "\"*,\"*" '{print $1,$11,$12}' $source > ${dir_temp}/TEMP_MRI3
 sed -i '1d' ls ${dir_temp}/TEMP_MRI[0.1.2.3]
 tempfiles=`ls ${dir_temp}/TEMP_MRI[0.1.2.3]`
 
-
 for ExpectedSessions in $tempfiles ; do
   cat $ExpectedSessions | grep -v ' 0 ' > ${ExpectedSessions}_Reduced.txt
 done
@@ -54,6 +53,29 @@ sort -k1 -t ',' -g ${FINAL_OUTPUT} -o  ${FINAL_OUTPUT}
 rm ${dir_temp}/TEMP_MRI*
 dos2unix ${FINAL_OUTPUT}
 chmod ug+wrx $FINAL_OUTPUT
+
+#####################################
+### Add Behavioral Session Number ###
+#####################################
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},BehaVisit`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+
+for row in $rows ; do
+  subid=`echo $row | cut -d ',' -f1`
+  session=`echo $row | cut -d ',' -f2`
+  dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${session}`
+  Beh=`echo ${dir} | cut -d '_' -f2`
+  echo "Behavioral Session is  $Beh for Subject: ${subid} Session: ${session}"
+  newrow=`echo ${row},${Beh}`
+  cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+  mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+done
 
 #######################################################################
 ### Add Columns Indicating if DICOMS/NIFTIS and PAR/REC Files Exist ###
@@ -162,8 +184,8 @@ for row in $rows ; do
     mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
     echo "${1}-${2} NIFTI Detected for Subject ${subid} Session ${session}"
   else
-    val_dicom=`echo $row | cut -d ',' -f4`
-    val_parrec=`echo $row | cut -d ',' -f5`
+    val_dicom=`echo $row | cut -d ',' -f5`
+    val_parrec=`echo $row | cut -d ',' -f6`
     val_ses=`echo $row | cut -d ',' -f2`
     if [[ $val_dicom -eq 0 ]] && [[ $val_parrec -eq 0 ]] || [[ $val_ses -eq 0 ]] ; then
       newrow=`echo ${row},NA`
@@ -189,49 +211,11 @@ for seq in $sequences ; do
 
 done
 
-###################################################################
-### Add Demographic Information - Need To Redo with Full Sample ###
-###################################################################
-
-Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $2,$3,$4,$5}' \
-  /dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n275_Age+Sex_20190829.csv \
-  | sed s@' '@','@g \
-  | sed s@'"'@''@g \
-  | tail -n+2`
-
-header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},AgeAtScan,Gender`
-cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
-mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
-for row in $rows ; do
-  sub=`echo $row | cut -d ',' -f1`
-  ses=`echo $row | cut -d ',' -f2`
-  demo=`echo $Demo_GoogleDrive |  tr ' ' '\n' | grep "^${sub},${ses}," \
-  | cut -d ' ' -f1 | cut -d ',' -f3,4`
-
-  echo 
-  echo subject: $sub session: $ses demo: $demo
-
-  if [ -z $demo ] ; then
-    newrow=`echo $row,NA,NA`
-    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-    echo "Demographic Data MISSING for subject: $sub ses: $ses"
-  else
-    newrow=`echo ${row},${demo}`
-    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-    echo "Demographic Data Added for subject: $sub ses: $ses"
-  fi
-done
-
 ############################################
 ### Add Audit of DBK Freesurfer Analysis ###
 ############################################
 
-Freesurfer_DBK='/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/T1w/n360_APARC+ASEG_20190829.csv'
+Freesurfer_DBK='/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/T1w/20190909/n362_APARC+ASEG_20190909.csv'
 
 header_og=`head -n1 ${FINAL_OUTPUT}`
 header_new=`echo ${header_og},Freesurfer_DBK`
@@ -242,7 +226,7 @@ rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
 for row in $rows ; do
   sub=`echo $row | cut -d ',' -f1`
   ses=`echo $row | cut -d ',' -f2`
-  BIDS_T1w=`echo $row | cut -d ',' -f7`
+  BIDS_T1w=`echo $row | cut -d ',' -f8`
   oldrow=`cat $Freesurfer_DBK | grep "^${sub},${ses}," | cut -d ' ' -f1`
   echo 
   echo subject: $sub session: $ses bids: $BIDS_T1w
@@ -271,6 +255,44 @@ for row in $rows ; do
     	mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
     	echo "999 Scan Found But Was Not Expected: ${sub} Session: ${ses}"
     fi
+  fi
+done
+
+###################################################################
+### Add Demographic Information - Need To Redo with Full Sample ###
+###################################################################
+
+Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $2,$3,$4,$5}' \
+  /dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n275_Age+Sex_20190829.csv \
+  | sed s@' '@','@g \
+  | sed s@'"'@''@g \
+  | tail -n+2`
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},AgeAtScan,Gender`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  sub=`echo $row | cut -d ',' -f1`
+  ses=`echo $row | cut -d ',' -f2`
+  demo=`echo $Demo_GoogleDrive |  tr ' ' '\n' | grep "^${sub},${ses}," \
+  | cut -d ' ' -f1 | cut -d ',' -f3,4`
+
+  echo 
+  echo "subject: $sub session: $ses demo: $demo"
+
+  if [ -z $demo ] ; then
+    newrow=`echo $row,NA,NA`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "Demographic Data MISSING for subject: $sub ses: $ses"
+  else
+    newrow=`echo ${row},${demo}`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "Demographic Data Added for subject: $sub ses: $ses"
   fi
 done
 
