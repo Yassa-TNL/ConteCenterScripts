@@ -77,7 +77,16 @@ FINAL<-ggplot() +
      geom_smooth(data=ModelData,aes(Age,lower),fill="#654321",linetype="dashed", colour="#654321", size=1.5) + 
      geom_smooth(data=ModelData,aes(Age,upper),fill="#654321",linetype="dashed", colour="#654321", size=1.5) +
      geom_point(data=FinalSample, aes(AgeAtScan,TotalGrayVol), colour="#0eb302", size=2)  
-#     geom_smooth(data=SlopeTP2,aes(x,smooth),fill="#00aaff", colour="#00aaff", size=2.25) + 
+
+#######################################################
+### Create Figure of Subject-Level Deviation Scores ###
+#######################################################
+
+FINAL<-ggplot() + 
+     geom_smooth(data=ModelData,aes(Age,smooth),fill="#654321", colour="#654321", size=2.5) + 
+     geom_smooth(data=ModelData,aes(Age,lower),fill="#654321",linetype="dashed", colour="#654321", size=1.5) + 
+     geom_smooth(data=ModelData,aes(Age,upper),fill="#654321",linetype="dashed", colour="#654321", size=1.5) +
+     geom_point(data=FinalSample, aes(AgeAtScan,TotalGrayVol), colour="#0eb302", size=2)  
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
