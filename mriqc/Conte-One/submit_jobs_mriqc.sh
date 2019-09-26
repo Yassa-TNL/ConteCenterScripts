@@ -50,7 +50,7 @@ for subject in ${AllSubs} ; do
 
   sub=`echo $subject | cut -d '_' -f1`
   ses=`echo $subject | cut -d '_' -f2`
-  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}
+  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One
 
   html=`echo ${output_base_dir}/sub-${sub}_ses-${ses}_*.html | cut -d ' ' -f1`
 
