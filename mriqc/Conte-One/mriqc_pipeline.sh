@@ -21,9 +21,9 @@ bids_directory=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One
 
 if [ ! ${sub} == "GROUP" ]; then
 
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One
 working_dir=${output_dir}/sub-${sub}_ses-${ses}_intermediates
-commandfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_command.txt`
+commandfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_command.sh`
 logfile=`echo ${output_dir}/logs/sub-${sub}_ses-${ses}_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC${sub}x${ses}.e* QC${sub}x${ses}.o* 
@@ -50,20 +50,20 @@ fi
 
 if [ ${sub} == "GROUP" ]; then
 
-GROUP=`ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One | grep -v data | cut -d '-' -f2`
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/Group
+bids_directory=`echo /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One`
+output_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One`
 working_dir=${output_dir}/Group_intermediates
-commandfile=`echo ${output_dir}/logs/Group_command.txt`
+commandfile=`echo ${output_dir}/logs/Group_command.sh`
 logfile=`echo ${output_dir}/logs/Group_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC_GROUP.e* QC_GROUP.o* 
 
-echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} participant --participant-label ${GROUP} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8" > ${commandfile}
+echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} ${sub} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8" > ${commandfile}
 
 singularity run --cleanenv ${mriqc_container} \
   ${bids_directory} \
   ${output_dir} \
-  participant --participant-label ${GROUP} \
+  ${sub} \
   --work-dir ${working_dir} \
   --n_procs 8 \
   --ants-nthreads 8 > ${logfile} 2>&1

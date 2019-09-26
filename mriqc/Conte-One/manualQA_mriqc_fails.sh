@@ -30,7 +30,7 @@ for scan in $AllScans ; do
   sub=`echo $scan | cut -d '-' -f2 | cut -d '_' -f1`
   ses=`echo $scan | cut -d '-' -f3 | cut -d '_' -f1`
   mriqc_name=`echo $scan | sed s@".nii.gz"@".html"@g`
-  mriqc_fullpath=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/sub-${sub}/${mriqc_name}
+  mriqc_fullpath=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/${mriqc_name}
   
   if [ -f ${mriqc_fullpath} ] ; then
     
@@ -54,6 +54,9 @@ for scan in $AllScans ; do
 
   fi
 done
+
+
+echo "Starting ManualQA On These Files ${troubleshoot[@]}"
 
 ###########################################
 ##### Create Log File of Failed Scans #####
