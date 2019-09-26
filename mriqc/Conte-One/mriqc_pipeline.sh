@@ -58,12 +58,12 @@ logfile=`echo ${output_dir}/logs/Group_stdout.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm QC_GROUP.e* QC_GROUP.o* 
 
-echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} ${sub} --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8" > ${commandfile}
+echo "singularity run --cleanenv ${mriqc_container} ${bids_directory} ${output_dir} group --work-dir ${working_dir} --n_procs 8 --ants-nthreads 8" > ${commandfile}
 
 singularity run --cleanenv ${mriqc_container} \
   ${bids_directory} \
   ${output_dir} \
-  ${sub} \
+  group \
   --work-dir ${working_dir} \
   --n_procs 8 \
   --ants-nthreads 8 > ${logfile} 2>&1
