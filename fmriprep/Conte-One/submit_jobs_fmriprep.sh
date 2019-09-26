@@ -44,15 +44,15 @@ fi
 ##### Define New Subjects to be Processed and Submit Jobs #####
 ###############################################################
 
-AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n13`
+AllSubs=`ls -d1 /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/func | cut -d '/' -f8 | cut -d '-' -f2 | head -n5`
 
 for sub in ${AllSubs} ; do
 
-  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep
+  output_base_dir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One
 
-  qa=`echo ${output_base_dir}/Conte-One/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-*_bold_confounds.tsv | head -n1`
-  preproc=`echo ${output_base_dir}/Conte-One/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-*_*_preproc.nii | head -n1`
-  html=`echo ${output_base_dir}/Conte-One/sub-${sub}*.html | head -n1`
+  qa=`echo ${output_base_dir}/fmriprep/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-*_bold_confounds.tsv | head -n1`
+  preproc=`echo ${output_base_dir}/fmriprep/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-*_*_preproc.nii | head -n1`
+  html=`echo ${output_base_dir}/fmriprep/sub-${sub}*.html | head -n1`
 
   if [ -f ${qa} ] && [ -f ${preproc} ] && [ -f ${html} ] ; then
 
@@ -66,7 +66,7 @@ for sub in ${AllSubs} ; do
 
     jobstats=`qstat -u $USER | grep FP${sub} | awk {'print $5'}`
 
-    if [ "$jobstats" == "r" ] || [ "$jobstats" == "qw" ]; then
+    if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
 
        echo ''
        echo "###########################################"
