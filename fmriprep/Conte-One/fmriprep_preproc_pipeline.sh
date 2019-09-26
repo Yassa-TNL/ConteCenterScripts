@@ -19,22 +19,34 @@ fslicense=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/fmriprep/Conte-
 ### Execute Subject-Level Analysis of FMRIPREP Using Singularity Container ###
 ##############################################################################
 
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/sub-${sub}
+output_dir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One
 working_dir=${output_dir}/sub-${sub}_intermediates
-commandfile=`echo ${output_dir}/logs/sub-${sub}_command.txt`
-logfile=`echo ${output_dir}/logs/sub-${sub}_stdout.txt`
+commandfile=`echo ${output_dir}/commands/sub-${sub}_command.sh`
+logfile=`echo ${output_dir}/commands/sub-${sub}_stdERR+stdOUT.txt`
 mkdir -p ${working_dir} `dirname ${logfile}` 
 rm FP${sub}.e* FP${sub}.o* 
 
 echo "singularity run --cleanenv ${fmriprep_container} ${bids_directory} ${output_dir} participant --participant_label ${sub} --work-dir ${working_dir} --fs-license-file ${fslicense} --skip-bids-validation --fs-no-reconall --longitudinal --nthreads 16 --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc --write-graph --stop-on-first-crash --low-mem " > ${commandfile}
 
-singularity run --cleanenv ${fmriprep_container} ${bids_directory} ${output_dir} participant --participant_label ${sub} --work-dir ${working_dir} --fs-license-file ${fslicense} --skip-bids-validation --fs-no-reconall --longitudinal --nthreads 16 --use-aroma --fd-spike-threshold 0.2 --use-syn-sdc --write-graph --stop-on-first-crash --low-mem > ${logfile} 2>&1
+singularity run --cleanenv ${fmriprep_container} \
+  ${bids_directory} \
+  ${output_dir} \
+  participant --participant_label ${sub} \
+  --work-dir ${working_dir} \
+  --fs-license-file ${fslicense} \
+  --skip-bids-validation \
+  --fs-no-reconall \
+  --longitudinal \
+  --nthreads 16 \
+  --use-aroma \
+  --fd-spike-threshold 0.2 \
+  --output-space fsaverage fsaverage5 fsnative template \
+  --template MNI152NLin2009cAsym \
+  --use-syn-sdc \
+  --write-graph \
+  --stop-on-first-crash \
+  --low-mem > ${logfile} 2>&1
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
-#<<SKIP
-#fmriprep $bids_dir/ $other_dir/prepout participant -w $other_dir/prepwork --mem_mb 20000 --nthreads 8 --output-space fsaverage fsaverage5 fsnative template --fd-spike-threshold 0.5 --use-aroma --template MNI152NLin2009cAsym --participant-label P01
-#--fd-spike-threshold 0.2
-#SKIP
-
