@@ -96,7 +96,7 @@ done
 ####################################
 
 gpjob=`qstat -u $USER | grep "QC_GROUP" | awk {'print $5'}`
-GroupHTML=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/Group/*.html
+GroupHTML=/dfs2/yassalab/rjirsara/ConteCenter/mriqc/Conte-One/group_bold.html
 
 if [ "$gpjob" == "r" ] || [ "$gpjob" == "Rr" ] || [ "$gpjob" == "Rq" ] || [ "$gpjob" == "qw" ] || [ -f "$GroupHTML" ] ; then
 
