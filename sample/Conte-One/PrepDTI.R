@@ -145,7 +145,7 @@ DTI<-merge(Subcort,Unicate, by=c("sub","ses"), all=TRUE)
 ### Simplify and Save Output ###
 ################################
 
-write.csv(DTI, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n242_Aseg_volume_20191005.csv")
+write.csv(DTI, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n242_GFA+Vol_20191005.csv")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
