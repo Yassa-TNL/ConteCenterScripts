@@ -37,7 +37,6 @@ else
   echo "Singularity Image Not Found -- Building New Containter with Latest Version of xcpEngine"
   echo ''
   singularity build ${xcpEngine_container} docker://poldracklab/xcpEngine:latest
-
 fi
 
 ##################################################
@@ -59,58 +58,60 @@ else
   git clone https://github.com/PennBBL/xcpEngine.git
   mv ./xcpEngine/designs ${xcpEngine_rootdir}/Conte-One
   chmod -R 775 ${xcpEngine_rootdir}/Conte-One/designs
-  rm -rf ./xcpEngine
-  
+  rm -rf ./xcpEngine 
 fi
 
 ###############################
 ##### Define New Subjects ##### 
 ###############################
 
-fmriprep_rootdir='/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One'
-All=`ls -1d1 ${fmriprep_rootdir}/fmriprep/sub-*/ses-*/func/sub-*_ses-*_task-*_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | cut -d '/' -f9,10 | sed s@'sub-'@@g | sed s@'/ses-'@'_'@g | uniq`
+SEQ='task-REST task-HIPP task-AMG'
 
-for part in ${All} ; do
+for seq in ${SEQ}; do 
 
-  sub=`echo $part | cut -d '_' -f1`
-  ses=`echo $part | cut -d '_' -f2`
- /dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/sub-${sub}
+  IMAGES=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-*/ses-*/func/sub-*_ses-*_${seq}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | head -n7`
 
+  for scan in ${IMAGES} ; do
 
-  if [ -f ${qa} ] && [ -f ${preproc} ] && [ -f ${html} ] ; then
+    sub=`echo $scan | cut -d '/' -f9 | cut -d '-' -f2`
+    ses=`echo $scan | cut -d '/' -f10 | cut -d '-' -f2`
+    xcpOutput=`echo /dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/${seq}/sub-${sub}/ses-${ses}/*/*.nii.gz`
 
-    echo ''
-    echo "########################################################"
-    echo "#sub-${sub} already ran through the xcpEngine pipeline..."
-    echo "########################################################"
-    echo ''
+    if [ -f ${xcpOutput} ] ; then
 
-  else
-
-    job=`qstat -u $USER | grep FP${sub} | awk {'print $5'}`
-
-    if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
-
-       echo ''
-       echo "###########################################"
-       echo "#sub-${sub} is currently being processed..."
-       echo "###########################################"
-       echo ''
+      echo ''
+      echo "###########################################################################"
+      echo "#sub-${sub} ses-${ses} already processed ${seq}                            "
+      echo "###########################################################################"
+      echo ''
 
     else
 
-       echo ''
-       echo "##############################################"
-       echo "#xcpEngine Job Being Submitted for sub-${sub}  "
-       echo "##############################################"
-       echo ''
+      job=`qstat -u $USER | grep `echo ${sub}"${seq:5:1}"${ses}` | awk {'print $5'}`
 
-       JobName=`echo FP${sub}`
-       Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_preproc_pipeline.sh
+      if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
+
+         echo ''
+         echo "###########################################################################"
+         echo "#sub-${sub} ses-${ses} currently processing ${seq}                         "
+         echo "###########################################################################"
+         echo ''
+
+      else
+
+         echo ''
+         echo "###########################################################################"
+         echo "# Submitting Job For sub-${sub} ses-${ses} seq-${seq}                      "
+         echo "###########################################################################"
+         echo ''
+
+         JobName=`echo ${sub}"${seq:5:1}"${ses}`
+         Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
        
-       qsub -N ${JobName} ${Pipeline} ${sub} ${xcpEngine_container}
+       qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${scan} ${xcpEngine_container}
+      fi
     fi
-  fi
+  done
 done
 
 ###################################################################################################
