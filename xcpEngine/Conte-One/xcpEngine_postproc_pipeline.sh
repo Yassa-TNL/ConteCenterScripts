@@ -11,46 +11,45 @@ module purge 2>/dev/null
 module load singularity/3.0.0 2>/dev/null 
 
 sub=105
-fmri_inputdir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep
 xcp_container=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/xcpEngine-latest.simg
-designs_file=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/fc-36p.dsn
-xcp_workdir=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/sub-${sub}_intermediates
-xcp_outputdir=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/fc-36p
-cohort_file=`echo ${xcp_workdir}/cohort.csv`
+designs_file=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/designs/fc-36p.dsn
+xcp_outputdir=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One
 
 #############################
 ### Define Tracking Files ###
 #############################
 
-commandfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/commands/sub-${sub}_command.sh
-logfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/commands/sub-${sub}_stdERR+stdOUT.txt
+commandfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_command.sh
+cohortfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_cohort.csv
+logfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_stdERR+stdOUT.txt
 
 mkdir -p ${xcp_outputdir} ${xcp_workdir} ${fmri_inputdir} 
-rm XCP{sub}.e* XCP${sub}.o* 
+rm XCP${sub}.e* XCP${sub}.o* 
 
 ##########################
 ### Create Cohort File ###
 ##########################
 
-scans=`echo ${fmri_inputdir}/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-REST_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | sed s@"${fmri_inputdir}/"@""@g`
-echo "id0,img" > $cohort_file
+scans=`echo /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-${sub}/ses-*/func/sub-${sub}_ses-*_task-*_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz`
+echo "id0,img" > $cohortfile
 
 for scan in $scans ; do 
-  echo "sub-${sub},${scan}" >> $cohort_file
+  echo "sub-${sub},${scan}" >> $cohortfile
 done
 
 ##################################
 ### Execute xcpEngine Pipeline ###
 ##################################
 
-echo "singularity run --cleanenv ${xcp_container} -r ${fmri_inputdir} -c ${cohort_file} -d ${designs_file} -i ${xcp_workdir} -o ${xcp_outputdir}" > ${commandfile}
-
-singularity run --cleanenv ${xcp_container} \
-  -r ${fmri_inputdir} \
+echo singularity run --cleanenv ${xcp_container} \
   -c ${cohort_file} \
   -d ${designs_file} \
-  -i ${xcp_workdir} \
-  -o ${xcp_outputdir} > ${logfile} 2>&1
+  -o ${xcp_outputdir} \
+  -t 3 > ${commandfile}
+
+chmod -R 775 ${commandfile}
+
+${commandfile} > ${logfile} 2>&1
 
 chmod -R 775 ${xcp_outputdir}
 
