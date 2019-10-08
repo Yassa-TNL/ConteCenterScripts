@@ -69,7 +69,7 @@ SEQ='task-REST task-HIPP task-AMG'
 
 for seq in ${SEQ}; do 
 
-  IMAGES=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-*/ses-*/func/sub-*_ses-*_${seq}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | head -n7`
+  IMAGES=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-*/ses-*/func/sub-*_ses-*_${seq}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | head -n6`
 
   for scan in ${IMAGES} ; do
 
@@ -80,32 +80,32 @@ for seq in ${SEQ}; do
     if [ -f ${xcpOutput} ] ; then
 
       echo ''
-      echo "###########################################################################"
-      echo "#sub-${sub} ses-${ses} already processed ${seq}                            "
-      echo "###########################################################################"
+      echo "################################################"
+      echo "#sub-${sub} ses-${ses} already processed ${seq} "
+      echo "################################################"
       echo ''
 
     else
 
-      job=`qstat -u $USER | grep `echo ${sub}"${seq:5:1}"${ses}` | awk {'print $5'}`
+      JobName=`echo "${seq:5:1}"${sub}X${ses}`
+      job=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
 
       if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
 
          echo ''
-         echo "###########################################################################"
-         echo "#sub-${sub} ses-${ses} currently processing ${seq}                         "
-         echo "###########################################################################"
+         echo "###################################################"
+         echo "#sub-${sub} ses-${ses} currently processing ${seq} "
+         echo "###################################################"
          echo ''
 
       else
 
          echo ''
-         echo "###########################################################################"
-         echo "# Submitting Job For sub-${sub} ses-${ses} seq-${seq}                      "
-         echo "###########################################################################"
+         echo "######################################################"
+         echo "# Submitting Job For sub-${sub} ses-${ses} seq-${seq} "
+         echo "######################################################"
          echo ''
 
-         JobName=`echo ${sub}"${seq:5:1}"${ses}`
          Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
        
        qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${scan} ${xcpEngine_container}
