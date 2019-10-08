@@ -20,22 +20,19 @@ seq=`echo $scan | cut -d '_' -f3`
 ### Define Tracking Files ###
 #############################
 
-commandfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_${ses}_${seq}_command.sh
-cohortfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_${ses}_${seq}_cohort.csv
-logfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_${ses}_${seq}_stdERR+stdOUT.txt
+commandfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_ses-${ses}_${seq}_command.sh
+cohortfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_ses-${ses}_${seq}_cohort.csv
+logfile=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/logs/sub-${sub}_ses-${ses}_${seq}_stdERR+stdOUT.txt
 
 mkdir -p ${xcp_outputdir} ${xcp_workdir} ${fmri_inputdir} 
-rm ${sub}"${seq:5:1}"${ses}.e* ${sub}"${seq:5:1}"${ses}.o* 
+rm echo "${seq:5:1}"${sub}X${ses}.e* echo "${seq:5:1}"${sub}X${ses}.o* 
 
 ##########################
 ### Create Cohort File ###
 ##########################
 
 echo "id0,img" > $cohortfile
-
-for scan in $scans ; do 
-  echo "sub-${sub},${scan}" >> $cohortfile
-done
+echo "sub-${sub},${scan}" >> $cohortfile
 
 ##################################
 ### Execute xcpEngine Pipeline ###
@@ -54,7 +51,7 @@ for design in ${designs_file} ; do
     -o ${xcp_outputdir} \
     -t 3 > ${commandfile}
 
-  chmod -R 775 ${commandfile}
+  chmod -R 775 `dirname ${commandfile}`
 
   ${commandfile} > ${logfile} 2>&1
 
