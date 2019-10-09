@@ -47,12 +47,22 @@ MaxPredictors<-dim(as.data.frame(Predictors))[1]
 print("Ensure Class Type Of Predictors")
 for (x in 1:MaxPredictors){
   var<-as.character(as.data.frame(Predictors)[x,1])
+  if (startsWith(var, 's(')){ 
+    var<-strsplit(var, ",", fixed = TRUE)
+    var<-as.character(as.data.frame(var)[1,1])
+    var<-substring(var, 3)
+  }
   if (var %in% colnames(covaData)){
     covaData<-covaData[complete.cases(covaData[,var]),]
     classtype<-class(covaData[,var])
     print(paste("########################################"))
     print(paste("⚡⚡⚡",var,"class type is", classtype,"⚡⚡⚡"))
     print(paste("########################################"))
+  } else {
+    print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+    print(paste("⚡⚡⚡",var,"NOT FOUND - EXITING SCRIPT ⚡⚡⚡"))
+    print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+    exit()
   }
 }
 
@@ -96,7 +106,7 @@ ncores <- 5
 pAdjustMethod <- "fdr"
 methods <- c("holm", "hochberg", "hommel", "bonferroni", "BH", "BY","fdr", "none")
 if (!any(pAdjustMethod == methods)) {
-  print("p.adjust.method is not a valid one, reverting back to 'none'")
+  print("p.adjust.method is not a valid one, reverting to 'none'")
   pAdjustMethod <- "none"
 }
 
@@ -131,13 +141,13 @@ subjDataOut <- strsplit(subjDataOut, "/")[[1]][[length(subjDataOut <- strsplit(s
 inputPathOut <- strsplit(inputPath, ".csv")[[1]][[1]]
 inputPathOut <- strsplit(inputPathOut, "/")[[1]][[length(inputPathOut <- strsplit(inputPathOut, "/")[[1]])]]
 OutDir <-  paste0(OutDirRoot,"/Results/COVA-",subjDataOut,"_RESP-",inputPathOut)
-suppressMessages(dir.create(OutDir, recursive = TRUE))
+suppressWarnings(dir.create(OutDir, recursive = TRUE))
 setwd(OutDir)
 
 if (SubOutDir != 'FALSE') {
   print("Adding Custom Sub-Directory")
   OutDir<-paste0(OutDir,"/",SubOutDir)
-  suppressMessages(dir.create(OutDir))
+  suppressWarnings(dir.create(OutDir))
   setwd(OutDir)
 }
 
@@ -145,7 +155,7 @@ print("Creating Output File Name")
 
 outName <- gsub("~", "", covsFormula)
 outName <- gsub(" ", "", outName)
-outName <- gsub("\\+","-",outName)
+outName <- gsub("\\+","+",outName)
 outName <- gsub("\\(","",outName)
 outName <- gsub("\\)","",outName)
 outName <- gsub(",","",outName)
@@ -167,7 +177,7 @@ outsubDir<-paste(OutDir,outsubDir,sep="/")
 if (SaveDatasets == 'TRUE') {
   print("Saving Processed Datasets")
   DataOutDir<-str_replace_all(OutDir, "/Results/", "/Data/")
-  suppressMessages(dir.create(DataOutDir, recursive = TRUE))
+  suppressWarnings(dir.create(DataOutDir, recursive = TRUE))
   FileName<-paste(basename(outsubDir),"Predictors.csv",sep="_")
   write.csv(covaData,paste(DataOutDir,FileName,sep="/"))
   FileName<-paste(basename(outsubDir),"Responces.csv",sep="_")
