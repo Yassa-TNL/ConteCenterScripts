@@ -68,14 +68,15 @@ Subcort$Audit<-paste(Subcort$sub,Subcort$ses)
 
 MissingUnicate<-which(!Unicate$Audit %in% Demo$Audit)
 Unicate[MissingUnicate,c(1,2)]
-### 575_2_2 Needs Further Investgiation ###
-### BIDS Exists for T1w, but not DTI ###
-### Needs Relabeling of Dicoms ###
+Unicate[MissingSubcort[1],c(2)]<-"1"
 
 MissingSubcort<-which(!Subcort$Audit %in% Demo$Audit)
 Subcort[MissingSubcort,c(1,2)]
-### 7100_3_1 Was Improper Labeled As 7100_2_2 ###
-Subcort[MissingSubcort[2],c(2)]<-"1"
+Subcort[MissingSubcort[1],c(2)]<-"1"
+
+### 575_2_2 Needs Further Investgiation ###
+### BIDS Exists for T1w, but not DTI ###
+### Needs Relabeling of Dicoms ###
 
 ######################################
 ### Add Demographic Data To Master ###
@@ -124,7 +125,7 @@ DEMO<-DEMO[,c("sub","ses","AgeAtScan","Gender")]
 ### Save Master Demographic Data ###
 ####################################
 
-write.csv(DEMO, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n426_Age+Sex_20191005.csv")
+write.csv(DEMO, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n424_Age+Sex_20191008.csv")
 
 #########################################
 ### Prepare the DTI Data For Analysis ###
@@ -145,7 +146,7 @@ DTI<-merge(Subcort,Unicate, by=c("sub","ses"), all=TRUE)
 ### Simplify and Save Output ###
 ################################
 
-write.csv(DTI, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n242_GFA+Vol_20191005.csv")
+write.csv(DTI, "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n240_GFA+Vol_20191005.csv")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
