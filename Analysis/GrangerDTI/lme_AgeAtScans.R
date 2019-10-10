@@ -9,8 +9,8 @@
 
 print("Reading Arguments")
 
-covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n426_Age+Sex_20191005.csv"
-inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n242_GFA+Vol_20191005.csv"
+covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n424_Age+Sex_20191008.csv"
+inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/DTI/n240_GFA+Vol_20191005.csv"
 OutDirRoot <- "/dfs2/yassalab/rjirsara/GrangerDTI"
 covsFormula <- "~AgeAtScan"
 randomFormula <- "~(1|sub)"
