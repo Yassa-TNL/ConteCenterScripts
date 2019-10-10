@@ -168,8 +168,14 @@ random <- gsub("~", "", randomFormula)
 random <- gsub("\\(", "", random)
 random <- gsub("\\)", "", random)
 random <- gsub("\\|", "", random)
-outsubDir <- paste0("n",dim(dataSubj)[1],"_gamm4_",outName,"_random_",random)
-outsubDir<-paste(OutDir,outsubDir,sep="/")
+if (grepl("s*,*k=", covsFormula)){
+  outsubDir <- paste0("n",dim(dataSubj)[1],"_gamm4_",outName,"_random_",random)
+  outsubDir<-paste(OutDir,outsubDir,sep="/")
+} else {
+
+  outsubDir <- paste0("n",dim(dataSubj)[1],"_lme4_",outName,"_random_",random)
+  outsubDir<-paste(OutDir,outsubDir,sep="/")
+}
 
 ############################################
 ### Save Processed Datasets if Specified ###
