@@ -10,6 +10,7 @@
 library(R.matlab)
 library(ggplot2)
 library(corrplot)
+library(lattice)
 
 ####################################################
 ##### Commands For Data Preparation From Steve #####
@@ -97,47 +98,110 @@ if (matrixlength == 9){
   exit()
 }
 
-#####################################
-##### Save Transformed Raw Data #####
-#####################################
-
-
-
-
-########################################
-##### Execute Corelations Matrices #####
-########################################
+##################################
+##### Compute R and P Values #####
+##################################
 
 Regions<-dim(FINALS)[2]
 NewRow<-dim(FINALS)[1]+1
 
+### Correlation Matrix ###
 for (var in 2:Regions){
   connR<-cor(FINALS[,1],FINALS[,var], use="complete.obs", method="pearson") 
   FINALS[NewRow,var]<-as.numeric(connR)
   print(connR)
 }
 
+Rvals<-FINALS[NewRow,-c(1)]
+FINALS<-FINALS[-c(NewRow),]
 
-
+### P-value Matrix ###
 for (var in 2:Regions){
-  connOutput<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
-  #FINALS[NewRow,var]<-as.numeric(connR)
-  print(connR)
+  MAX<-max(FINALS[,var])
+  if (max(FINALS[,var], na.rm=TRUE) > 0){
+    connSummary<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
+    connP<-connSummary$coefficients[2,4]
+    FINALS[NewRow,var]<-as.numeric(connP)
+  }
 }
 
+Pvals<-FINALS[NewRow,-c(1)]
+FINALS<-FINALS[-c(NewRow),]
 
+###################################################
+##### Create Matrix of Data For Final Figures #####
+###################################################
 
+### Correlation Matrix ###
+rMATRIX<-matrix(, nrow = 9, ncol = 9)
+colnames(rMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
+rownames(rMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
+ognames<-ARRAY[0,,1]
+numRval<-length(Rvals)
+for (num in 1:numRval){
+  VAL<-round(Rvals[[num]][1], digits = 2)
+  HEADER<-names(Rvals[num])
+  HEADER1<-strsplit(HEADER,"-", fixed = FALSE)[[1]][1]
+  HEADER2<-strsplit(HEADER,"-", fixed = FALSE)[[1]][2]
 
+  colh1<-which(colnames(rMATRIX)== HEADER1)
+  rowh2<-which(rownames(rMATRIX)== HEADER2)
+  rMATRIX[colh1,rowh2]<-VAL
 
+  colh2<-which(colnames(rMATRIX)== HEADER2)
+  rowh1<-which(rownames(rMATRIX)== HEADER1)
+  rMATRIX[colh2,rowh1]<-VAL
+}
 
-M<-cor(MATRIX, use="pairwise.complete.obs")
+### P-value Matrix ###
+pMATRIX<-matrix(, nrow = 9, ncol = 9)
+colnames(pMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
+rownames(pMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
+ognames<-ARRAY[0,,1]
+numRval<-length(Pvals)
+for (num in 1:numRval){
+  VAL<-round(Pvals[[num]][1], digits = 2)
+  HEADER<-names(Pvals[num])
+  HEADER1<-strsplit(HEADER,"-", fixed = FALSE)[[1]][1]
+  HEADER2<-strsplit(HEADER,"-", fixed = FALSE)[[1]][2]
 
+  colh1<-which(colnames(pMATRIX)== HEADER1)
+  rowh2<-which(rownames(pMATRIX)== HEADER2)
+  pMATRIX[colh1,rowh2]<-VAL
 
-corrplot.mixed(M, lower.col = "black", number.cex = 0.75)
+  colh2<-which(colnames(pMATRIX)== HEADER2)
+  rowh1<-which(rownames(pMATRIX)== HEADER1)
+  pMATRIX[colh2,rowh1]<-VAL
+}
 
+### Finish Matricies ###
+for (num in 1:9){
+  rMATRIX[num,num]<-1
+  pMATRIX[num,num]<-1
+}
 
+################################
+##### Create Final Figures #####
+################################
 
-corrplot(M, type = "lower", order = "hclust", tl.col = "black", tl.srt = 45)
+pdf("/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/n18_Correlations_20191011.pdf",width=6,height=5,paper='special')
+levelplot(rMATRIX,
+           col.regions=heat.colors(100))
+dev.off()
+
+pdf("/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/n18_Significance_20191011.pdf",width=6,height=5,paper='special')
+
+levelplot(pMATRIX,
+           col.regions=heat.colors(100))
+dev.off()
+
+#############################################
+##### Save Output Dataset and Matricies #####
+#############################################
+
+write.csv(FINALS, "/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/n18_HippoSubRegions_20191011.csv")
+write.table(rMATRIX, file = "/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/n18_R-Value_Matrix_20191011.csv")
+write.table(pMATRIX, file = "/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/n18_P-Value_Matrix_20191011.csv")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
