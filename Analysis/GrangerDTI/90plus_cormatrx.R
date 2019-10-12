@@ -60,7 +60,6 @@ for (subject in 1:maxsubs){
 
 FINAL<-t(as.data.frame(final))
 FINAL<-as.data.frame(FINAL[1:maxsubs,])
-names(FINAL)[1]<-"RAVLT"
 
 ############################################################
 ##### Refine Variables of Interest and Relabel Columns #####
@@ -85,7 +84,9 @@ if (matrixlength == 9){
   names(FINALS)[31:33]<-c("ERC-BA35","ERC-BA36","ERC-PHC")
   names(FINALS)[34:35]<-c("BA35-BA36","BA35-PHC")
   names(FINALS)[36]<-c("BA36-PHC")
-  FINALS<-cbind(FINAL$RAVLT,FINALS)
+  FINALS<-cbind(FINAL$V1,FINALS)
+  names(FINALS)[1]<-"RAVLT"
+  rownames(FINALS)<-NULL
 
 } else {
 
@@ -96,15 +97,45 @@ if (matrixlength == 9){
   exit()
 }
 
+#####################################
+##### Save Transformed Raw Data #####
+#####################################
+
+
+
+
 ########################################
 ##### Execute Corelations Matrices #####
 ########################################
 
-MATRIX<-FINALS[,-c(which(colSums(FINALS) == 0))]
+Regions<-dim(FINALS)[2]
+NewRow<-dim(FINALS)[1]+1
+
+for (var in 2:Regions){
+  connR<-cor(FINALS[,1],FINALS[,var], use="complete.obs", method="pearson") 
+  FINALS[NewRow,var]<-as.numeric(connR)
+  print(connR)
+}
+
+
+
+for (var in 2:Regions){
+  connOutput<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
+  #FINALS[NewRow,var]<-as.numeric(connR)
+  print(connR)
+}
+
+
+
+
+
+
 M<-cor(MATRIX, use="pairwise.complete.obs")
 
 
 corrplot.mixed(M, lower.col = "black", number.cex = 0.75)
+
+
 
 corrplot(M, type = "lower", order = "hclust", tl.col = "black", tl.srt = 45)
 
