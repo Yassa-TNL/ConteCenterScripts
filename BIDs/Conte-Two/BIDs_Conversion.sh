@@ -1,9 +1,4 @@
 #!/bin/bash
-#$ -N DataStorm
-#$ -q ionode,ionode-lp
-#$ -R y
-#$ -ckpt blcr
-#$ -m e
 ###################################################################################################
 ##########################              CONTE Center 2.0                 ##########################
 ##########################              Robert Jirsaraie                 ##########################
@@ -21,80 +16,72 @@ Use
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-module purge ; module load anaconda/2.7-4.3.1
-module load fsl/6.0.1
-module load flywheel/8.5.0
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
-export PATH=$PATH:/dfs3/som/rao_col/bin
 source ~/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
 
-########################################################
-### Set Output Paths and Find Newly Scanned Subjects ###
-########################################################
+#################################################
+### Set Paths and Find Newly Scanned Subjects ###
+#################################################
 
-dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two
+sites='UCI UCSD'
 
-fw ls "yassalab/Conte-Two" | sed s@'rw '@''@g | grep -v test | grep -v Pilot > ${dir_dicom}/SUBS_fw.txt
-ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
-NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | sed s@'< '@''@`
-rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
+for site in $sites ; do
 
-if [ -z "$NewSubs" ]; then
-  echo "Everything is up-to-date - No newly scanned subjects detected"
-else  
-  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ '
-  echo 'Newly Scanned Subjects Detected: '$NewSubs 
-fi
+  dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}
 
-########################################################
-### Unpack the Dicoms to Prepare for BIDs Conversion ###
-########################################################
+  fw ls "yassalab/Conte-Two-${site}" | sed s@'rw '@''@g | grep -v test | grep -v Conte-Two-${site} | grep T > ${dir_dicom}/SUBS_fw.txt
+  ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
+  NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | grep '<' | sed s@'< '@''@g`
+  rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
-for subid in $NewSubs ; do
+  if [ -z "$NewSubs" ]; then
 
-  echo 'Downloading Dicoms for '$subid  
-  mkdir -p ${dir_dicom}/${subid}
-  fw download "yassalab/Conte-Two/${subid}/Brain^ConteTwo" --include dicom --force --output ${dir_dicom}/${subid}/${subid}_fw_download.tar
-  tar -xvf ${dir_dicom}/${subid}/${subid}_fw_download.tar -C ${dir_dicom}/${subid}
-  rm ${dir_dicom}/${subid}/${subid}_fw_download.tar
+    echo ""
+    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  "
+    echo "Everything is up-to-date for ${site}"
+    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  "
 
-  CompressedDicoms=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two/${subid}/BrainConteTwo -name '*.dicom.zip'`
-  
-  for UNZIP in $CompressedDicoms ; do
-    Sequence=`ls $UNZIP | cut -d '/' -f14`
-    mkdir -p ${dir_dicom}/${subid}/DICOMs/${Sequence}
-    unzip $UNZIP -d  ${dir_dicom}/${subid}/DICOMs/${Sequence}
-    mv ${dir_dicom}/${subid}/DICOMs/${Sequence}/*/* ${dir_dicom}/${subid}/DICOMs/${Sequence}/
-    rmdir `find ${dir_dicom}/${subid}/DICOMs/${Sequence}/ -type d -empty`
-  done
+  else  
 
-####################################
-### Covert Dicoms To BIDs Format ###
-####################################
+    echo ""
+    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ "
+    echo "${site} Has Newly Scanned Subjects: $NewSubs" 
+    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ "
 
-  echo 'Converting Dicoms to BIDs for '$subid
-  mkdir -p ${dir_dicom}/${subid}/BIDs_Residual
+###############################################
+### Submit Jobs for Newly Detected Subjects ###
+###############################################
 
-  dcm2bids -d ${dir_dicom}/${subid}/DICOMs -p ${subid} -s 1 -c \
-  /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/config_Conte-Two.json \
-  -o ${dir_dicom}/${subid}/BIDs_Residual --forceDcm2niix --clobber
+    for subid in $NewSubs ; do
 
-######################################
-### Reorganize Directory Structure ###
-######################################
+      JobName=`echo ${site}${subid}`
+      job=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
 
-  echo 'Reorganizing Directory Structure for '$subid
-  echo '⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ '
-  mv ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/
-  chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
-  
-  zip ${dir_dicom}/${subid}/${subid}_DICOMs.zip -r ${dir_dicom}/${subid}/DICOMs
-  rm -rf ${dir_dicom}/${subid}/DICOMs  
-  rm -rf ${dir_dicom}/${subid}/scitran 
-  chmod -R ug+wrx ${dir_dicom}/${subid}
+      if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
 
+        echo ''
+        echo "############################################"
+        echo "# ${JobName} is currently being processed..."
+        echo "############################################"
+        echo ''
+
+      else
+
+        echo ''
+        echo "###############################################"
+        echo "# ${JobName} IS BEING SUBMITTED FOR DOWNLOAD..."
+        echo "###############################################"
+        echo ''
+
+        Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
+
+        qsub -N ${JobName} ${Pipeline} ${subid} ${site} ${dir_dicom}
+       fi
+    done
+  fi
 done
+
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
