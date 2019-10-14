@@ -20,15 +20,7 @@
             "modalityLabel": "magnitude1",
             "customLabels": "acq-dirPA",
             "criteria": {
-                "SidecarFilename": "*mangitude1_acq-dirPA*"
-            }
-    },
-        {
-            "dataType": "fmap",
-            "modalityLabel": "magnitude2",
-            "customLabels": "acq-dirAP",
-            "criteria": {
-                "SidecarFilename": "*mangitude2_acq-dirAP*"
+                "SidecarFilename": "*fmap-magnitude1_acq-dirPA*"
             }
     },
         {
@@ -36,7 +28,7 @@
             "modalityLabel": "magnitude2",
             "customLabels": "acq-dirPA",
             "criteria": {
-                "SidecarFilename": "*mangitude2_acq-dirPA*"
+                "SidecarFilename": "*fmap-magnitude2_acq-dirPA*"
             }
     },
         {
@@ -57,73 +49,37 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-REST",
+            "customLabels": "task-rest",
             "customLabels": "run-01",
             "criteria": {
-                "SeriesDescription": "*func_task-REST_run-01_bold*"
+                "SeriesDescription": "*func_task-REST_bold*"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-REST",
-            "customLabels": "run-02",
-            "criteria": {
-                "SeriesDescription": "*func_task-REST_run-02_bold*"
-            }
-    },
-        {
-            "dataType": "func",
-            "modalityLabel": "bold",
-            "customLabels": "task-Doors",
+            "customLabels": "task-doors",
             "customLabels": "run-01",
             "criteria": {
-                "SeriesDescription": "*func_task-REST_run-01_bold*"
+                "SeriesDescription": "*func_task-Doors_run-01_bold*"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-Doors",
+            "customLabels": "task-doors",
             "customLabels": "run-02",
             "criteria": {
-                "SeriesDescription": "*func_task-REST_run-02_bold*"
+                "SeriesDescription": "*func_task-Doors_run-02_bold*"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-Doors",
+            "customLabels": "task-doors",
             "customLabels": "run-03",
             "criteria": {
-                "SeriesDescription": "*func_task-REST_run-03_bold*"
-            }
-    },
-        {
-            "dataType": "func",
-            "modalityLabel": "bold",
-            "customLabels": "task-Doors",
-            "customLabels": "run-04",
-            "criteria": {
-                "SeriesDescription": "*func_task-REST_run-04_bold*"
-            }
-    },
-        {
-            "dataType": "func",
-            "modalityLabel": "bold",
-            "customLabels": "task-Doors",
-            "customLabels": "run-05",
-            "criteria": {
-                "SeriesDescription": "*func_task-REST_run-05_bold*"
-            }
-    },
-        {
-            "dataType": "func",
-            "modalityLabel": "bold",
-            "customLabels": "task-Doors",
-            "customLabels": "run-06",
-            "criteria": {
-                "SeriesDescription": "*func_task-REST_run-06_bold*"
+                "SeriesDescription": "*func_task-Doors_run-03_bold*"
             }
         }
     ]
