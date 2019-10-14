@@ -50,7 +50,6 @@
             "dataType": "func",
             "modalityLabel": "bold",
             "customLabels": "task-rest",
-            "customLabels": "run-01",
             "criteria": {
                 "SeriesDescription": "*func_task-REST_bold*"
             }
@@ -58,8 +57,7 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors",
-            "customLabels": "run-01",
+            "customLabels": "run-01_task-doors",
             "criteria": {
                 "SeriesDescription": "*func_task-Doors_run-01_bold*"
             }
@@ -67,8 +65,7 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors",
-            "customLabels": "run-02",
+            "customLabels": "run-02_task-doors",
             "criteria": {
                 "SeriesDescription": "*func_task-Doors_run-02_bold*"
             }
@@ -76,8 +73,7 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors",
-            "customLabels": "run-03",
+            "customLabels": "run-03_task-doors_",
             "criteria": {
                 "SeriesDescription": "*func_task-Doors_run-03_bold*"
             }
