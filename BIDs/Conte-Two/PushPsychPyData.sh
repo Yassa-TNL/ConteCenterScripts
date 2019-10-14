@@ -35,40 +35,55 @@ mkdir -p $output_dir
 
 /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp ${FIBRE_PASSWORD} ${output_dir}
 
-##################################################
-### Move Files to Subject Specific Directories ###
-##################################################
+########################################################
+### Check Output Files Exist and Correctly Formatted ###
+########################################################
 
-Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/*_DoorsTask_*-*_*.txt`
+Files=`ls ${output_dir}/*_DoorsTask_*-*_*.*`
 time=`date +"%D %T" | sed s@' '@','@g`
+chmod -R ug+wrx ${output_dir}
 
 for file in $Files ; do
 
   name=`basename $file` 
   subid=`echo $name | cut -d '_' -f1`
-  dir_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/PsychoPy
-  mkdir ${dir_output}
+  site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/bids/sub-${subid}/ses-1/func/
+  bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-1/func/
+  event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
   
-  if [[ ! -d "${dir_output}" ]] ; then
-    echo '#########################################################################'
-    echo $subid' not transfered correctly - try running BIDs_Coversion Script First'
-    echo '             CREATING LOG FILE FOR FUTURE INVESTIGATION                  '
-    echo '#########################################################################'
-    echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/FailedUploads.csv
-    rm ${file}
+  mkdir ${event_output} 
+  if [[ ! -d "${site_output}" ]] || [[ ! -d "${bids_output}" ]] || [[ ! -d "${event_output}" ]] ; then
+    echo "##########################################################################"
+    echo "$subid' not transfered correctly - try running BIDs_Coversion Script First"
+    echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
+    echo "##########################################################################"
+    echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/Failed_Event_FW-Uploads.csv
     break
   fi
 
-  mv $file /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/PsychoPy/
-  chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}
+########################################
+### Move Files to Output Directories ###
+########################################
+
+  cp $file $event_output
+
+  filetype=`basename $file | cut -d '.' -f2`
+  if [[ ${filetype} == 'tsv' ]] ; then
+
+    cp $file ${site_output}/sub-${subid}_ses-1_task-doors_events.tsv
+    cp $file ${bids_output}/sub-${subid}_ses-1_task-doors_events.tsv
+
+  fi
 
 ################################################
 ### Upload Copies to Flywheel to be Archived ###
 ################################################
 
-  fw upload "yassalab/Conte-Two/${subid}/Brain^ConteTwo/" /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two/${subid}_doorsTask_log.txt
+  fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${event_output}/*
 
 done
+
+rm -rf ${output_dir}
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
