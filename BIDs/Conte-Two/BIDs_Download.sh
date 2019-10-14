@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -q ionode,yassalab
-#$ -pe openmp 4
+#$ -pe openmp 8
 #$ -R y
 #$ -ckpt restart
 ########################################
