@@ -47,11 +47,19 @@ for file in $Files ; do
 
   name=`basename $file` 
   subid=`echo $name | cut -d '_' -f1`
-  site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/bids/sub-${subid}/ses-1/func/
+  site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-1/func/
   bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-1/func/
   event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
+  EXISTING=`fw ls "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/files/${name}"`
+
+  if [ ! -z $EXISTING ] ; then
+    break
+  fi
   
-  mkdir ${event_output} 
+  if [ ! -d ${event_output} ] ; then
+    mkdir ${event_output} 
+  fi
+
   if [[ ! -d "${site_output}" ]] || [[ ! -d "${bids_output}" ]] || [[ ! -d "${event_output}" ]] ; then
     echo "##########################################################################"
     echo "$subid' not transfered correctly - try running BIDs_Coversion Script First"
@@ -65,8 +73,6 @@ for file in $Files ; do
 ### Move Files to Output Directories ###
 ########################################
 
-  cp $file $event_output
-
   filetype=`basename $file | cut -d '.' -f2`
   if [[ ${filetype} == 'tsv' ]] ; then
 
@@ -75,11 +81,13 @@ for file in $Files ; do
 
   fi
 
+  cp $file $event_output
+
 ################################################
 ### Upload Copies to Flywheel to be Archived ###
 ################################################
 
-  fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${event_output}/*
+  fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${file}
 
 done
 
