@@ -73,7 +73,7 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "run-03_task-doors_",
+            "customLabels": "run-03_task-doors",
             "criteria": {
                 "SeriesDescription": "*func_task-Doors_run-03_bold*"
             }
