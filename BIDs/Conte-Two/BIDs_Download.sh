@@ -56,17 +56,17 @@ dcm2bids -d ${dir_dicom}/${subid}/DICOMs \
 ### Reorganize Directory Structure ###
 ######################################
 
-cp -r ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} ${dir_dicom}/bids/sub-${subid}
+cp -r ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} ${dir_dicom}/BIDs/sub-${subid}
 cp -r ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/
-chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
   
 zip ${dir_dicom}/${subid}/${subid}_DICOMs.zip -r ${dir_dicom}/${subid}/DICOMs
+chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
+chmod -R ug+wrx ${dir_dicom}/BIDs/sub-${subid}
 chmod -R ug+wrx ${dir_dicom}/${subid}
-chmod -R ug+wrx ${dir_dicom}/bids/sub-${subid}
 rm -rf ${dir_dicom}/${subid}/DICOMs  
 rm -rf ${dir_dicom}/${subid}/scitran
 rm -rf ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid}
-rm -rf ${site}${subid}.e* ${site}${subid}.o*
+rm ${site}${subid}.e* ${site}${subid}.o*
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
