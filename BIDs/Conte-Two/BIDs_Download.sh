@@ -19,6 +19,17 @@ subid=`echo $1`
 site=`echo $2`
 dir_dicom=`echo $3`
 
+#####################
+### Quality Check ###
+#####################
+
+if [[ -z $subid ]] || [[ -z $subid ]] || [[ -z $dir_dicom]] ; then
+
+  echo "Required Input Variables Not Define - Exiting..."
+  break
+
+fi
+
 #####################################
 ### Download Dicoms from Flywheel ###
 #####################################
