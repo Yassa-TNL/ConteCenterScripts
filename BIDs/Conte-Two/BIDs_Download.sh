@@ -23,10 +23,10 @@ dir_dicom=`echo $3`
 ### Quality Check ###
 #####################
 
-if [[ -z $subid ]] || [[ -z $subid ]] || [[ -z $dir_dicom]] ; then
+if [[ -z $subid || -z $site || -z $dir_dicom ]] ; then
 
   echo "Required Input Variables Not Define - Exiting..."
-  break
+  exit 0
 
 fi
 
