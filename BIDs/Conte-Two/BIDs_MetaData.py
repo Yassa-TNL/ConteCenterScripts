@@ -4,17 +4,15 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡   ⚡  #####
 ###################################################################################################
 '''
-
 This script executes a quality assurance check to ensure PA field maps were acquired properly. Secondly,
 it calculates AP feild maps to be stored seperately for distortion correction. Lastly, Doors-Task scans 
 are merged into single run.
-
 '''
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡   ⚡  #####
 ###################################################################################################
 
 from collections import OrderedDict
@@ -27,8 +25,8 @@ import operator
 import json
 import sys
 import numpy as np
-from nipype.pipeline import engine as pe
 from nipype.interfaces import afni, ants, fsl, utility as niu
+from nipype.interfaces.fsl import Merge, Split
 
 SUBID=sys.argv[0]
 
@@ -37,6 +35,7 @@ SUBID=sys.argv[0]
 #######################################################
 
 JSONS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/fmap/*magnitude*.json'.format(SUBID))
+
 for singlefile in JSONS:
 	PathName=os.path.dirname(singlefile)
 	FileName=os.path.basename(singlefile)
@@ -66,197 +65,38 @@ for singlefile in JSONS:
 ##############################################################
 
 FUNC = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*.nii.gz'.format(SUBID))[0]
-
-fslsplit = pe.Node(fsl.Split(dimension='t'), name='ImageHMCSplit')
-
-FSLSplit(dimension='t', in_file=FUNC, out_files="/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-Pilot2T/ses-1/func/test-Pilot2T_ses-1_run-03_task-doors_bold.nii.gz")
-
-
-
-
-split = pe.MapNode(fsl.Split(dimension='t'), iterfield='in_file',name='split')
-
-fsl.Split(dimension='t'), iterfield=FUNC, name='split')
-
-
-
-
-
-
-
-
-
-
-
-
-'''
-JSONS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-*/ses-*/fmap/*{}*.json'.format("magnitude"))
-for singlefile in JSONS:	
-
-
-
-
-
-
-# Move a file by renaming it's path
-os.rename('/Users/billy/d1/xfile.txt', '/Users/billy/d2/xfile.txt')
-
-# Move a file from the directory d1 to d2
-shutil.move('/Users/billy/d1/xfile.txt', '/Users/billy/d2/xfile.txt')
-
-
-
-
-if nSlices % 2 > 0:
-
-
-
-
-
-def LocateFiles(TaskName):
-
-        return json
-
-JSONS_One=LocateFiles('magnitude1')
-JSONS_Two=LocateFiles('magnitude2')
-
-
-
-
-
-
-
-
-for singlefile in JSONS_One:
-	Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
-	Content 
-
-
-
-
-	for singlefile in JSONS:
-		Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
-		if 'SliceTiming' in Content.keys():
-			print ''
-  			print "Information Already Appended for Following File:"
-			print singlefile
-		else:
-			software=Content['ConversionSoftware']
-			del Content['ConversionSoftware']
-			version=Content['ConversionSoftwareVersion']
-			del Content['ConversionSoftwareVersion']
-			Content["TaskName"] = taskname
-			Content["SliceTiming"] = STI
-			Content["PhaseEncodingDirection"] = PhaseEncod #AP= j RL= i
-			Content["ConversionSoftware"] = software
-			Content["ConversionSoftwareVersion"] = version
-			Content["ImageType"]=['ORIGINAL','PRIMARY','M','FFE','M','FFE']
-			print "Outputing File:"			
-			print(singlefile)
-			print(Content)			
-			with open(singlefile, "w") as write_file:
-    				json.dump(Content, write_file, indent=12)
-
-
-
-
-for singlefile in JSONS_One:
-
-
-
-
-###############################################################
-###            Define Slice Timing Information              ###
-### 51/42 Slices, TR: 2, Default Slice Order/Single Package ###
-###############################################################
-
-def DefaultSliceTiming(TRsec,nSlices):
-    TA=TRsec/nSlices
-    HalfPoint=int(nSlices/2)
-    ONE=range(HalfPoint)
-    TWO=range(HalfPoint)
-    if nSlices % 2 > 0:
-        HalfPoint=int(nSlices/2)+1
-        ONE=range(HalfPoint)
-        first=[]
-        for x in ONE:
-                TimeofSliceODD=TA*x
-                first.append(TimeofSliceODD)
-        TWO=range(HalfPoint)
-        TWO.pop(0)
-        second=[]
-        for y in TWO:
-                TAmaxODD=max(enumerate(first), key=operator.itemgetter(1))[1]
-                TimeofSliceEVEN=TA*y
-                TimeofSliceEVEN=TimeofSliceEVEN+TAmaxODD
-                second.append(TimeofSliceEVEN)
-                IndexmaxEVEN=max(enumerate(second), key=operator.itemgetter(1))[0]
-        final=[]
-        INDEXmaxODD=max(enumerate(first), key=operator.itemgetter(1))[0]
-        for z in range(IndexmaxEVEN+1):
-                final.append(first[z])
-                final.append(second[z])
-        final.append(first[INDEXmaxODD])
-    else:
-        HalfPoint=int(nSlices/2)
-        ONE=range(HalfPoint)
-        first=[]
-        for x in ONE:
-                TimeofSliceODD=TA*x
-                first.append(TimeofSliceODD)
-        TWO=range(HalfPoint)
-        second=[]
-        for y in TWO:
-                TAmaxODD=max(enumerate(first), key=operator.itemgetter(1))[1]
-		y_trueval=y+1
-                TimeofSliceEVEN=TA*y_trueval
-                TimeofSliceEVEN=TimeofSliceEVEN+TAmaxODD
-                second.append(TimeofSliceEVEN)
-        final=[]
-        for z in TWO:
-                final.append(first[z])
-                final.append(second[z])
-    return(final)
-
-
-STI_REST=DefaultSliceTiming(2,51)
-STI_HIPP=DefaultSliceTiming(2,51)
-STI_AMG=DefaultSliceTiming(2,42)
-
-###########################################
-### Append New Information in Json File ###
-###  Phasing Direction: AP = j RL = i   ###
-###########################################
-
-def AppendJsonFiles(JSONS,STI,taskname,PhaseEncod):
-	for singlefile in JSONS:
-		Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
-		if 'SliceTiming' in Content.keys():
-			print ''
-  			print "Information Already Appended for Following File:"
-			print singlefile
-		else:
-			software=Content['ConversionSoftware']
-			del Content['ConversionSoftware']
-			version=Content['ConversionSoftwareVersion']
-			del Content['ConversionSoftwareVersion']
-			Content["TaskName"] = taskname
-			Content["SliceTiming"] = STI
-			Content["PhaseEncodingDirection"] = PhaseEncod #AP= j RL= i
-			Content["ConversionSoftware"] = software
-			Content["ConversionSoftwareVersion"] = version
-			Content["ImageType"]=['ORIGINAL','PRIMARY','M','FFE','M','FFE']
-			print "Outputing File:"			
-			print(singlefile)
-			print(Content)			
-			with open(singlefile, "w") as write_file:
-    				json.dump(Content, write_file, indent=12)
-
-
-AppendJsonFiles(JSONS_REST,STI_REST,'REST','j')
-AppendJsonFiles(JSONS_HIPP,STI_HIPP,'HIPP','i')
-AppendJsonFiles(JSONS_AMG,STI_AMG,'AMG','j')
-
-###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
-###################################################################################################
+OutInterBase="{}/SPLIT".format(os.path.dirname(FUNC))
+Seperate = fsl.Split(
+	in_file=FUNC,
+	dimension="t",
+	output_type="NIFTI_GZ",
+ 	out_base_name=OutInterBase)
+Seperate.run()
+
+OutInterFiles=glob.glob("{}*000[1-5].nii.gz".format(OutInterBase))
+OutFinalFile="/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/fmap/sub-{}_ses-1_acq-dirAP_magnitude2.nii.gz".format(SUBID,SUBID)
+merger = Merge()
+merger.inputs.in_files=OutInterFiles
+merger.inputs.dimension='t'
+merger.inputs.output_type='NIFTI_GZ'
+merger.inputs.tr=1.5
+merger.inputs.merged_file=OutFinalFile
+merger.run()
+
+InputCopyJson=FUNC.replace(".nii.gz",".json")
+OutFinalJson=OutFinalFile.replace(".nii.gz",".json")
+COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
+COPY["SeriesDescription"] = os.path.basename(OutFinalFile).replace(".nii.gz","")
+COPY["ProtocolName"] = os.path.basename(OutFinalFile).replace(".nii.gz","")
+with open(OutFinalJson, "w") as write_file:
+    json.dump(COPY, write_file, indent=12)
+
+InterFILES=glob.glob("{}*.nii.gz".format(OutInterBase))
+for file in InterFILES:
+	os.remove(file)
+
+##############################################################
+### Create Magnitude Scans in AP Direction From BOLD Files ###
+##############################################################
+
+events=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*task-doors*.tsv'.format(SUBID))
