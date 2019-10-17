@@ -7,6 +7,13 @@
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
+print("Reading Arguments")
+
+covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/RAVLTsubsetworking.csv"
+inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/n29_right"
+OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
+covsFormula <- "~AgeAtScan"
+
 library(R.matlab)
 library(ggplot2)
 library(corrplot)
@@ -16,47 +23,44 @@ library(lattice)
 ##### Commands For Data Preparation From Steve #####
 ####################################################
 
-HEMI=c("n18_left","n18_right","n29_left","n29_right")
+inputFiles = list.files(path= inputPath,pattern="*.txt", full.names = TRUE)
 
-for (hemi in HEMI){
 
-  InputPath=paste("/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix",hemi, sep='/')
-  temp = list.files(path= InputPath,pattern="*.txt", full.names = TRUE)
-  emptyarray <- array(as.numeric(NA),dim =c(10,12,length(temp)))
 
-  #Read in Neuroimaging Files Into A 3D Array
+emptyarray <- array(as.numeric(NA),dim =c(10,12,length(temp)))
 
-  j <- 0
-  for (i in temp) {
+#Read in Neuroimaging Files Into A 3D Array
+
+j <- 0
+for (i in temp) {
     j <- j + 1
     df2 <- read.table(i, sep = '\t',header = T,quote='', comment='')
     x <- as.matrix(df2)
     emptyarray[,,j] = x
-  
-  }
+}
 
-  firstdrop <-emptyarray[1:10,2:12,1:length(temp)]
-  colnames (firstdrop) <- as.character(unlist(firstdrop[1,,length(temp)]))
-  firstdrop=firstdrop[-1,,]
-  seconddrop4=firstdrop[,-1,]
-  class(seconddrop4) <- "numeric" 
+firstdrop <-emptyarray[1:10,2:12,1:length(temp)]
+colnames (firstdrop) <- as.character(unlist(firstdrop[1,,length(temp)]))
+firstdrop=firstdrop[-1,,]
+seconddrop4=firstdrop[,-1,]
+class(seconddrop4) <- "numeric" 
 
-  #Read in Cognition Data Into A Dataset
+#Read in Cognition Data Into A Dataset
 
-  RAVLTsubdimensional <- read.csv("/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/RAVLTsubsetworking.csv")
-  RAVLTsubdimensional$NeuroID<-0
+  covaData <- read.csv("/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/RAVLTsubsetworking.csv")
+  covaData$NeuroID<-0
   
   DIM_TEMP<-length(temp)
   for (DIM in 1:DIM_TEMP){
     SUBID<-strsplit(temp, "/")[[DIM]][11]
     SUBID<-substr(SUBID, 1,3)
-    SUBID_ROW<-which(RAVLTsubdimensional$Subject.ID == SUBID)
-    RAVLTsubdimensional[SUBID_ROW,"NeuroID"] <- 1
+    SUBID_ROW<-which(covaData$Subject.ID == SUBID)
+    covaData[SUBID_ROW,"NeuroID"] <- 1
   }
  
-  RAVLTsubdimensional<-RAVLTsubdimensional[which(RAVLTsubdimensional$NeuroID == "1"),]
-  RAVLTsubdimensional<-RAVLTsubdimensional[order(RAVLTsubdimensional$Subject.ID),]
-  RAVLTsubdimensional$NeuroID<-NULL
+  covaData<-covaData[which(covaData$NeuroID == "1"),]
+  covaData<-covaData[order(covaData$Subject.ID),]
+  covaData$NeuroID<-NULL
 
 ##########################################################
 ##### Clean Array and Covert Into Single Spreadsheet #####
@@ -68,7 +72,7 @@ for (hemi in HEMI){
   maxsubs<-dim(ARRAY)[3]
 
   for (subject in 1:maxsubs){
-    final[[subject]]=unlist(RAVLTsubdimensional[subject,])
+    final[[subject]]=unlist(covaData[subject,])
     maxrows<-dim(ARRAY)[1]
     for (single in 1:maxrows){
       row[[single]]<-as.numeric(ARRAY[single,,subject])
@@ -80,8 +84,8 @@ for (hemi in HEMI){
   FINAL<-as.data.frame(FINAL[1:maxsubs,])
  # NAMES = c(colnames(ARRAY))
  # names(FINAL)[1:dim(ARRAY)[2]] <- NAMES 
- # NAMES = c(colnames(RAVLTsubdimensional))
- # names(FINAL)[dim(ARRAY)[2]:dim(RAVLTsubdimensional)[2]] <- NAMES 
+ # NAMES = c(colnames(covaData))
+ # names(FINAL)[dim(ARRAY)[2]:dim(covaData)[2]] <- NAMES 
 
 ############################################################
 ##### Refine Variables of Interest and Relabel Columns #####
