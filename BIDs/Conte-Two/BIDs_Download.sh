@@ -1,11 +1,11 @@
 #!/bin/bash
-#$ -q ionode,yassalab
+#$ -q yassalab,ionode
 #$ -pe openmp 8
 #$ -R y
 #$ -ckpt restart
-########################################
-### Load Software & Define Variables ###
-########################################
+################################
+### Load Software and Inputs ###
+################################
 
 module purge ; module load anaconda/2.7-4.3.1
 module load fsl/6.0.1
@@ -77,7 +77,7 @@ chmod -R ug+wrx ${dir_dicom}/${subid}
 rm -rf ${dir_dicom}/${subid}/DICOMs  
 rm -rf ${dir_dicom}/${subid}/scitran
 rm -rf ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid}
-rm ${site}${subid}.e* ${site}${subid}.o*
+#rm ${site}${subid}A.e* ${site}${subid}A.o*
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
