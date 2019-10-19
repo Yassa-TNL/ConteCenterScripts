@@ -1,22 +1,9 @@
 #!/usr/bin/python
-###################################################################################################
-##########################              CONTE Center 2.0                 ##########################
-##########################              Robert Jirsaraie                 ##########################
-##########################              rjirsara@uci.edu                 ##########################
-###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
-###################################################################################################
-'''
-This script executes a quality assurance check to ensure PA field maps were acquired properly. Secondly,
-it calculates AP feild maps to be stored seperately for distortion correction. Lastly, Doors-Task scans 
-are merged into single run.
-'''
-###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
-###################################################################################################
+# -*- coding: latin-1 -*-
+################################
+### Load Software and Inputs ###
+################################
 
-from collections import OrderedDict
-from __future__ import division
 import os
 import os.path
 import shutil
@@ -25,10 +12,12 @@ import operator
 import json
 import sys
 import numpy as np
-from nipype.interfaces import afni, ants, fsl, utility as niu
+import nipype
+from collections import OrderedDict
+from nipype.interfaces import afni, ants, fsl, utility
 from nipype.interfaces.fsl import Merge, Split, ExtractROI
 
-SUBID=sys.argv[0]
+SUBID=sys.argv[1]
 
 #######################################################
 ### Locate Json Files of Functional Images Per Task ###
@@ -167,36 +156,10 @@ for singlefile in FMAPS:
 		with open(singlefile , "a") as write_file:
 			json.dump(Content, write_file, indent=12)
 
-
-
-'''
-
-for singlefile in FMAPS:
-     print(singlefile)
-
-
-
-
-			software=Content['ConversionSoftware']
-			del Content['ConversionSoftware']
-			version=Content['ConversionSoftwareVersion']
-			del Content['ConversionSoftwareVersion']
-			Content["TaskName"] = taskname
-			Content["SliceTiming"] = STI
-			Content["PhaseEncodingDirection"] = PhaseEncod #AP= j RL= i
-			Content["ConversionSoftware"] = software
-			Content["ConversionSoftwareVersion"] = version
-			Content["ImageType"]=['ORIGINAL','PRIMARY','M','FFE','M','FFE']
-			print "Outputing File:"			
-			print(singlefile)
-			print(Content)			
-			with open(singlefile, "w") as write_file:
-    				json.dump(Content, write_file, indent=12)
-
-
 ###########################################
 ### Quality Check Of Phasing Directions ###
 ###########################################
+
 
 
 
