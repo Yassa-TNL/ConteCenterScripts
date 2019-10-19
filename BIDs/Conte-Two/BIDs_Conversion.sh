@@ -56,7 +56,7 @@ for site in $sites ; do
     for subid in $NewSubs ; do
 
       JobName=`echo ${site}${subid}`
-      job=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
+      job=`qstat -u $USER | grep ${JobName} | awk {'print $5'} | tr '\n' ' ' | cut -d ' ' -f1`
 
       if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
 
@@ -69,15 +69,35 @@ for site in $sites ; do
       else
 
         echo ''
-        echo "###############################################"
-        echo "# ${JobName} IS BEING SUBMITTED FOR DOWNLOAD..."
-        echo "###############################################"
+        echo "###################################################"
+        echo "# ${JobName} ARE BEING SUBMITTED FOR DOWNLOADING..."
+        echo "###################################################"
         echo ''
+	
+	if [ ${site} == "UCI" ] ; then
+	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
+	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+	fi
 
+	if [ ${site} == "UCSD" ] ; then
+	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
+	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+	fi
+
+	JobNameA=`echo ${site}${subid}A`
         Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
+        qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
 
-        qsub -N ${JobName} ${Pipeline} ${subid} ${site} ${dir_dicom}
-       fi
+	JobNameB=`echo ${site}${subid}B`
+	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
+	qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${dir_dicom}
+ 	-hold_jid ${JobNameB}
+	
+	JobNameC=`echo ${site}${subid}C`
+	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
+	echo "python ${Pipeline} ${subid}" | qsub -N ${JobNameC} -q yassalab -pe openmp 8 -hold_jid ${JobNameB}
+
+      fi
     done
   fi
 done
