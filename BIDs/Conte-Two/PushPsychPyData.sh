@@ -1,52 +1,40 @@
 #!/bin/bash
-#$ -N DataStorm
-#$ -q ionode,ionode-lp
-#$ -R y
-#$ -ckpt blcr
-#$ -m e
-###################################################################################################
-##########################              CONTE Center 2.0                 ##########################
-##########################              Robert Jirsaraie                 ##########################
-##########################              rjirsara@uci.edu                 ##########################
-###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
-###################################################################################################
-<<Use
-
-This script automatically downloads the PsychoPy data from the Doors Guessing Task that is administered for
-the Conte-Two Study. The data is automatically pulled from FIBRE than moved to subject-level directories 
-and backup copies are uploaded to flywheel.
-
-Use
-###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
-###################################################################################################
+#$ -q yassalab,free*
+#$ -pe openmp 4
+#$ -R n
+#$ -ckpt restart
+################################
+### Load Software and Inputs ###
+################################
 
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
 source /data/users/rjirsara/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
 
-##############################################################
-### Run Expect Script to Download Data from Fibre's Server ###
-##############################################################
+subid=`echo $1`
 
-output_dir=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/Spooling
-mkdir -p $output_dir
+#####################
+### Quality Check ###
+#####################
 
-/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp ${FIBRE_PASSWORD} ${output_dir}
+if [[ -z $subid ]] ; then
 
-########################################################
-### Check Output Files Exist and Correctly Formatted ###
-########################################################
+  echo "Required Input Variables Not Define - Exiting..."
+  exit 0
 
-Files=`ls ${output_dir}/*_DoorsTask_*-*_*.*`
+fi
+
+###############################################
+### Define Output File and Correctly Format ###
+###############################################
+
+Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs_Events/${subid}_DoorsTask_*-*_*.*`
 time=`date +"%D %T" | sed s@' '@','@g`
-chmod -R ug+wrx ${output_dir}
+chmod -R ug+wrx ${Files}
 
 for file in $Files ; do
 
   name=`basename $file` 
-  subid=`basename $name | cut -d '_' -f1`
   site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-1/func/
   bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-1/func/
   event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
@@ -68,6 +56,8 @@ for file in $Files ; do
 ### Move Files to Output Directories ###
 ########################################
 
+  cp $file $event_output
+
   filetype=`basename $file | cut -d '.' -f2`
   if [[ ${filetype} == 'tsv' ]] ; then
 
@@ -75,8 +65,6 @@ for file in $Files ; do
     cp $file ${bids_output}/sub-${subid}_ses-1_task-doors_events.tsv
 
   fi
-
-  cp $file $event_output
 
 ################################################
 ### Upload Copies to Flywheel to be Archived ###
@@ -88,8 +76,6 @@ for file in $Files ; do
     fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${file}
   fi
 done
-
-rm -rf ${output_dir}
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
