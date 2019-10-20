@@ -104,7 +104,7 @@ for site in $sites ; do
 
 	JobNameC=`echo ${site}${subid}C`
 	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
-	echo "python ${Pipeline} ${subid}" | qsub -N ${JobNameC} -q yassalab -pe openmp 8 -hold_jid ${JobNameB}
+	echo "python ${Pipeline} ${subid} ${site}" | qsub -N ${JobNameC} -q yassalab -pe openmp 8 -hold_jid ${JobNameB}
 
       fi
     done
