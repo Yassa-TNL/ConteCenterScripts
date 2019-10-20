@@ -49,7 +49,7 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-rest",
+            "customLabels": "task-REST",
             "criteria": {
                 "SeriesDescription": "*func_task-REST_bold*"
             }
