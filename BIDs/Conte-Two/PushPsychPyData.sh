@@ -12,12 +12,13 @@ source /data/users/rjirsara/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
 
 subid=`echo $1`
+site=`echo $2`
 
 #####################
 ### Quality Check ###
 #####################
 
-if [[ -z $subid ]] ; then
+if [[ -z $subid || -z ${site} ]] ; then
 
   echo "Required Input Variables Not Define - Exiting..."
   exit 0
@@ -32,37 +33,54 @@ Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs_Events/$
 time=`date +"%D %T" | sed s@' '@','@g`
 chmod -R ug+wrx ${Files}
 
-for file in $Files ; do
+site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-1/func/
+bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-${site}/func/
+event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
+mkdir ${event_output}
 
-  name=`basename $file` 
-  site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-1/func/
-  bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-1/func/
-  event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
+#################################################
+### Perform Quality CHecks And Log Any Errors ###
+#################################################
 
-  if [ ! -d ${event_output} ] ; then
-    mkdir ${event_output} 
-  fi
+if [[  -z "${Files}" ]] ; then
+  echo "##########################################################################"
+  echo "    $subid' ALL FILES ARE MISSING FROM TRANSFER -- PUSH AND PULL FAILED   "
+  echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
+  echo "##########################################################################"
+  echo ${subid},${time},"ALLMISSING" >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/EventFileErrors.csv
+  exit 0
+fi
 
-  if [[ ! -d "${site_output}" ]] || [[ ! -d "${bids_output}" ]] || [[ ! -d "${event_output}" ]] ; then
-    echo "##########################################################################"
-    echo "$subid' not transfered correctly - try running BIDs_Coversion Script First"
-    echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
-    echo "##########################################################################"
-    echo ${subid},${time} >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/Failed_Event_FW-Uploads.csv
-    break
-  fi
+if [[ -z `echo $Files | grep "tsv" | sed s@" "@""@g` ]] ; then
+  echo "##########################################################################"
+  echo " $subid' MRI Task Was Not Run To Completion Additional Processing Needed  "
+  echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
+  echo "##########################################################################"
+  echo ${subid},${time},"TSVFileMissing" >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/EventFileErrors.csv
+fi
+
+if [[ ! -d "${site_output}" ]] || [[ ! -d "${bids_output}" ]] || [[ ! -d "${event_output}" ]] ; then
+  echo "##########################################################################"
+  echo " $subid Not Transfered Correctly - Try Running BIDs_Coversion Script First"
+  echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
+  echo "##########################################################################"
+  echo ${subid},${time},"OutDirMissing" >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/EventFileErrors.csv
+fi
 
 ########################################
 ### Move Files to Output Directories ###
 ########################################
 
+for file in $Files ; do
+
+  name=`basename $file` 
   cp $file $event_output
 
   filetype=`basename $file | cut -d '.' -f2`
   if [[ ${filetype} == 'tsv' ]] ; then
 
-    cp $file ${site_output}/sub-${subid}_ses-1_task-doors_events.tsv
-    cp $file ${bids_output}/sub-${subid}_ses-1_task-doors_events.tsv
+    cp $file ${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+    cp $file ${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
 
   fi
 
@@ -78,5 +96,5 @@ for file in $Files ; do
 done
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
