@@ -59,7 +59,11 @@ if JSONS == []:
 ### Create Magnitude Scans in AP Direction From BOLD Files ###
 ##############################################################
 
-FUNC = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*.nii.gz'.format(SUBID,SITE))[0]
+try:
+	FUNC = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*.nii.gz'.format(SUBID,SITE))[0]
+except:
+	pass
+
 if FUNC != []:
 	Check=json.load(open(FUNC.replace("nii.gz","json")))
 	if Check["PhaseEncodingDirection"] == "j-":
@@ -124,7 +128,11 @@ if any("_task-REST_" in s for s in FUNCS):
 ### Create Magnitude Scans in AP Direction From DWI Files ###
 #############################################################
 
-DWI = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID,SITE))[0]
+try:
+	DWI = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID,SITE))[0]
+except:
+	pass
+
 if DWI != []:
 	Check=json.load(open(DWI.replace("nii.gz","json")))
 	if Check["PhaseEncodingDirection"] == "j-":
@@ -148,7 +156,7 @@ if DWI != []:
 			addrow="\n{},{},DWI-PhaseDirWrong".format(SUBID,DWI)
 			file.write(addrow)
 
-DWIS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID.SITE))
+DWIS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID,SITE))
 if DWIS == []:
 	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScansMissingErrors.csv', 'a') as file:
 		addrow="\n{},{},ALLDWI".format(SUBID,SITE)
@@ -163,7 +171,11 @@ if any("_run-01_" in s for s in DWIS):
 ### Reduce Dimensions of MAPS in PA Direction ###
 #################################################
 
-MAG1 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude1.nii.gz'.format(SUBID,SITE))[0]
+try:
+	MAG1 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude1.nii.gz'.format(SUBID,SITE))[0]
+except:
+	pass
+
 if MAG1 != []:
 	OutInterBase="{}/SPLIT".format(os.path.dirname(MAG1))
 	Seperate = fsl.Split(
@@ -178,7 +190,11 @@ if MAG1 != []:
 	for INTER in INTERS:
 		os.remove(INTER)
 
-MAG2 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude2.nii.gz'.format(SUBID,SITE))[0]
+try:
+	MAG2 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude2.nii.gz'.format(SUBID,SITE))[0]
+except:
+	pass
+
 if MAG2  != []:
 	OutInterBase="{}/SPLIT".format(os.path.dirname(MAG2))
 	Seperate = fsl.Split(
@@ -197,7 +213,11 @@ if MAG2  != []:
 ### Combine Doors-Task Runs Into Single 4D BOLD NIFTI ###
 #########################################################
 
-EVENTS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*task-doors_events.tsv'.format(SUBID,SITE))[0]
+try:
+	EVENTS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*task-doors_events.tsv'.format(SUBID,SITE))[0]
+except:
+	pass
+
 RUNS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*run-*_task-doors_bold.nii.gz'.format(SUBID,SITE))
 if (len(RUNS) == 3 and os.path.exists(EVENTS)):
 	MERGED=RUNS[0].split("_")
@@ -249,6 +269,11 @@ if FMAPS != []:
 		if Content["SeriesDescription"].split("_")[0] == 'fmap-magnitude1':
 			Content["IntendedFor"]=[DWIS]
 			json.dump(Content, open(updatefile, "w"), indent=12)
+
+
+os.chmod('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}'.format(SUBID), 0775)
+qsublogs=glob.glob("{}{}C.*".format(SUBID,SITE))
+#os.remove(qsublogs)
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
