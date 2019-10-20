@@ -15,103 +15,190 @@ import numpy as np
 import nipype
 from collections import OrderedDict
 from nipype.interfaces import afni, ants, fsl, utility
-from nipype.interfaces.fsl import Merge, Split, ExtractROI
+from nipype.interfaces.fsl import Merge, Split, ExtractROI, ImageMeants
 
-SUBID=sys.argv[1]
+SUBID=str(sys.argv[1])
+SITE=str(sys.argv[2])
 
 #######################################################
 ### Locate Json Files of Functional Images Per Task ###
 #######################################################
 
-JSONS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/fmap/*magnitude*.json'.format(SUBID))
+JSONS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*magnitude*.json'.format(SUBID,SITE))
+if JSONS != []:
+	for singlefile in JSONS:
+		PathName=os.path.dirname(singlefile)
+		FileName=os.path.basename(singlefile)
+		Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
+		if Content["PhaseEncodingDirection"] != 'j' :
+			renamedsinglebase=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-*/{}/BIDs_Residual/'.format(SUBID))
+			renamedsinglefile=os.path.basename(singlefile).replace("acq-dirPA","acq-dirERROR")
+			renamedsingle="{}{}".format(renamedsinglebase[0],renamedsinglefile)
+			os.rename(singlefile,renamedsingle)
+			singlenifti=singlefile.replace(".json",".nii.gz")
+			renamednifti=renamedsingle.replace(".json",".nii.gz")
+			os.rename(singlenifti,renamednifti)
+			with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScannerAcquistionErrors.csv', 'a') as file:
+				addrow="\n{},{},FMAP-PhaseDirWrong".format(SUBID,FileName)
+				file.write(addrow)
+		elif FileName.find("_run-") != -1:
+			FileNameParts=FileName.split("_")
+			FileNameNew="{}_{}_{}_{}".format(FileNameParts[0],FileNameParts[1],FileNameParts[2],FileNameParts[4])
+			FileNameNew="{}/{}".format(PathName,FileNameNew)
+			os.rename(singlefile,FileNameNew)
+			singlenifti=singlefile.replace(".json",".nii.gz")
+			renamednifti=FileNameNew.replace(".json",".nii.gz")
+			os.rename(singlenifti,renamednifti)
 
-for singlefile in JSONS:
-	PathName=os.path.dirname(singlefile)
-	FileName=os.path.basename(singlefile)
-	Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
-	if Content["PhaseEncodingDirection"] != u'j' :
-		renamedsinglebase=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-*/{}/BIDs_Residual/'.format(SUBID))
-		renamedsinglefile=os.path.basename(singlefile).replace("acq-dirPA","acq-dirAP")
-		renamedsingle="{}{}".format(renamedsinglebase[0],renamedsinglefile)
-		os.rename(singlefile,renamedsingle)
-		singlenifti=singlefile.replace(".json",".nii.gz")
-		renamednifti=renamedsingle.replace(".json",".nii.gz")
-		os.rename(singlenifti,renamednifti)
-		with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/Failed_BIDs_Formatting.csv', 'a') as file:
-			addrow="\n{},{},FMAP-PhaseDirWrong".format(SUBID,FileName)
-			file.write(addrow)
-	elif FileName.find("_run-") != -1:
-		FileNameParts=FileName.split("_")
-		FileNameNew="{}_{}_{}_{}".format(FileNameParts[0],FileNameParts[1],FileNameParts[2],FileNameParts[4])
-		FileNameNew="{}/{}".format(PathName,FileNameNew)
-		os.rename(singlefile,FileNameNew)
- 		singlenifti=singlefile.replace(".json",".nii.gz")
-		renamednifti=FileNameNew.replace(".json",".nii.gz")
-		os.rename(singlenifti,renamednifti)
+if JSONS == []:
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScansMissingErrors.csv', 'a') as file:
+		addrow="\n{},{},ALLFMAPS".format(SUBID,SITE)
+		file.write(addrow)
 
 ##############################################################
 ### Create Magnitude Scans in AP Direction From BOLD Files ###
 ##############################################################
 
-FUNC = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*.nii.gz'.format(SUBID))[0]
-OutInterBase="{}/SPLIT".format(os.path.dirname(FUNC))
-Seperate = fsl.Split(
-	in_file=FUNC,
-	dimension="t",
-	output_type="NIFTI_GZ",
- 	out_base_name=OutInterBase)
-Seperate.run()
+FUNC = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*.nii.gz'.format(SUBID,SITE))[0]
+if FUNC != []:
+	Check=json.load(open(FUNC.replace("nii.gz","json")))
+	if Check["PhaseEncodingDirection"] == "j-":
+		OutInterBase="{}/SPLIT".format(os.path.dirname(FUNC))
+		Seperate = fsl.Split(
+			in_file=FUNC,
+			dimension="t",
+			output_type="NIFTI_GZ",
+			out_base_name=OutInterBase)
+		Seperate.run()
+		OutInterFiles=glob.glob("{}*0005.nii.gz".format(OutInterBase))
+		OutFinalFunc="/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/sub-{}_ses-{}_acq-dirAP_magnitude2.nii.gz".format(SUBID,SITE,SUBID,SITE)
 
-OutInterFiles=glob.glob("{}*000[1-5].nii.gz".format(OutInterBase))
-OutFinalFunc="/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/fmap/sub-{}_ses-1_acq-dirAP_magnitude2.nii.gz".format(SUBID,SUBID)
-merger = Merge()
-merger.inputs.in_files=OutInterFiles
-merger.inputs.dimension='t'
-merger.inputs.output_type='NIFTI_GZ'
-merger.inputs.tr=1.5
-merger.inputs.merged_file=OutFinalFunc
-merger.run()
+		merger = Merge()
+		merger.inputs.in_files=OutInterFiles
+		merger.inputs.dimension='t'
+		merger.inputs.output_type='NIFTI_GZ'
+		merger.inputs.tr=1.5
+		merger.inputs.merged_file=OutFinalFunc
+		merger.run()
 
-InputCopyJson=FUNC.replace(".nii.gz",".json")
-OutFinalJson=OutFinalFunc.replace(".nii.gz",".json")
-COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
-COPY["SeriesDescription"] = os.path.basename(OutFinalFunc).replace(".nii.gz","")
-COPY["ProtocolName"] = os.path.basename(OutFinalFunc).replace(".nii.gz","")
-with open(OutFinalJson, "w") as write_file:
-    json.dump(COPY, write_file, indent=12)
+		InputCopyJson=FUNC.replace(".nii.gz",".json")
+		OutFinalJson=OutFinalFunc.replace(".nii.gz",".json")
+		COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
+		COPY["SeriesDescription"] = "fmap-magnitude2_acq-dirPA"
+		COPY["ProtocolName"] = "fmap-magnitude2_acq-dirPA"
+		with open(OutFinalJson, "w") as write_file:
+			json.dump(COPY, write_file, indent=12)
 
-InterFILES=glob.glob("{}*.nii.gz".format(OutInterBase))
-for file in InterFILES:
-	os.remove(file)
+		InterFILES=glob.glob("{}*.nii.gz".format(OutInterBase))
+		for file in InterFILES:
+			os.remove(file)
+	else:
+		with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScannerAcquistionErrors.csv', 'a') as file:
+			addrow="\n{},{},FUNC-PhaseDirWrong".format(SUBID,FUNC)
+			file.write(addrow)
+
+
+FUNCS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*.nii.gz'.format(SUBID,SITE))
+if any("_task-doors_" not in s for s in FUNCS):
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScansMissingErrors.csv', 'a') as file:
+		addrow="\n{},{},ALLDOORS".format(SUBID,SITE)
+		file.write(addrow)
+
+if any("_task-REST_" not in s for s in FUNCS):
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScansMissingErrors.csv', 'a') as file:
+		addrow="\n{},{},ALLREST".format(SUBID,SITE)
+		file.write(addrow)
+
+##############################################
+### Define Task Name of Resting State Scan ###
+##############################################
+
+if any("_task-REST_" in s for s in FUNCS):
+	RESTING = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*task-REST*.json'.format(SUBID,SITE))
+	for REST in RESTING:
+		Content=json.load(open(REST), object_pairs_hook=OrderedDict)
+		Content['TaskName'] = "REST"
+		json.dump(Content, open(REST, "w"), indent=12)
 
 #############################################################
 ### Create Magnitude Scans in AP Direction From DWI Files ###
 #############################################################
 
-DWI = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/dwi/*.nii.gz'.format(SUBID))[0]
-OutFinalDWI=OutFinalFunc.replace("magnitude2.","magnitude1.")
-fslroi = ExtractROI(
-	in_file=DWI,
-	roi_file=OutFinalDWI,
-	output_type="NIFTI_GZ",
-	t_min=0,
-	t_size=1)
-fslroi.run()
+DWI = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID,SITE))[0]
+if DWI != []:
+	Check=json.load(open(DWI.replace("nii.gz","json")))
+	if Check["PhaseEncodingDirection"] == "j-":
+		OutFinalDWI=OutFinalFunc.replace("magnitude2.","magnitude1.")
+		fslroi = ExtractROI(
+			in_file=DWI,
+			roi_file=OutFinalDWI,
+			output_type="NIFTI_GZ",
+			t_min=0,
+			t_size=1)
+		fslroi.run()
+		InputCopyJson=DWI.replace(".nii.gz",".json")
+		OutFinalJson=OutFinalDWI.replace(".nii.gz",".json")
+		COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
+		COPY["SeriesDescription"] = "fmap-magnitude1_acq-dirAP"
+		COPY["ProtocolName"] = "fmap-magnitude1_acq-dirAP"
+		with open(OutFinalJson, "w") as write_file:
+			json.dump(COPY, write_file, indent=12)
+	else:
+		with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScannerAcquistionErrors.csv', 'a') as file:
+			addrow="\n{},{},DWI-PhaseDirWrong".format(SUBID,DWI)
+			file.write(addrow)
 
-InputCopyJson=DWI.replace(".nii.gz",".json")
-OutFinalJson=OutFinalDWI.replace(".nii.gz",".json")
-COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
-COPY["SeriesDescription"] = os.path.basename(OutFinalDWI).replace(".nii.gz","")
-COPY["ProtocolName"] = os.path.basename(OutFinalDWI).replace(".nii.gz","")
-with open(OutFinalJson, "w") as write_file:
-    json.dump(COPY, write_file, indent=12)
+DWIS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID.SITE))
+if DWIS == []:
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ScansMissingErrors.csv', 'a') as file:
+		addrow="\n{},{},ALLDWI".format(SUBID,SITE)
+		file.write(addrow)
+
+if any("_run-01_" in s for s in DWIS):
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ExtraRunErrors.csv', 'a') as file:
+		addrow="\n{},{},ExtraDWI".format(SUBID,SITE)
+		file.write(addrow)
+
+#################################################
+### Reduce Dimensions of MAPS in PA Direction ###
+#################################################
+
+MAG1 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude1.nii.gz'.format(SUBID,SITE))[0]
+if MAG1 != []:
+	OutInterBase="{}/SPLIT".format(os.path.dirname(MAG1))
+	Seperate = fsl.Split(
+		in_file=MAG1,
+		dimension="t",
+		output_type="NIFTI_GZ",
+		out_base_name=OutInterBase)
+	Seperate.run()
+	OUTPUT=glob.glob('{}000{}*'.format(OutInterBase,"5"))
+	os.rename(OUTPUT,MAG1)
+	INTERS=glob.glob('{}000*'.format(OutInterBase))
+	for INTER in INTERS:
+		os.remove(INTER)
+
+MAG2 = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*acq-dirPA_magnitude2.nii.gz'.format(SUBID,SITE))[0]
+if MAG2  != []:
+	OutInterBase="{}/SPLIT".format(os.path.dirname(MAG2))
+	Seperate = fsl.Split(
+		in_file=MAG2,
+		dimension="t",
+		output_type="NIFTI_GZ",
+		out_base_name=OutInterBase)
+	Seperate.run()
+	OUTPUT=glob.glob('{}000{}*'.format(OutInterBase,"5"))
+	os.rename(OUTPUT,MAG2)
+	INTERS=glob.glob('{}000*'.format(OutInterBase))
+	for INTER in INTERS:
+		os.remove(INTER)
 
 #########################################################
 ### Combine Doors-Task Runs Into Single 4D BOLD NIFTI ###
 #########################################################
 
-EVENTS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*task-doors_events.tsv'.format(SUBID))[0]
-RUNS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*run-*_task-doors_bold.nii.gz'.format(SUBID))
+EVENTS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*task-doors_events.tsv'.format(SUBID,SITE))[0]
+RUNS=glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*run-*_task-doors_bold.nii.gz'.format(SUBID,SITE))
 if (len(RUNS) == 3 and os.path.exists(EVENTS)):
 	MERGED=RUNS[0].split("_")
 	MERGED="{}_{}_{}_{}".format(MERGED[0],MERGED[1],MERGED[3],MERGED[4])
@@ -124,47 +211,45 @@ if (len(RUNS) == 3 and os.path.exists(EVENTS)):
 	merger.run()
 	InputCopyJson=RUNS[0].replace(".nii.gz",".json")	
 	OutFinalJson=MERGED.replace(".nii.gz",".json")
+	import json
 	COPY=json.load(open(InputCopyJson), object_pairs_hook=OrderedDict)
-	COPY["SeriesDescription"] = os.path.basename(MERGED).replace(".nii.gz","")
-	COPY["ProtocolName"] = os.path.basename(MERGED).replace(".nii.gz","")
-	with open(OutFinalJson, "w") as write_file:
-    		json.dump(COPY, write_file, indent=12)
+	COPY["SeriesDescription"] = "func_task-doors_bold"
+	COPY["ProtocolName"] = "func_task-doors_bold"
+	COPY["TaskName"] = "doors"
+	json.dump(COPY, open(OutFinalJson, "w"), indent=12)
 	for nifti in RUNS:
 		json=nifti.replace(".nii.gz",".json")
 		os.remove(nifti)
 		os.remove(json)
-else:
-	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/Failed_BIDs_Formatting.csv', 'a') as file:
-		addrow="\n{},{},UnexpectedScanRuns".format(SUBID,"DoorsTaskNifti")
+
+if (len(RUNS) != 3 and os.path.exists(EVENTS)):
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ExtraRunErrors.csv', 'a') as file:
+		addrow="\n{},{},ExtraDoors".format(SUBID,SITE)
+
+if any("_run-01_" in s for s in FUNCS):
+	with open('/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/ExtraRunErrors.csv', 'a') as file:
+		addrow="\n{},{},ExtraREST".format(SUBID,SITE)
+		file.write(addrow)
 
 ##################################################
 ### Define Intended Use of fmaps in Json Files ###
 ##################################################
 
-FMAPS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/fmap/*.json'.format(SUBID))
-FUNCS = list(glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/func/*.nii.gz'.format(SUBID)))
-DWIS = list(glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-1/dwi/*.nii.gz'.format(SUBID)))
-for singlefile in FMAPS:
-	Content=json.load(open(singlefile), object_pairs_hook=OrderedDict)
-	TYPE=os.path.basename(singlefile).split("_")[3].split(".")[0]
-	if TYPE == "magnitude2":
-		Content["IntendedFor"]=[FUNCS]
-		with open(singlefile , "a") as write_file:
-    			json.dump(Content, write_file, indent=12)
-	if TYPE == "magnitude1":
-		Content["IntendedFor"]=[DWIS]
-		with open(singlefile , "a") as write_file:
-			json.dump(Content, write_file, indent=12)
+FMAPS = glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/fmap/*.json'.format(SUBID,SITE))
+FUNCS = str(glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/func/*.nii.gz'.format(SUBID,SITE))).strip('[]')
+DWIS = str(glob.glob('/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-{}/ses-{}/dwi/*.nii.gz'.format(SUBID,SITE))).strip('[]')
 
-###########################################
-### Quality Check Of Phasing Directions ###
-###########################################
-
-
-
-
-
+if FMAPS != []:
+	for updatefile in FMAPS:
+		import json
+		Content=json.load(open(updatefile), object_pairs_hook=OrderedDict)
+		if Content["SeriesDescription"].split("_")[0] == 'fmap-magnitude2':
+			Content["IntendedFor"]=[FUNCS]
+			json.dump(Content, open(updatefile, "w"), indent=12)
+		if Content["SeriesDescription"].split("_")[0] == 'fmap-magnitude1':
+			Content["IntendedFor"]=[DWIS]
+			json.dump(Content, open(updatefile, "w"), indent=12)
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
