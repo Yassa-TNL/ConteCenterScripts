@@ -33,7 +33,7 @@ Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs_Events/$
 time=`date +"%D %T" | sed s@' '@','@g`
 chmod -R ug+wrx ${Files}
 
-site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-1/func/
+site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-${site}/func/
 bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-${site}/func/
 event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
 mkdir ${event_output}
@@ -73,14 +73,17 @@ fi
 
 for file in $Files ; do
 
-  name=`basename $file` 
+  cat $file | sed s@'NA'@'N/A'@g > $file_NEW
+  mv $file_NEW $file
+
   cp $file $event_output
+  name=`basename $file` 
 
   filetype=`basename $file | cut -d '.' -f2`
   if [[ ${filetype} == 'tsv' ]] ; then
 
-    cp $file ${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
-    cp $file ${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+    awk -F'\t' '{print $6,6,$7,$9,$10,$5,$4}' OFS='\t' "$file" > ${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+    awk -F'\t' '{print $6,6,$7,$9,$10,$5,$4}' OFS='\t' "$file" > ${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
 
   fi
 
@@ -94,6 +97,8 @@ for file in $Files ; do
     fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${file}
   fi
 done
+
+rm ${site}${subid}B.*
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
