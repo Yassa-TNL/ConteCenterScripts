@@ -4,7 +4,7 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 <<Use
 
@@ -13,7 +13,7 @@ to BIDs format where they will be processed further through various pipelines.
 
 Use
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
@@ -38,16 +38,16 @@ for site in $sites ; do
   if [ -z "$NewSubs" ]; then
 
     echo ""
-    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  "
+    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
     echo "Everything is up-to-date for ${site}"
-    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  "
+    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
 
   else  
 
     echo ""
-    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ "
+    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
     echo "${site} Has Newly Scanned Subjects: $NewSubs" 
-    echo "⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ "
+    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
 
 ###############################################
 ### Submit Jobs for Newly Detected Subjects ###
@@ -73,26 +73,35 @@ for site in $sites ; do
         echo "# ${JobName} ARE BEING SUBMITTED FOR DOWNLOADING..."
         echo "###################################################"
         echo ''
-	
+
+	JobNameA=`echo ${site}${subid}A`
+    	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
+    	qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
+
+
 	if [ ${site} == "UCI" ] ; then
+
 	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
 	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+
+	  JobNameB=`echo ${site}${subid}B`
+	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
+	  qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${site}
+
 	fi
 
 	if [ ${site} == "UCSD" ] ; then
+
 	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
 	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+	  JobNameB=`echo ${site}${subid}B`
+
+	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
+	  qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${dir_dicom}
+
 	fi
 
-	JobNameA=`echo ${site}${subid}A`
-        Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
-        qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
 
-	JobNameB=`echo ${site}${subid}B`
-	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
-	qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${dir_dicom}
- 	-hold_jid ${JobNameB}
-	
 	JobNameC=`echo ${site}${subid}C`
 	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
 	echo "python ${Pipeline} ${subid}" | qsub -N ${JobNameC} -q yassalab -pe openmp 8 -hold_jid ${JobNameB}
@@ -103,5 +112,5 @@ for site in $sites ; do
 done
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
