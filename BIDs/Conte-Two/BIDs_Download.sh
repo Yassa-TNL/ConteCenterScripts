@@ -57,7 +57,7 @@ mkdir -p ${dir_dicom}/${subid}/BIDs_Residual
 
 dcm2bids -d ${dir_dicom}/${subid}/DICOMs \
   -p ${subid} \
-  -s 1 \
+  -s ${site} \
   -c /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/config_Conte-Two.json \
   -o ${dir_dicom}/${subid}/BIDs_Residual \
   --forceDcm2niix \
@@ -77,8 +77,8 @@ chmod -R ug+wrx ${dir_dicom}/${subid}
 rm -rf ${dir_dicom}/${subid}/DICOMs  
 rm -rf ${dir_dicom}/${subid}/scitran
 rm -rf ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid}
-#rm ${site}${subid}A.e* ${site}${subid}A.o*
+rm ${site}${subid}A.e* ${site}${subid}A.o*
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
