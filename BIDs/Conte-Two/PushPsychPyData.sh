@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -q yassalab,free*
 #$ -pe openmp 4
-#$ -R n
+#$ -R y
 #$ -ckpt restart
 ################################
 ### Load Software and Inputs ###
@@ -29,13 +29,13 @@ fi
 ### Define Output File and Correctly Format ###
 ###############################################
 
-Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs_Events/${subid}_DoorsTask_*-*_*.*`
+Files=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}/BIDs_Events/${subid}_DoorsTask_*-*_*.*`
 time=`date +"%D %T" | sed s@' '@','@g`
 chmod -R ug+wrx ${Files}
 
-site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/BIDs/sub-${subid}/ses-${site}/func/
-bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-${site}/func/
-event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-UCI/${subid}/EventFiles
+site_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}/BIDs/sub-${subid}/ses-${site}/func
+bids_output=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}/ses-${site}/func
+event_output=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}/${subid}/EventFiles
 mkdir ${event_output}
 
 #################################################
@@ -48,6 +48,7 @@ if [[  -z "${Files}" ]] ; then
   echo "              CREATING LOG FILE FOR FUTURE INVESTIGATION                  "
   echo "##########################################################################"
   echo ${subid},${time},"ALLMISSING" >> /dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-Two/logs/EventFileErrors.csv
+  rm ${site}${subid}B.*
   exit 0
 fi
 
@@ -73,8 +74,8 @@ fi
 
 for file in $Files ; do
 
-  cat $file | sed s@'NA'@'N/A'@g > $file_NEW
-  mv $file_NEW $file
+  cat $file | sed s@'NA'@'N/A'@g > ${file}_NEW
+  mv ${file}_NEW $file
 
   cp $file $event_output
   name=`basename $file` 
@@ -82,8 +83,25 @@ for file in $Files ; do
   filetype=`basename $file | cut -d '.' -f2`
   if [[ ${filetype} == 'tsv' ]] ; then
 
-    awk -F'\t' '{print $6,6,$7,$9,$10,$5,$4}' OFS='\t' "$file" > ${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
-    awk -F'\t' '{print $6,6,$7,$9,$10,$5,$4}' OFS='\t' "$file" > ${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+    SiteFile=${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+    BIDsFile=${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
+
+    awk -F'\t' '{print $10,2.5,$7,$9,$10,$5}' OFS='\t' "$file" > ${SiteFile}
+    awk -F'\t' '{print $10,2.5,$7,$9,$10,$5}' OFS='\t' "$file" > ${BIDsFile}
+    
+    OldLabel=`head -n1 ${SiteFile}`
+    NewLabel=`head -n1 ${SiteFile} | sed s@'DoorsAppearTimeTotal'@'onset'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'6'@'duration'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'Response'@'responce'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'Contrasts'@'contrast'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'FeedbackAppearTimeTotal'@'feedback_onset'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'TrailNumTotal'@'trail_num'@g`
+
+    cat ${SiteFile} | sed s@"${OldLabel}"@"${NewLabel}"@g | tr ' ' '\t' > ${SiteFile}_NEW
+    mv ${SiteFile}_NEW ${SiteFile}
+
+    cat ${BIDsFile} | sed s@"${OldLabel}"@"${NewLabel}"@g | tr ' ' '\t' > ${BIDsFile}_NEW
+    mv ${BIDsFile}_NEW ${BIDsFile}
 
   fi
 
@@ -91,10 +109,10 @@ for file in $Files ; do
 ### Upload Copies to Flywheel to be Archived ###
 ################################################
 
-  EXISTING=`fw ls "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/files/${name}" | cut -d ' ' -f6`
+  EXISTING=`fw ls "yassalab/Conte-Two-${site}/${subid}/Brain^ConteTwo/files/${name}" | cut -d ' ' -f6`
 
   if [ -z $EXISTING ] ; then
-    fw upload "yassalab/Conte-Two-UCI/${subid}/Brain^ConteTwo/" ${file}
+    fw upload "yassalab/Conte-Two-${site}/${subid}/Brain^ConteTwo/" ${file}
   fi
 done
 
