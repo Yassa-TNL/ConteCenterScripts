@@ -90,7 +90,7 @@ for file in $Files ; do
     awk -F'\t' '{print $10,2.5,$7,$9}' OFS='\t' "$file" > ${BIDsFile}
     
     OldLabel=`head -n1 ${SiteFile}`
-    NewLabel=`head -n1 ${SiteFile} | sed s@'feedback_onset'@'onset'@g`
+    NewLabel=`head -n1 ${SiteFile} | sed s@'FeedbackAppearTimeTotal'@'onset'@g`
     NewLabel=`echo ${NewLabel} | sed s@'2.5'@'duration'@g`
     NewLabel=`echo ${NewLabel} | sed s@'Response'@'responce'@g`
     NewLabel=`echo ${NewLabel} | sed s@'Contrasts'@'contrast'@g`
