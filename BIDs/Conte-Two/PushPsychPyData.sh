@@ -86,16 +86,14 @@ for file in $Files ; do
     SiteFile=${site_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
     BIDsFile=${bids_output}/sub-${subid}_ses-${site}_task-doors_events.tsv
 
-    awk -F'\t' '{print $10,2.5,$7,$9,$10,$5}' OFS='\t' "$file" > ${SiteFile}
-    awk -F'\t' '{print $10,2.5,$7,$9,$10,$5}' OFS='\t' "$file" > ${BIDsFile}
+    awk -F'\t' '{print $10,2.5,$7,$9}' OFS='\t' "$file" > ${SiteFile}
+    awk -F'\t' '{print $10,2.5,$7,$9}' OFS='\t' "$file" > ${BIDsFile}
     
     OldLabel=`head -n1 ${SiteFile}`
-    NewLabel=`head -n1 ${SiteFile} | sed s@'DoorsAppearTimeTotal'@'onset'@g`
-    NewLabel=`echo ${NewLabel} | sed s@'6'@'duration'@g`
+    NewLabel=`head -n1 ${SiteFile} | sed s@'feedback_onset'@'onset'@g`
+    NewLabel=`echo ${NewLabel} | sed s@'2.5'@'duration'@g`
     NewLabel=`echo ${NewLabel} | sed s@'Response'@'responce'@g`
     NewLabel=`echo ${NewLabel} | sed s@'Contrasts'@'contrast'@g`
-    NewLabel=`echo ${NewLabel} | sed s@'FeedbackAppearTimeTotal'@'feedback_onset'@g`
-    NewLabel=`echo ${NewLabel} | sed s@'TrailNumTotal'@'trail_num'@g`
 
     cat ${SiteFile} | sed s@"${OldLabel}"@"${NewLabel}"@g | tr ' ' '\t' > ${SiteFile}_NEW
     mv ${SiteFile}_NEW ${SiteFile}
