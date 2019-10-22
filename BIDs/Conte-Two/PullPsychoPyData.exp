@@ -5,17 +5,17 @@
 
 set password [lindex $argv 0]
 set subid [lindex $argv 1]
-set output_dir [lindex $argv 2]
+set dir_dicom [lindex $argv 2]
 
 ##############################################################
 ### Automatically Transfer PsychoPy Data From FIBRE Server ###
 ##############################################################
 
-spawn sftp --r mriuser@fibre-data.rgs.uci.edu:/mridata/upload/Yassa/Conte-Two/DoorsTask/${subid}* $output_dir
+spawn sftp --r mriuser@fibre-data.rgs.uci.edu:/mridata/upload/Yassa/Conte-Two/DoorsTask/${subid}* $dir_dicom
 expect "mriuser@fibre-data.rgs.uci.edu's password:"
 send "$password\n"
 interact
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
