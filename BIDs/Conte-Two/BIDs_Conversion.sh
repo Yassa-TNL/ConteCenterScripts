@@ -58,7 +58,7 @@ for site in $sites ; do
       JobName=`echo ${site}${subid}`
       job=`qstat -u $USER | grep ${JobName} | awk {'print $5'} | tr '\n' ' ' | cut -d ' ' -f1`
 
-      if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
+      if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] || [ "$job" == "hqw" ] ; then
 
         echo ''
         echo "############################################"
@@ -78,33 +78,25 @@ for site in $sites ; do
     	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
     	qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
 
-
 	if [ ${site} == "UCI" ] ; then
 
 	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
 	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
 
-	  JobNameB=`echo ${site}${subid}B`
-	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
-	  qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${site}
-
-	fi
-
-	if [ ${site} == "UCSD" ] ; then
+ 	elif [ ${site} == "UCSD" ] ; then
 
 	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
 	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
-	  JobNameB=`echo ${site}${subid}B`
-
-	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
-	  qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${dir_dicom}
 
 	fi
 
+	JobNameB=`echo ${site}${subid}B`
+	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
+	qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${site}
 
 	JobNameC=`echo ${site}${subid}C`
 	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
-	echo "python ${Pipeline} ${subid} ${site}" | qsub -N ${JobNameC} -q yassalab -pe openmp 8 -hold_jid ${JobNameB}
+	echo "python ${Pipeline} ${subid} ${site}" | qsub -hold_jid ${JobNameB} -N ${JobNameC} -q yassalab -pe openmp 8 
 
       fi
     done
