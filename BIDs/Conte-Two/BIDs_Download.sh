@@ -39,7 +39,7 @@ fw download "yassalab/Conte-Two-${site}/${subid}/Brain^ConteTwo" --include dicom
 tar -xvf ${dir_dicom}/${subid}/${subid}_fw_download.tar -C ${dir_dicom}/${subid}
 rm ${dir_dicom}/${subid}/${subid}_fw_download.tar
 
-CompressedDicoms=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two-UCI/${subid}/BrainConteTwo -name '*.dicom.zip'`
+CompressedDicoms=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two-${site}/${subid}/BrainConteTwo -name '*.dicom.zip'`
   
 for UNZIP in $CompressedDicoms ; do
   Sequence=`ls $UNZIP | cut -d '/' -f14`
