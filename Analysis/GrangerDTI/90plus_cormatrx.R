@@ -11,7 +11,7 @@ print("Reading Arguments")
 
 inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/n29_right"
 covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/RAVLTsubsetworking.csv"
-covsFormula <- "~Age.at.Enrollment+Gender.x"
+covsFormula <- "~Age.at.Enrollment"
 
 OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
 
@@ -151,12 +151,51 @@ Predictors<-gsub("\\*", "+",Predictors)
 Predictors<-strsplit(Predictors, "+", fixed = TRUE)
 MaxPredictors<-dim(as.data.frame(Predictors))[1]
 
-NewRow<-dim(SPREADSHEET)[1]+MaxPredictors
+for (x in 1:MaxPredictors){
+	var<-as.character(as.data.frame(Predictors)[[x]])
+	if (var %in% colnames(covaData)){
+		classtype<-class(covaData[,var])
+		print(paste("########################################"))
+		print(paste("⚡⚡⚡",var,"class type is", classtype,"⚡⚡⚡"))
+		print(paste("########################################"))
+	} else {
+		print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+		print(paste("⚡⚡⚡",var,"NOT FOUND - EXITING SCRIPT ⚡⚡⚡"))
+		print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+		quit(save="no")
+	}
+}
+
+
+if (MaxPredictors == 1){
+
+	NewRow<-dim(SPREADSHEET)[1]+MaxPredictors
+	for (connection in 1:dim(SPREADSHEET)[2]){	
+		connR<-cor(covaData[,Predictors[[1]]],SPREADSHEET[,connection], use="complete.obs", method="pearson") 
+		FINALS[NewRow,connection]<-as.numeric(connR)
+		print(connR)
+	}
+
+	Rvals<-FINALS[NewRow,-c(1)]
+	FINALS<-FINALS[-c(NewRow),]
+
+	for (var in 2:Regions){
+		MAX<-max(FINALS[,var])
+		if (max(FINALS[,var], na.rm=TRUE) > 0){
+			connSummary<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
+			connP<-connSummary$coefficients[2,4]
+			FINALS[NewRow,var]<-as.numeric(connP)
+		}
+	}
+
+	Pvals<-FINALS[NewRow,-c(1)]
+	FINALS<-FINALS[-c(NewRow),]
+}
 
 
 
 
-
+<-pcor.test(x, y, z, use = c("mat","rec"), method = c("pearson","spearman","kendall"), na.rm = T)
 print("Analyzing Dataset")
 
 model.formula <- mclapply((dim(covaData)[2] + 1):dim(dataSubj)[2], function(x) { 
