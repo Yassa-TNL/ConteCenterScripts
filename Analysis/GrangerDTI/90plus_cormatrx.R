@@ -9,138 +9,188 @@
 
 print("Reading Arguments")
 
-covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/RAVLTsubsetworking.csv"
-inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/n29_right"
+inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/n29_right"
+covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/RAVLTsubsetworking.csv"
+covsFormula <- "~Age.at.Enrollment+Gender.x"
+
 OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
-covsFormula <- "~AgeAtScan"
-
-library(R.matlab)
-library(ggplot2)
-library(corrplot)
-library(lattice)
-
-####################################################
-##### Commands For Data Preparation From Steve #####
-####################################################
-
-inputFiles = list.files(path= inputPath,pattern="*.txt", full.names = TRUE)
 
 
 
-emptyarray <- array(as.numeric(NA),dim =c(10,12,length(temp)))
+################################################################################
+##### Transform Input Files Into Matricies and Combine Into A Single Array #####
+################################################################################
 
-#Read in Neuroimaging Files Into A 3D Array
+InputFiles = list.files(path= inputPath,pattern="*.txt", full.names = TRUE)
+MaxSubject<-length(InputFiles)
 
-j <- 0
-for (i in temp) {
-    j <- j + 1
-    df2 <- read.table(i, sep = '\t',header = T,quote='', comment='')
-    x <- as.matrix(df2)
-    emptyarray[,,j] = x
+
+if (file.exists(InputFiles[1]) == FALSE){
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
+	print(paste("Input Files Not Found - Exiting Script"))
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
+	quit(save="no")
 }
 
-firstdrop <-emptyarray[1:10,2:12,1:length(temp)]
-colnames (firstdrop) <- as.character(unlist(firstdrop[1,,length(temp)]))
-firstdrop=firstdrop[-1,,]
-seconddrop4=firstdrop[,-1,]
-class(seconddrop4) <- "numeric" 
+for (Subject in 1:MaxSubject){
+	dataset=read.table(InputFiles[Subject], header = FALSE)
+	maxdim<-dim(dataset)[1]
+	for (DIM in 1:maxdim){
+		row<-as.matrix(dataset[DIM,])
+		row<-row[1:maxdim]
+		col<-t(as.data.frame(dataset[,DIM]))
+		col<-col[1:maxdim]
+		BALANCED<-identical(row,col)
+		if (BALANCED == FALSE){
+			print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
+			print(paste("Not Balanced Matrix File:",Subject," Dimension Number:",DIM," - Exiting Script"))
+			print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
+			quit(save="no")
+		}
+		DATASET<-data.frame(lapply(dataset, as.character.factor), stringsAsFactors=FALSE)
+		chrVSint<-suppressWarnings(is.na(as.numeric(DATASET[DIM,])))
+		chrSELECT<-grep(FALSE,chrVSint)
+		if (length(chrSELECT)==0){
+			ColumnNameRow=DIM
+		}
+	}
+	if (!exists("ColumnNameRow")){
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+		print(paste("Cannot Locate Row with Column Names for File:",Subject," - Exiting Script"))
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+		quit(save="no")
+	}
+	DATASETRefined<-DATASET[c(ColumnNameRow:maxdim),c(ColumnNameRow:maxdim)]
+	ColumnNAMES<-list(DATASETRefined[1,])
+	MATRIX<-as.matrix(DATASETRefined[c(2:dim(DATASETRefined)[1]),c(2:dim(DATASETRefined)[1])])
+	if (!exists("ARRAY")){
+		MatrixDim<-dim(MATRIX)[1]
+		ARRAY<-array(as.numeric(NA),dim =c(MatrixDim,MatrixDim,MaxSubject))
+	}
+	ARRAY[,,Subject] = MATRIX
+}
 
-#Read in Cognition Data Into A Dataset
+#######################################################################################
+##### Convert Array Into Single Spreadsheet With Proper Column Names For Analysis #####
+#######################################################################################
 
-  covaData <- read.csv("/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/RawData/90plus_corMatrix/RAVLTsubsetworking.csv")
-  covaData$NeuroID<-0
-  
-  DIM_TEMP<-length(temp)
-  for (DIM in 1:DIM_TEMP){
-    SUBID<-strsplit(temp, "/")[[DIM]][11]
-    SUBID<-substr(SUBID, 1,3)
-    SUBID_ROW<-which(covaData$Subject.ID == SUBID)
-    covaData[SUBID_ROW,"NeuroID"] <- 1
-  }
+row=as.list("")
+SPREADSHEET=vector(mode = "list", length = MaxSubject)
+
+for (Subject in 1:MaxSubject){
+	for (Single in 1:MatrixDim){
+		row[[Single]]<-as.numeric(ARRAY[Single,,Subject])
+		SPREADSHEET[[Subject]]<-append(SPREADSHEET[[Subject]],row[[Single]])
+	}
+}
+
+SPREADSHEET<-as.data.frame(t(as.data.frame(SPREADSHEET)))
+rownames(SPREADSHEET)<-NULL
+ColumnNAMES<-ColumnNAMES[[1]][-1]
+
+if (length(ColumnNAMES)^2 != dim(SPREADSHEET)[2]){
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+	print(paste("Descrepancy Between Column Names and Dimensions of Final Spreadsheet - Exiting Script"))
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+	quit(save="no")
+}
+
+x=0
+for (FirstRegion in 1:length(ColumnNAMES)){
+	for (SecondRegion in 1:length(ColumnNAMES)){
+		x=x+1
+		One<-ColumnNAMES[FirstRegion]
+		Two<-ColumnNAMES[SecondRegion]
+		NAME<-print(paste(One,"x",Two))
+		NAME<-gsub(" ","",NAME)
+		names(SPREADSHEET)[x] <- NAME
+	}
+}
+
+###################################################################################
+##### Read In Covariate File To Merge with the Connectivity Data For Analysis #####
+###################################################################################
+
+if (file.exists(covaPath[1]) == FALSE){
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+	print(paste("Covariates Files Not Found - Exiting Script"))
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+	quit(save="no")
+}
+
+covaData <- read.csv(covaPath)
+covaData$NeuroID<-0
+
+for (Subject in 1:MaxSubject){
+	SUBID<-strsplit(InputFiles, "/")[[Subject]][10]
+	SUBID<-substr(SUBID, 1,3)
+	SUBID_ROW<-which(covaData$Subject.ID == SUBID)
+	covaData[SUBID_ROW,"NeuroID"] <- Subject
+}
  
-  covaData<-covaData[which(covaData$NeuroID == "1"),]
-  covaData<-covaData[order(covaData$Subject.ID),]
-  covaData$NeuroID<-NULL
+covaData<-covaData[which(covaData$NeuroID != 0),]
+covaData<-covaData[order(covaData$NeuroID),]
+covaData$NeuroID<-NULL
 
-##########################################################
-##### Clean Array and Covert Into Single Spreadsheet #####
-##########################################################
+######################################
+##### Load Packages For Analysis #####
+######################################
 
-  ARRAY<-seconddrop4[,-c(10),]
-  row=as.list("")
-  final=as.list("")
-  maxsubs<-dim(ARRAY)[3]
+suppressMessages(library(corrplot))
+suppressMessages(library(R.matlab))
+suppressMessages(library(lattice))
+suppressMessages(library(ggplot2))
+suppressMessages(library(ppcor))
 
-  for (subject in 1:maxsubs){
-    final[[subject]]=unlist(covaData[subject,])
-    maxrows<-dim(ARRAY)[1]
-    for (single in 1:maxrows){
-      row[[single]]<-as.numeric(ARRAY[single,,subject])
-      final[[subject]]<-append(row[[single]],final[[subject]])
-    }
-  }
+##################################################
+##### Execute Correlations and Linear Models #####
+##################################################
 
-  FINAL<-t(as.data.frame(final))
-  FINAL<-as.data.frame(FINAL[1:maxsubs,])
- # NAMES = c(colnames(ARRAY))
- # names(FINAL)[1:dim(ARRAY)[2]] <- NAMES 
- # NAMES = c(colnames(covaData))
- # names(FINAL)[dim(ARRAY)[2]:dim(covaData)[2]] <- NAMES 
+Predictors<-gsub("~", "",covsFormula)
+Predictors<-gsub("\\*", "+",Predictors)
+Predictors<-strsplit(Predictors, "+", fixed = TRUE)
+MaxPredictors<-dim(as.data.frame(Predictors))[1]
 
-############################################################
-##### Refine Variables of Interest and Relabel Columns #####
-############################################################
+NewRow<-dim(SPREADSHEET)[1]+MaxPredictors
 
-  matrixlength=dim(ARRAY)[2]
-  FINALS=as.data.frame("")
-  if (matrixlength == 9){
 
-    for (x in 1:(matrixlength-1)){
-       min<-(x+1)+(9*(x-1))
-       max<-(9*x)+1
-       subset<-FINAL[,c(min:max)]
-       FINALS<-cbind(FINALS,subset)
-    }
-    FINALS<-FINALS[,-c(1)]
-    names(FINALS)[1:8]<-c("CA1-CA2","CA1-DG","CA1-CA3","CA1-SUB","CA1-ERC","CA1-BA35","CA1-BA-36","CA1-PHC")
-    names(FINALS)[9:15]<-c("CA2-DG","CA2-CA3","CA2-SUB","CA2-ERC","CA2-BA35","CA2-BA36","CA2-PHC")
-    names(FINALS)[16:21]<-c("DG-CA3","DG-SUB","DG-ERC","DG-BA35","DG-BA36","DG-PHC")
-    names(FINALS)[22:26]<-c("CA3-SUB","CA3-ERC","CA3-BA35","CA3-BA36","CA3-PHC")
-    names(FINALS)[27:30]<-c("SUB-ERC","SUB-BA35","SUB-BA36","SUB-PHC")
-    names(FINALS)[31:33]<-c("ERC-BA35","ERC-BA36","ERC-PHC")
-    names(FINALS)[34:35]<-c("BA35-BA36","BA35-PHC")
-    names(FINALS)[36]<-c("BA36-PHC")
-    FINALS<-cbind(FINAL$V1,FINALS)
-    names(FINALS)[1]<-"RAVLT"
-    rownames(FINALS)<-NULL
 
-  } else {
 
-    print(paste("Matrix Length Not Expected:",maxtrixlength,"Revisions Are Needed"))
-    exit <- function(){
-        .Internal(.invokeRestart(list(NULL, NULL), NULL))
-      }
-    exit()
-  }
 
-##################################
-##### Compute R and P Values #####
-##################################
+print("Analyzing Dataset")
 
-  Regions<-dim(FINALS)[2]
-  NewRow<-dim(FINALS)[1]+1
+model.formula <- mclapply((dim(covaData)[2] + 1):dim(dataSubj)[2], function(x) { 
+  as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
+}, mc.cores=ncores)
+
+print("Executing Models")
+
+m <- mclapply(model.formula, function(x) {
+  ANALYZE <- gamm4(formula = x, random=as.formula(randomFormula), data=dataSubj, REML=T)$gam
+  summary <- summary(ANALYZE)
+  residuals <- ANALYZE$residuals
+  missing <- as.numeric(ANALYZE$na.action)
+  return(list(summary,residuals, missing))
+}, mc.cores=ncores)
+
+
+
+
 
 ### Correlation Matrix ###
-  for (var in 2:Regions){
-    connR<-cor(FINALS[,1],FINALS[,var], use="complete.obs", method="pearson") 
-    FINALS[NewRow,var]<-as.numeric(connR)
-    print(connR)
-  }
 
-  Rvals<-FINALS[NewRow,-c(1)]
-  FINALS<-FINALS[-c(NewRow),]
+for (connection in 1:dim(SPREADSHEET)[2]){
+	<-pcor.test(x, y, z, use = c("mat","rec"), method = c("pearson","spearman","kendall"), na.rm = T)
+	connR<-cor(covaData[,""],FINALS[,var], use="complete.obs", method="pearson") 
+	FINALS[NewRow,var]<-as.numeric(connR)
+	print(connR)
+}
+
+Rvals<-FINALS[NewRow,-c(1)]
+FINALS<-FINALS[-c(NewRow),]
 
 ### P-value Matrix ###
+
   for (var in 2:Regions){
     MAX<-max(FINALS[,var])
     if (max(FINALS[,var], na.rm=TRUE) > 0){
@@ -150,8 +200,48 @@ class(seconddrop4) <- "numeric"
     }
   }
 
-  Pvals<-FINALS[NewRow,-c(1)]
-  FINALS<-FINALS[-c(NewRow),]
+Pvals<-FINALS[NewRow,-c(1)]
+FINALS<-FINALS[-c(NewRow),]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##### Refine Variables of Interest and Relabel Columns #####
+############################################################
+library(R.matlab)
+library(ggplot2)
+library(corrplot)
+library(lattice)
+
 
 ###################################################
 ##### Create Matrix of Data For Final Figures #####
