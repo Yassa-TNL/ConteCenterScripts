@@ -159,12 +159,40 @@ for (x in 1:MaxPredictors){
 		print(paste("⚡⚡⚡",var,"class type is", classtype,"⚡⚡⚡"))
 		print(paste("########################################"))
 	} else {
-		print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
 		print(paste("⚡⚡⚡",var,"NOT FOUND - EXITING SCRIPT ⚡⚡⚡"))
-		print(paste("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"))
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
 		quit(save="no")
 	}
 }
+
+model.formula <- mclapply((dim(covaData)[2] + 1):dim(dataSubj)[2], function(x) { 
+  as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
+}, mc.cores=ncores)
+
+print("Executing Models")
+
+m <- mclapply(model.formula, function(x) {
+  ANALYZE <- gamm4(formula = x, random=as.formula(randomFormula), data=dataSubj, REML=T)$gam
+  summary <- summary(ANALYZE)
+  residuals <- ANALYZE$residuals
+  missing <- as.numeric(ANALYZE$na.action)
+  return(list(summary,residuals, missing))
+}, mc.cores=ncores)
+
+
+##################################################
+##### Execute Correlations and Linear Models #####
+##################################################
+
+
+
+
+
+
+
+
+
 
 
 if (MaxPredictors == 1){
