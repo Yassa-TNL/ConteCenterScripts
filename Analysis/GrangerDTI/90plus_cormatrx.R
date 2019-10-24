@@ -11,7 +11,10 @@ print("Reading Arguments")
 
 inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/n29_right"
 covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/RAVLTsubsetworking.csv"
-covsFormula <- "~Age.at.Enrollment"
+
+covsFormula <- "~RAVLT.Learning.Sum.x+Age.at.Enrollment+Gender.x"
+ChangeType<-list("as.numeric","as.numeric","as.factor")
+
 
 OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
 
@@ -23,7 +26,6 @@ OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
 
 InputFiles = list.files(path= inputPath,pattern="*.txt", full.names = TRUE)
 MaxSubject<-length(InputFiles)
-
 
 if (file.exists(InputFiles[1]) == FALSE){
 	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
@@ -131,7 +133,45 @@ for (Subject in 1:MaxSubject){
 covaData<-covaData[which(covaData$NeuroID != 0),]
 covaData<-covaData[order(covaData$NeuroID),]
 covaData$NeuroID<-NULL
+MaxSubsCov<-dim(covaData)[1]
 
+if (MaxSubject != MaxSubsCov){
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+	print(paste("Unequal Subjects in Connectivity (",MaxSubject,") and Covarites (",MaxSubsCov,") Files - Exiting Script"))
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+	quit(save="no")
+}
+
+MaxVarsCov<-dim(covaData)[2]
+DATASET<-cbind(covaData,SPREADSHEET)
+
+######################################################
+##### Prepare Variables of Interest For Analysis #####
+######################################################
+
+Predictors<-gsub("~", "",covsFormula)
+Predictors<-gsub("\\*", "+",Predictors)
+Predictors<-strsplit(Predictors, "+", fixed = TRUE)
+MaxPredictors<-dim(as.data.frame(Predictors))[1]
+
+for (VarNum in 1:MaxPredictors){
+	VarName<-as.character(as.data.frame(Predictors)[[1]][VarNum])
+	if (VarName %in% colnames(DATASET)){
+		if (length(ChangeType) == MaxPredictors){
+			Type<-ChangeType[[VarNum]][1]
+			DATASET[,VarName]<-suppressWarnings(unlist(lapply(as.character(DATASET[,VarName]), Type)))
+		}	
+		DATASET<-DATASET[complete.cases(DATASET[,VarName]),]
+		classtype<-class(DATASET[,VarName])		
+		print(paste("##############################################"))
+		print(paste("⚡⚡⚡",VarName,"is defined as a", classtype,"⚡⚡⚡"))
+		print(paste("##############################################"))
+	} else {
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
+		print(paste("⚡⚡⚡",VarName,"NOT FOUND - EXITING SCRIPT ⚡⚡⚡"))
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
+	}
+}
 ######################################
 ##### Load Packages For Analysis #####
 ######################################
@@ -146,79 +186,88 @@ suppressMessages(library(ppcor))
 ##### Execute Correlations and Linear Models #####
 ##################################################
 
-Predictors<-gsub("~", "",covsFormula)
-Predictors<-gsub("\\*", "+",Predictors)
-Predictors<-strsplit(Predictors, "+", fixed = TRUE)
-MaxPredictors<-dim(as.data.frame(Predictors))[1]
-
-for (x in 1:MaxPredictors){
-	var<-as.character(as.data.frame(Predictors)[[x]])
-	if (var %in% colnames(covaData)){
-		classtype<-class(covaData[,var])
-		print(paste("########################################"))
-		print(paste("⚡⚡⚡",var,"class type is", classtype,"⚡⚡⚡"))
-		print(paste("########################################"))
-	} else {
-		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
-		print(paste("⚡⚡⚡",var,"NOT FOUND - EXITING SCRIPT ⚡⚡⚡"))
-		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
-		quit(save="no")
-	}
-}
-
-model.formula <- mclapply((dim(covaData)[2] + 1):dim(dataSubj)[2], function(x) { 
-  as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
-}, mc.cores=ncores)
-
-print("Executing Models")
-
-m <- mclapply(model.formula, function(x) {
-  ANALYZE <- gamm4(formula = x, random=as.formula(randomFormula), data=dataSubj, REML=T)$gam
-  summary <- summary(ANALYZE)
-  residuals <- ANALYZE$residuals
-  missing <- as.numeric(ANALYZE$na.action)
-  return(list(summary,residuals, missing))
-}, mc.cores=ncores)
-
-
-##################################################
-##### Execute Correlations and Linear Models #####
-##################################################
-
-
-
-
-
-
-
-
-
-
+RvalRow<-dim(SPREADSHEET)[1]+1
+PvalRow<-dim(SPREADSHEET)[1]+2
+MainPredict<-Predictors[[1]][1]
 
 if (MaxPredictors == 1){
 
-	NewRow<-dim(SPREADSHEET)[1]+MaxPredictors
-	for (connection in 1:dim(SPREADSHEET)[2]){	
-		connR<-cor(covaData[,Predictors[[1]]],SPREADSHEET[,connection], use="complete.obs", method="pearson") 
-		FINALS[NewRow,connection]<-as.numeric(connR)
-		print(connR)
-	}
-
-	Rvals<-FINALS[NewRow,-c(1)]
-	FINALS<-FINALS[-c(NewRow),]
-
-	for (var in 2:Regions){
-		MAX<-max(FINALS[,var])
-		if (max(FINALS[,var], na.rm=TRUE) > 0){
-			connSummary<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
-			connP<-connSummary$coefficients[2,4]
-			FINALS[NewRow,var]<-as.numeric(connP)
+	for (connection in 1:dim(SPREADSHEET)[2]){
+		ConnNum<-dim(covaData)[2]+connection	
+		ConnR<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$estimate)
+		ConnP<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$p.value)
+		if (is.null(ConnR)){
+			ConnR<-NA
 		}
+		SPREADSHEET[RvalRow,connection]<-as.numeric(ConnR)
+		SPREADSHEET[PvalRow,connection]<-as.numeric(ConnP)
 	}
+	Rvals<-SPREADSHEET[RvalRow,]
+	Pvals<-SPREADSHEET[PvalRow,]
+	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
 
-	Pvals<-FINALS[NewRow,-c(1)]
-	FINALS<-FINALS[-c(NewRow),]
+} else {
+
+	for (connection in 1:dim(SPREADSHEET)[2]){
+		ConnNum<-dim(covaData)[2]+connection
+		PredictLIST=vector(mode = "list", length = MaxPredictors-1)
+		for (PredictNum in 2:MaxPredictors){
+			PredictName<-Predictors[[1]][PredictNum]
+			PredictLIST[[PredictNum-1]]<-print(paste("DATASET[,'",PredictName,"']"))
+			PredictLIST[[PredictNum-1]]<-suppressMessages(gsub(' ','',PredictLIST[[PredictNum-1]]))
+		}
+		Covariates<-unlist(PredictLIST)
+
+
+		ConnR<-suppressWarnings(pcor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$estimate)
+		ConnP<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$p.value)
+		if (is.null(ConnR)){
+			ConnR<-NA
+		}
+		SPREADSHEET[RvalRow,connection]<-as.numeric(ConnR)
+		SPREADSHEET[PvalRow,connection]<-as.numeric(ConnP)
+	}
+	Rvals<-SPREADSHEET[RvalRow,]
+	Pvals<-SPREADSHEET[PvalRow,]
+	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
+
 }
+
+
+PredictFinal<-gsub(' ','',PredictFinal)
+DATASET[,ConnNum]
+DATASET[,'Age.at.Enrollment']
+
+
+pcor.test(DATASET[,MainPredict],DATASET[,ConnNum], c("DATASET[,'Age.at.Enrollment']","DATASET[,'Gender.x']"  ), method="pearson")
+
+
+
+
+
+
+MainPredict<-Predictors[[1]][1]
+
+for 2
+ConvaryPredict<-Predictors[[1]][2:MaxPredictors]
+ConvaryPredict
+c()
+
+
+
+
+pcor.test(DATASET[Predictors[[1]][1],],DATASET[,],DATASET[,], method = c("spearman"))
+
+
+HSGPA,FGPA,SATV, method = c("spearman"))
+
+pcor.test(DATA$RAVLT.Learning.Sum.x, DATA$CA1xDG, DATA$Age.at.Enrollment, method = c("spearman"), na.rm = TRUE, data=covaData)
+
+
+
+
+
+
 
 
 
