@@ -210,13 +210,55 @@ if (MaxPredictors == 1){
 
 	for (connection in 1:dim(SPREADSHEET)[2]){
 		ConnNum<-dim(covaData)[2]+connection
-		PredictLIST=vector(mode = "list", length = MaxPredictors-1)
+		LIST=vector(mode = "list", length = MaxPredictors+1)
+		LIST[[1]]<-DATASET[,MainPredict]
+		LIST[[2]]<-DATASET[,ConnNum]
 		for (PredictNum in 2:MaxPredictors){
 			PredictName<-Predictors[[1]][PredictNum]
-			PredictLIST[[PredictNum-1]]<-print(paste("DATASET[,'",PredictName,"']"))
-			PredictLIST[[PredictNum-1]]<-suppressMessages(gsub(' ','',PredictLIST[[PredictNum-1]]))
+			LIST[[PredictNum+1]]<-DATASET[,PredictName]
 		}
-		Covariates<-unlist(PredictLIST)
+		if (length(LIST)==3){
+			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method="pearson")$estimate
+			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method="pearson")$p.value
+		}
+		if (length(LIST)==4){
+			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")$estimate
+			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")$p.value
+		}
+		if (length(LIST)==5){
+			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method="pearson")$estimate
+			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method="pearson")$p.value
+		}
+		if (length(LIST)==6){
+			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method="pearson")$estimate
+			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method="pearson")$p.value
+		}
+		if (length(LIST)==7){
+			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method="pearson")$estimate
+			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method="pearson")$p.value
+		}
+		if (length(LIST)>7){
+			print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+			print(paste("Need To Edit Script Before Analyzing This Much Variables:",length(LIST),"- Exiting Script"))
+			print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
+			quit(save="no")
+		}
+		if (is.null(ConnR)){
+			ConnR<-NA
+		}
+		SPREADSHEET[RvalRow,connection]<-as.numeric(ConnR)
+		SPREADSHEET[PvalRow,connection]<-as.numeric(ConnP)
+	}
+	Rvals<-SPREADSHEET[RvalRow,]
+	Pvals<-SPREADSHEET[PvalRow,]
+	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
+}
+
+
+
+
+
+		Covariates<-noquote(paste(unlist(PredictLIST),collapse = ','))
 
 
 		ConnR<-suppressWarnings(pcor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$estimate)
@@ -232,16 +274,38 @@ if (MaxPredictors == 1){
 	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
 
 }
+as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
+Covariates<-noquote(Covariates, right=TRUE)
+
 
 
 PredictFinal<-gsub(' ','',PredictFinal)
 DATASET[,ConnNum]
 DATASET[,'Age.at.Enrollment']
 
+TEST<-paste(DATASET[,MainPredict],DATASET[,ConnNum],c(DATASET[,'Age.at.Enrollment'],DATASET[,'Gender.x']), method="pearson")
 
-pcor.test(DATASET[,MainPredict],DATASET[,ConnNum], c("DATASET[,'Age.at.Enrollment']","DATASET[,'Gender.x']"  ), method="pearson")
+
+TEST<-paste(DATASET[,MainPredict],DATASET[,ConnNum],c(PredictLIST), method="pearson")
 
 
+
+c(LIST[[3]]
+c(LIST[[3]],LIST[[4]])
+
+
+
+pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")
+
+
+
+
+
+
+
+pcor.test(DATASET[,MainPredict],DATASET[,ConnNum],c(DATASET[,'Age.at.Enrollment'],DATASET[,'Gender.x']), method="pearson")
+
+pcor.test(DATASET[,MainPredict],DATASET[,ConnNum],c(Covariate), method="pearson")
 
 
 
@@ -318,17 +382,6 @@ FINALS<-FINALS[-c(NewRow),]
 
 Pvals<-FINALS[NewRow,-c(1)]
 FINALS<-FINALS[-c(NewRow),]
-
-
-
-
-
-
-
-
-
-
-
 
 
 
