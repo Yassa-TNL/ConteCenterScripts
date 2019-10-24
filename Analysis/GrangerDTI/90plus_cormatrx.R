@@ -12,17 +12,18 @@ print("Reading Arguments")
 inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/n29_right"
 covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/RAVLTsubsetworking.csv"
 
-covsFormula <- "~RAVLT.Learning.Sum.x+Age.at.Enrollment+Gender.x"
-ChangeType<-list("as.numeric","as.numeric","as.factor")
+covsFormula <- "~Age.at.Enrollment"
+ChangeType<-list("as.numeric")
+CorrType="pearson"
 
-
-OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus/"
-
-
+OutDirRoot <- " /dfs2/yassalab/rjirsara/GrangerDTI"
+SubOutDir="Preliminary"
 
 ################################################################################
 ##### Transform Input Files Into Matricies and Combine Into A Single Array #####
 ################################################################################
+
+print("Checking Input Arguments Are Correctly Formatted")
 
 InputFiles = list.files(path= inputPath,pattern="*.txt", full.names = TRUE)
 MaxSubject<-length(InputFiles)
@@ -33,6 +34,23 @@ if (file.exists(InputFiles[1]) == FALSE){
 	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
 	quit(save="no")
 }
+
+if (CorrType == "pearson" || CorrType == "kendall" || CorrType == "Spearman"){
+	print(paste("######################################"))
+	print(paste(CorrType,"Correlations Will Be Executed"))
+	print(paste("######################################"))
+} else {
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
+	print(paste("Type of Correlation Test Not Specified Correctly - Defaulting to Pearson Correlation"))
+	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
+	CorrType="pearson"
+}
+
+############################################################
+##### Coverting Input Files Into An Array For Analysis #####
+############################################################
+
+print("Transforming Input Files Into An Array")
 
 for (Subject in 1:MaxSubject){
 	dataset=read.table(InputFiles[Subject], header = FALSE)
@@ -76,6 +94,8 @@ for (Subject in 1:MaxSubject){
 ##### Convert Array Into Single Spreadsheet With Proper Column Names For Analysis #####
 #######################################################################################
 
+print("Transforming Array Into Spreadsheet Consisting All NeuroImaging Data")
+
 row=as.list("")
 SPREADSHEET=vector(mode = "list", length = MaxSubject)
 
@@ -113,6 +133,8 @@ for (FirstRegion in 1:length(ColumnNAMES)){
 ##### Read In Covariate File To Merge with the Connectivity Data For Analysis #####
 ###################################################################################
 
+print("Transforming Corvariates File and Merging with Neuroimaging Spreadsheet")
+
 if (file.exists(covaPath[1]) == FALSE){
 	print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
 	print(paste("Covariates Files Not Found - Exiting Script"))
@@ -149,6 +171,8 @@ DATASET<-cbind(covaData,SPREADSHEET)
 ##### Prepare Variables of Interest For Analysis #####
 ######################################################
 
+print("Preparing Variables of Interest For Analysis")
+
 Predictors<-gsub("~", "",covsFormula)
 Predictors<-gsub("\\*", "+",Predictors)
 Predictors<-strsplit(Predictors, "+", fixed = TRUE)
@@ -172,12 +196,14 @@ for (VarNum in 1:MaxPredictors){
 		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! "))
 	}
 }
+
 ######################################
 ##### Load Packages For Analysis #####
 ######################################
 
+print("Loading Required Packages For Analysis and Visulizations")
+
 suppressMessages(library(corrplot))
-suppressMessages(library(R.matlab))
 suppressMessages(library(lattice))
 suppressMessages(library(ggplot2))
 suppressMessages(library(ppcor))
@@ -185,6 +211,8 @@ suppressMessages(library(ppcor))
 ##################################################
 ##### Execute Correlations and Linear Models #####
 ##################################################
+
+print("Executing Analyses To Obtain R and P Values")
 
 RvalRow<-dim(SPREADSHEET)[1]+1
 PvalRow<-dim(SPREADSHEET)[1]+2
@@ -194,8 +222,8 @@ if (MaxPredictors == 1){
 
 	for (connection in 1:dim(SPREADSHEET)[2]){
 		ConnNum<-dim(covaData)[2]+connection	
-		ConnR<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$estimate)
-		ConnP<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$p.value)
+		ConnR<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method=CorrType)$estimate)
+		ConnP<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method=CorrType)$p.value)
 		if (is.null(ConnR)){
 			ConnR<-NA
 		}
@@ -218,24 +246,24 @@ if (MaxPredictors == 1){
 			LIST[[PredictNum+1]]<-DATASET[,PredictName]
 		}
 		if (length(LIST)==3){
-			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method="pearson")$estimate
-			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method="pearson")$p.value
+			ConnR<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method=CorrType)$estimate)
+			ConnP<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]]), method=CorrType)$p.value)
 		}
 		if (length(LIST)==4){
-			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")$estimate
-			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")$p.value
+			ConnR<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method=CorrType)$estimate)
+			ConnP<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method=CorrType)$p.value)
 		}
 		if (length(LIST)==5){
-			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method="pearson")$estimate
-			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method="pearson")$p.value
+			ConnR<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method=CorrType)$estimate)
+			ConnP<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]]), method=CorrType)$p.value)
 		}
 		if (length(LIST)==6){
-			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method="pearson")$estimate
-			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method="pearson")$p.value
+			ConnR<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method=CorrType)$estimate)
+			ConnP<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]]), method=CorrType)$p.value)
 		}
 		if (length(LIST)==7){
-			ConnR<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method="pearson")$estimate
-			ConnP<-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method="pearson")$p.value
+			ConnR<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method=CorrType)$estimate)
+			ConnP<-suppressWarnings(pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]],LIST[[5]],LIST[[6]],LIST[[7]]), method=CorrType)$p.value)
 		}
 		if (length(LIST)>7){
 			print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡"))
@@ -254,239 +282,100 @@ if (MaxPredictors == 1){
 	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
 }
 
-
-
-
-
-		Covariates<-noquote(paste(unlist(PredictLIST),collapse = ','))
-
-
-		ConnR<-suppressWarnings(pcor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$estimate)
-		ConnP<-suppressWarnings(cor.test(DATASET[,MainPredict],DATASET[,ConnNum], method="pearson")$p.value)
-		if (is.null(ConnR)){
-			ConnR<-NA
-		}
-		SPREADSHEET[RvalRow,connection]<-as.numeric(ConnR)
-		SPREADSHEET[PvalRow,connection]<-as.numeric(ConnP)
-	}
-	Rvals<-SPREADSHEET[RvalRow,]
-	Pvals<-SPREADSHEET[PvalRow,]
-	SPREADSHEET<-SPREADSHEET[-c(RvalRow,PvalRow),]
-
-}
-as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
-Covariates<-noquote(Covariates, right=TRUE)
-
-
-
-PredictFinal<-gsub(' ','',PredictFinal)
-DATASET[,ConnNum]
-DATASET[,'Age.at.Enrollment']
-
-TEST<-paste(DATASET[,MainPredict],DATASET[,ConnNum],c(DATASET[,'Age.at.Enrollment'],DATASET[,'Gender.x']), method="pearson")
-
-
-TEST<-paste(DATASET[,MainPredict],DATASET[,ConnNum],c(PredictLIST), method="pearson")
-
-
-
-c(LIST[[3]]
-c(LIST[[3]],LIST[[4]])
-
-
-
-pcor.test(LIST[[1]],LIST[[2]],c(LIST[[3]],LIST[[4]]), method="pearson")
-
-
-
-
-
-
-
-pcor.test(DATASET[,MainPredict],DATASET[,ConnNum],c(DATASET[,'Age.at.Enrollment'],DATASET[,'Gender.x']), method="pearson")
-
-pcor.test(DATASET[,MainPredict],DATASET[,ConnNum],c(Covariate), method="pearson")
-
-
-
-
-MainPredict<-Predictors[[1]][1]
-
-for 2
-ConvaryPredict<-Predictors[[1]][2:MaxPredictors]
-ConvaryPredict
-c()
-
-
-
-
-pcor.test(DATASET[Predictors[[1]][1],],DATASET[,],DATASET[,], method = c("spearman"))
-
-
-HSGPA,FGPA,SATV, method = c("spearman"))
-
-pcor.test(DATA$RAVLT.Learning.Sum.x, DATA$CA1xDG, DATA$Age.at.Enrollment, method = c("spearman"), na.rm = TRUE, data=covaData)
-
-
-
-
-
-
-
-
-
-
-<-pcor.test(x, y, z, use = c("mat","rec"), method = c("pearson","spearman","kendall"), na.rm = T)
-print("Analyzing Dataset")
-
-model.formula <- mclapply((dim(covaData)[2] + 1):dim(dataSubj)[2], function(x) { 
-  as.formula(paste(paste0("dataSubj[,",x,"]"), covsFormula, sep="")) 
-}, mc.cores=ncores)
-
-print("Executing Models")
-
-m <- mclapply(model.formula, function(x) {
-  ANALYZE <- gamm4(formula = x, random=as.formula(randomFormula), data=dataSubj, REML=T)$gam
-  summary <- summary(ANALYZE)
-  residuals <- ANALYZE$residuals
-  missing <- as.numeric(ANALYZE$na.action)
-  return(list(summary,residuals, missing))
-}, mc.cores=ncores)
-
-
-
-
-
-### Correlation Matrix ###
-
-for (connection in 1:dim(SPREADSHEET)[2]){
-	<-pcor.test(x, y, z, use = c("mat","rec"), method = c("pearson","spearman","kendall"), na.rm = T)
-	connR<-cor(covaData[,""],FINALS[,var], use="complete.obs", method="pearson") 
-	FINALS[NewRow,var]<-as.numeric(connR)
-	print(connR)
-}
-
-Rvals<-FINALS[NewRow,-c(1)]
-FINALS<-FINALS[-c(NewRow),]
-
-### P-value Matrix ###
-
-  for (var in 2:Regions){
-    MAX<-max(FINALS[,var])
-    if (max(FINALS[,var], na.rm=TRUE) > 0){
-      connSummary<-summary(lm(FINALS[,1]~FINALS[,var]))[4]
-      connP<-connSummary$coefficients[2,4]
-      FINALS[NewRow,var]<-as.numeric(connP)
-    }
-  }
-
-Pvals<-FINALS[NewRow,-c(1)]
-FINALS<-FINALS[-c(NewRow),]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-##### Refine Variables of Interest and Relabel Columns #####
-############################################################
-library(R.matlab)
-library(ggplot2)
-library(corrplot)
-library(lattice)
-
-
 ###################################################
 ##### Create Matrix of Data For Final Figures #####
 ###################################################
 
-### Correlation Matrix ###
-  rMATRIX<-matrix(, nrow = 9, ncol = 9)
-  colnames(rMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
-  rownames(rMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
-  ognames<-ARRAY[0,,1]
-  numRval<-length(Rvals)
-  for (num in 1:numRval){
-    VAL<-round(Rvals[[num]][1], digits = 2)
-    HEADER<-names(Rvals[num])
-    HEADER1<-strsplit(HEADER,"-", fixed = FALSE)[[1]][1]
-    HEADER2<-strsplit(HEADER,"-", fixed = FALSE)[[1]][2]
+print("Constructing Matrices of Both R and P Values")
 
-    colh1<-which(colnames(rMATRIX)== HEADER1)
-    rowh2<-which(rownames(rMATRIX)== HEADER2)
-    rMATRIX[colh1,rowh2]<-VAL
-
-    colh2<-which(colnames(rMATRIX)== HEADER2)
-    rowh1<-which(rownames(rMATRIX)== HEADER1)
-    rMATRIX[colh2,rowh1]<-VAL
-  }
-
-### P-value Matrix ###
-  pMATRIX<-matrix(, nrow = 9, ncol = 9)
-  colnames(pMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
-  rownames(pMATRIX)<-c("CA1","CA2","DG","CA3","SUB","ERC","BA35","BA36","PHC")
-  ognames<-ARRAY[0,,1]
-  numRval<-length(Pvals)
-  for (num in 1:numRval){
-    VAL<-round(Pvals[[num]][1], digits = 6)
-    HEADER<-names(Pvals[num])
-    HEADER1<-strsplit(HEADER,"-", fixed = FALSE)[[1]][1]
-    HEADER2<-strsplit(HEADER,"-", fixed = FALSE)[[1]][2]
-
-    colh1<-which(colnames(pMATRIX)== HEADER1)
-    rowh2<-which(rownames(pMATRIX)== HEADER2)
-    pMATRIX[colh1,rowh2]<-VAL
-
-    colh2<-which(colnames(pMATRIX)== HEADER2)
-    rowh1<-which(rownames(pMATRIX)== HEADER1)
-    pMATRIX[colh2,rowh1]<-VAL
-  }
-
-### Finish Matricies ###
-  for (num in 1:9){
-    rMATRIX[num,num]<-1
-    pMATRIX[num,num]<-1
-  }
-
-################################
-##### Create Final Figures #####
-################################
-  
-  OutputPath=paste("/dfs2/yassalab/rjirsara/GrangerDTI/Figures/90Plus",hemi, sep='/')
-
-  pdf(paste(OutputPath,"/n18_Correlations_20191014.pdf",sep='/'),width=6,height=5,paper='special')
-  levelplot(rMATRIX, col.regions=heat.colors(100))
-  dev.off()
-
-  pdf(paste(OutputPath,"n18_Significance_20191014.pdf",sep='/'),width=6,height=5,paper='special')
-  levelplot(pMATRIX, col.regions=heat.colors(100))
-  dev.off()
-
-#############################################
-##### Save Output Dataset and Matricies #####
-#############################################
-
-  write.csv(FINALS, paste(OutputPath,"n18_HippoSubRegions_20191014.csv", sep='/'))
-  write.table(rMATRIX, file = paste(OutputPath,"n18_R-Value_Matrix_20191014.csv", sep='/'))
-  write.table(pMATRIX, file = paste(OutputPath,"n18_P-Value_Matrix_20191014.csv", sep='/'))
-
+ConstructMatrix <- function(VALUES,COLUMNNAMES){
+	MATRIX<-matrix(, nrow = length(COLUMNNAMES), ncol = length(COLUMNNAMES))
+	colnames(MATRIX)<-COLUMNNAMES
+	rownames(MATRIX)<-COLUMNNAMES
+	if (length(VALUES) == length(COLUMNNAMES)^2){
+		for (num in 1:length(VALUES)){
+			VAL<-round(VALUES[[num]][1], digits = 3)
+			HEADER<-names(VALUES[num])
+			HEADER1<-strsplit(HEADER,"x", fixed = FALSE)[[1]][1]
+			HEADER2<-strsplit(HEADER,"x", fixed = FALSE)[[1]][2]
+			colh1<-which(colnames(MATRIX)== HEADER1)
+			rowh2<-which(rownames(MATRIX)== HEADER2)
+			MATRIX[colh1,rowh2]<-VAL
+		}
+	return(MATRIX)
+	} else {
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+		print(paste("Matrix Values (",length(VALUES),") and Column Names (",length(COLUMNNAMES),") Are NOT Proportional - Exiting Script"))
+		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ !"))
+		quit(save="no")
+	}
 }
+
+
+Rmatrix<-ConstructMatrix(Rvals,ColumnNAMES)
+Pmatrix<-ConstructMatrix(Pvals,ColumnNAMES)
+
+###############################
+##### Define Output Paths #####
+###############################
+
+print("Defining Output Paths To Store Output Files")
+
+if (!exists("SubOutDir")){
+	SubOutDir<-""
+}
+
+COVA<-basename(inputPath)
+RESP<-basename(covaPath)
+RESP<-gsub(".csv","",RESP)
+
+DataSubDir<-print(paste0(OutDirRoot,"/Data/COVA-",COVA,"_RESP-",RESP,"/",SubOutDir,split=""))
+DataSubDir<-gsub(' ','',DataSubDir)
+dir.create(file.path(DataSubDir), showWarnings = FALSE, recursive = TRUE, mode = "0775")
+
+FigSubDir<-print(paste0(OutDirRoot,"/Figures/COVA-",COVA,"_RESP-",RESP,"/",SubOutDir,split=""))
+FigSubDir<-gsub(' ','',FigSubDir)
+dir.create(file.path(FigSubDir), showWarnings = FALSE, recursive = TRUE, mode = "0775")
+
+OutSubDir<-print(paste0(OutDirRoot,"/Results/COVA-",COVA,"_RESP-",RESP,"/",SubOutDir,split=""))
+OutSubDir<-gsub(' ','',OutSubDir)
+dir.create(file.path(OutSubDir), showWarnings = FALSE, recursive = TRUE, mode = "0775")
+
+################################################
+##### Save Final SpreadSheet and Matricies #####
+################################################
+
+print("Save Final SpreadSheet and Matricies")
+
+Date<-format(Sys.time(), "%Y%m%d")
+FileName<-gsub("~","",covsFormula)
+FileName<-gsub("\\*", "and",FileName)
+
+write.csv(DATASET, paste(DataSubDir,"/n",dim(DATASET)[1],"_",FileName,"_",Date,".csv", sep=''))
+write.table(Rmatrix, file = paste(OutSubDir,"/n",dim(DATASET)[1],"_R-Matrix_",FileName,"_",Date,".mat", sep=''))
+write.table(Pmatrix, file = paste(OutSubDir,"/n",dim(DATASET)[1],"_P-Matrix_",FileName,"_",Date,".mat", sep=''))
+
+###############################
+##### Save Matrix Figures #####
+###############################
+
+print("Create and Save Final Matrix Figures")
+
+pdf(paste(FigSubDir,"/n",dim(DATASET)[1],"_R-Matrix_",FileName,"_",Date,".pdf", sep=''),width=6,height=5,paper='special')
+levelplot(Rmatrix, col.regions=heat.colors(100))
+dev.off()
+
+pdf(paste(FigSubDir,"/n",dim(DATASET)[1],"_P-Matrix_",FileName,"_",Date,".pdf", sep=''),width=6,height=5,paper='special')
+levelplot(Pmatrix, col.regions=heat.colors(100))
+dev.off()
+
+Sys.chmod(list.files(path= DataSubDir, pattern="*", full.names = TRUE), mode = "0775")
+Sys.chmod(list.files(path= FigSubDir, pattern="*", full.names = TRUE), mode = "0775")
+Sys.chmod(list.files(path= OutSubDir, pattern="*", full.names = TRUE), mode = "0775")
+
+print("⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡")
+print("Script Ran Successfully")
+print("⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡")
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
