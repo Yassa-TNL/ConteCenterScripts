@@ -34,7 +34,7 @@ fi
 ### Define Paths to Subjects' Scans That Need to be Processed ###
 #################################################################
 
-recon-all -i ${MGZ} -s ${sub}_tp${ses} -all -qcache -3T -hippocampal-subfields-T1 -brainstem-structures > ${logfile} 2>&1
+recon-all ${MGZ} -s ${sub}_tp${ses} -no-isrunning -all  -hippocampal-subfields-T1 -brainstem-structures -qcache > ${logfile} 2>&1
 chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One 
 
 ###################################################################################################
