@@ -10,7 +10,7 @@
 set parrec_dir [lindex $argv 0]
 set subid [lindex $argv 1]
 set date [lindex $argv 2]
-spawn fw import parrec $parrec_dir "yassalab" "Conte-One" --no-audit-log --skip-existing --subject ${subid} --session $date
+spawn fw import parrec $parrec_dir "yassalab" "Conte-One" --no-audit-log --skip-existing --subject ${subid} --session ${date}
 expect "Confirm upload? (yes/no):"
 send "yes\n"
 interact
