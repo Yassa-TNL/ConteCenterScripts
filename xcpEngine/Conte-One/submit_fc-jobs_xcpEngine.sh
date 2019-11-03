@@ -67,47 +67,53 @@ fi
 ##### Define New Subjects ##### 
 ###############################
 
-anatRaw=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-*/ses-*/anat/sub-*_ses-*_T1w.nii.gz | head -n6`
+#task-HIPP task-AMG
+TASKS='REST'
 
-for anatInput in ${anatRaw} ; do
+for TASK in ${TASKS}; do 
 
-	sub=`echo $anatInput | cut -d '/' -f8 | cut -d '-' -f2`
-	ses=`echo $anatInput | cut -d '/' -f9 | cut -d '-' -f2`
-	xcpOutput=`echo /dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/pipe-anat-*/task-${TASK}/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}.nii.gz | cut -d ' ' -f1`
+	fmriPreProcs=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-*/ses-*/func/sub-*_ses-*_task-${TASK}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | head -n1`
 
-	if [ -f ${xcpOutput} ] ; then
+	for fmriInput in ${fmriPreProcs} ; do
 
-		echo ''
-		echo "##################################################"
-		echo "#sub-${sub} ses-${ses} already processed T1w Scan "
-		echo "##################################################"
-		echo ''
+		sub=`echo $fmriInput | cut -d '/' -f9 | cut -d '-' -f2`
+		ses=`echo $fmriInput | cut -d '/' -f10 | cut -d '-' -f2`
+		xcpOutput=`echo /dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/pipe-fc-*/task-${TASK}/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}.nii.gz | cut -d ' ' -f1`
 
-	else
-
-		JobName=`echo an${sub}X${ses}`
-		JobStatus=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
-		if [ ! -z "$JobStatus" ] ; then
+		if [ -f ${xcpOutput} ] ; then
 
 			echo ''
-			echo "#####################################################"
-			echo "#sub-${sub} ses-${ses} currently processing T1w Scan "
-			echo "#####################################################"
+			echo "#################################################"
+			echo "#sub-${sub} ses-${ses} already processed ${TASK} "
+			echo "#################################################"
 			echo ''
 
 		else
 
-			echo ''
-			echo "###################################################"
-			echo "#Submitting Job For sub-${sub} ses-${ses} T1w Scan "
-			echo "###################################################"
-			echo ''
+			JobName=`echo "${TASK:0:2}"${sub}X${ses}`
+			JobStatus=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
+			if [ ! -z "$JobStatus" ] ; then
 
-			Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
-			qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${anatInput} ${xcpEngine_container}
+				echo ''
+				echo "####################################################"
+				echo "#sub-${sub} ses-${ses} currently processing ${TASK} "
+				echo "####################################################"
+				echo ''
 
+			else
+
+				echo ''
+				echo "#######################################################"
+				echo "#Submitting Job For sub-${sub} ses-${ses} task-${TASK} "
+				echo "#######################################################"
+				echo ''
+
+				Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
+				qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${fmriInput} ${xcpEngine_container}
+
+			fi
 		fi
-	fi
+	done
 done
 
 ###################################################################################################
