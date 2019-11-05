@@ -48,7 +48,6 @@ FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/Audit_Master_C
 
 echo 'subid,Session,ScanDate' > ${FINAL_OUTPUT}
 cat ${dir_temp}/TEMP_MRI_Master_Audit.txt >> ${FINAL_OUTPUT}
-echo '564,3,NA' >> ${FINAL_OUTPUT}
 sort -k1 -t ',' -g ${FINAL_OUTPUT} -o  ${FINAL_OUTPUT}
 rm ${dir_temp}/TEMP_MRI*
 dos2unix ${FINAL_OUTPUT}
@@ -59,7 +58,7 @@ chmod ug+wrx $FINAL_OUTPUT
 #####################################
 
 header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},BehaVisit`
+header_new=`echo ${header_og},BehVisit`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
@@ -74,7 +73,6 @@ for row in $rows ; do
   newrow=`echo ${row},${Beh}`
   cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
   mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-
 done
 
 #######################################################################
@@ -128,7 +126,6 @@ for row in $rows ; do
     mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
   fi
 done
-
 
 ############################################################################
 ### Add Column of Scan Date Based on Dicom Headers to Varify Source File ###
@@ -211,10 +208,50 @@ for seq in $sequences ; do
 
 done
 
+###################################################################
+### Add Demographic Information - Need To Redo with Full Sample ###
+###################################################################
+
+Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $2,$3,$4,$5}' \
+  /dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n424_Age+Sex_20191008.csv \
+  | sed s@' '@','@g \
+  | sed s@'"'@''@g \
+  | tail -n+2`
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},AgeAtScan,Gender`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+for row in $rows ; do
+  sub=`echo $row | cut -d ',' -f1`
+  ses=`echo $row | cut -d ',' -f2`
+  demo=`echo $Demo_GoogleDrive |  tr ' ' '\n' | grep "^${sub},${ses}," \
+  | cut -d ' ' -f1 | cut -d ',' -f3,4`
+
+  echo 
+  echo "subject: $sub session: $ses demo: $demo"
+
+  if [ -z $demo ] ; then
+    newrow=`echo $row,NA,NA`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "Demographic Data MISSING for subject: $sub ses: $ses"
+  else
+    newrow=`echo ${row},${demo}`
+    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+    echo "Demographic Data Added for subject: $sub ses: $ses"
+  fi
+done
+
+chmod ug+wrx $FINAL_OUTPUT
+
 ############################################
 ### Add Audit of DBK Freesurfer Analysis ###
 ############################################
-
+<<SKIP
 Freesurfer_DBK='/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/T1w/20190909/n362_APARC+ASEG_20190909.csv'
 
 header_og=`head -n1 ${FINAL_OUTPUT}`
@@ -257,46 +294,6 @@ for row in $rows ; do
     fi
   fi
 done
-
-###################################################################
-### Add Demographic Information - Need To Redo with Full Sample ###
-###################################################################
-
-Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $2,$3,$4,$5}' \
-  /dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/Demo/n275_Age+Sex_20190829.csv \
-  | sed s@' '@','@g \
-  | sed s@'"'@''@g \
-  | tail -n+2`
-
-header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},AgeAtScan,Gender`
-cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
-mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
-for row in $rows ; do
-  sub=`echo $row | cut -d ',' -f1`
-  ses=`echo $row | cut -d ',' -f2`
-  demo=`echo $Demo_GoogleDrive |  tr ' ' '\n' | grep "^${sub},${ses}," \
-  | cut -d ' ' -f1 | cut -d ',' -f3,4`
-
-  echo 
-  echo "subject: $sub session: $ses demo: $demo"
-
-  if [ -z $demo ] ; then
-    newrow=`echo $row,NA,NA`
-    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-    echo "Demographic Data MISSING for subject: $sub ses: $ses"
-  else
-    newrow=`echo ${row},${demo}`
-    cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-    mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-    echo "Demographic Data Added for subject: $sub ses: $ses"
-  fi
-done
-
-chmod ug+wrx $FINAL_OUTPUT
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
