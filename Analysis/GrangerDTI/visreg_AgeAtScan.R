@@ -20,7 +20,6 @@ suppressMessages(require(mgcv))
 suppressMessages(require(plyr))
 suppressMessages(require(fslr))
 suppressMessages(require(voxel))
-suppressMessages(require(stringr))
 suppressMessages(require(plotly))
 
 #######################################################
