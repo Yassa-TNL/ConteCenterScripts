@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -q yassalab,free*
-#$ -pe openmp 8-64
+#$ -pe openmp 4-16
 #$ -l kernel=blcr
 #$ -ckpt restart
 #######################################
@@ -13,13 +13,15 @@ module load freesurfer/6.0 2>/dev/null
 sub=`echo $1`
 ses=`echo $2`
 
-export SUBJECTS_DIR=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One
 logfile=`echo /dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One/logs/sub-${sub}_ses-${ses}_stdout.txt`
-rm FS${sub}x${ses}.o* FS${sub}x${ses}.e*
+OutputPath=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One
+export SUBJECTS_DIR=${OutputPath}
+rm -rf ${OutputPath}/${sub}_tp${ses}
+rm FS${sub}x${ses}.*
 
-########################################
-### Create MGZ Files and Output Path ###
-########################################
+########################
+### Create MGZ Files ###
+########################
 
 MGZ=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One/mgz/sub-${sub}_ses-${ses}_T1w-coverted.mgz
 
@@ -34,7 +36,7 @@ fi
 ### Define Paths to Subjects' Scans That Need to be Processed ###
 #################################################################
 
-recon-all ${MGZ} -s ${sub}_tp${ses} -no-isrunning -all  -hippocampal-subfields-T1 -brainstem-structures -qcache > ${logfile} 2>&1
+recon-all -i ${MGZ} -s ${sub}_tp${ses} -no-isrunning -all -hippocampal-subfields-T1 -brainstem-structures -qcache > ${logfile} 2>&1
 chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One 
 
 ###################################################################################################
