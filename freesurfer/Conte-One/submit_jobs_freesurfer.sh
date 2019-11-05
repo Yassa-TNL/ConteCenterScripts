@@ -29,10 +29,10 @@ for subject in ${AllSubs} ; do
 
   sub=`echo $subject | cut -d ',' -f1`
   ses=`echo $subject | cut -d ',' -f2`
-  FS_Data=/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-One/T1w/n362_APARC+ASEG_20190909.csv
-  Sub_Data=`awk -F "\"*,\"*" '{print $1,$2}' ${FS_Data} | sed s@' '@','@g | grep ^${subject}`
+  DBK_Data=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One/${sub}_tp${ses}/stats/aseg.stats
+  FS_Data=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-One-DBK/${sub}_tp${ses}/stats/aseg.stats
 
-  if [ ! -z ${Sub_Data} ] ; then
+  if [ -f ${DBK_Data} ] || [ -f ${FS_Data} ] ; then
     
     echo ''
     echo "####################################################################"
@@ -44,7 +44,7 @@ for subject in ${AllSubs} ; do
 
     jobstats=`qstat -u $USER | grep FS${sub}x${ses} | awk {'print $5'}`
 
-    if [ "$jobstats" == "r" ] || [ "$jobstats" == "qw" ]; then
+    if [ ! -z "$jobstats" ]; then
 
        echo ''
        echo "#######################################################"
