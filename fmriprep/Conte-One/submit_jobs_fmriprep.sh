@@ -65,8 +65,7 @@ for sub in ${AllSubs} ; do
   else
 
     job=`qstat -u $USER | grep FP${sub} | awk {'print $5'}`
-
-    if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] ; then
+    if [ ! -z "$jobstats" ] ; then
 
        echo ''
        echo "###########################################"
