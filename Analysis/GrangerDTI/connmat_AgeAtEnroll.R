@@ -12,7 +12,7 @@ print("Reading Arguments")
 inputPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/n18_left"
 covaPath <- "/dfs2/yassalab/rjirsara/ConteCenter/Audits/90-Plus/RawData/RAVLTsubsetworking.csv"
 
-covsFormula <- "~Age.at.Enrollment"
+covsFormula <- "~Age.at.Enrollment+RAVLT.Recognition.Correct.x"
 ChangeType<-list("as.numeric")
 CorrType="pearson"
 
