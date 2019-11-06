@@ -56,9 +56,6 @@ rm TEMP1_volume_ASEG.txt
 extractions='volume thickness area'
 for property in ${extractions} ; do
 
-	subjects=`echo ${inputdir_One}/* ${inputdir_DBK}/*`
-	subjects=`echo $subjects | tr ' ' '\n' | grep -v logs | grep -v mgz | tr '\n' ' '`
-	rm ${outdir}/n*Aparc-Destrieux_${property}*.csv &> /dev/null
 	hemispheres='lh rh'
 	for hemi in $hemispheres ; do
 
@@ -70,8 +67,8 @@ for property in ${extractions} ; do
 		--meas ${property} \
 		--tablefile raw1_Aparc-Destrieux_${hemi}_${property}.txt
 
-		cat raw1_Aparc-Destrieux_${hemi}_${property}.txt | sed s@"rh.aparc.a2009s.${property}"@"sub,ses"@g | sed s@"${inputdir_One}/"@""@g | 
-		sed s@"${inputdir_DBK}/"@""@g | sed s@"_tp"@","@g > raw2_Aparc-Destrieux_${hemi}_${property}.txt
+		cat raw1_Aparc-Destrieux_${hemi}_${property}.txt | sed s@"${hemi}.aparc.a2009s.${property}"@"sub,ses"@g | \
+		sed s@"${inputdir_One}/"@""@g | sed s@"${inputdir_DBK}/"@""@g | sed s@"_tp"@","@g > raw2_Aparc-Destrieux_${hemi}_${property}.txt
 
 	done
 
@@ -83,8 +80,7 @@ for property in ${extractions} ; do
 	dim=`cat raw2_Aparc-Destrieux_lh_${property}.txt | wc -l`
 	((count = dim - 1))
 
-	paste --delimiters='' raw2_Aparc-Destrieux_rh_${property}.txt raw2_Aparc-Destrieux_lh_${property}.txt \
-	> raw${count}_Aparc-Destrieux_${property}_${TODAY}.csv
+	paste --delimiters='' raw2_Aparc-Destrieux_rh_${property}.txt raw2_Aparc-Destrieux_lh_${property}.txt > raw${count}_Aparc-Destrieux_${property}_${TODAY}.csv
 	
 #########################################################
 ##### Remove Extra Columns and Write out Speadsheet #####
@@ -127,7 +123,7 @@ if [ "$subs_volume" = "$subs_thickness" ] && [ "$subs_thickness" = "$subs_area" 
 	cut -d ',' -f1-2 --complement ${outdir}/FreeVol/n${count}_Aparc-Destrieux_volume_${TODAY}.csv > ${outdir}/TEMP_VOLUME
 	cut -d ',' -f1-2 --complement ${outdir}/FreeCT/n${count}_Aparc-Destrieux_thickness_${TODAY}.csv > ${outdir}/TEMP_THICKNESS
 
-	paste --delimiters=',' ${outdir}/n${count}_Aseg_volume_${TODAY}.csv ${outdir}/TEMP_VOLUME > ${outdir}/TEMP_CORTICAL1
+	paste --delimiters=',' ${outdir}/FreeVol/n${count}_Aseg_volume_${TODAY}.csv ${outdir}/TEMP_VOLUME > ${outdir}/TEMP_CORTICAL1
 	paste --delimiters=',' ${outdir}/TEMP_CORTICAL1 ${outdir}/TEMP_THICKNESS > ${outdir}/TEMP_CORTICAL2 
 	paste --delimiters=',' ${outdir}/TEMP_CORTICAL2 ${outdir}/TEMP_AREA > ${outdir}/n${count}_APARC+ASEG_${TODAY}.csv
 
