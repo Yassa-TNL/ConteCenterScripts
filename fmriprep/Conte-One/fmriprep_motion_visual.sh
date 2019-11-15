@@ -38,6 +38,7 @@ print("Loading Required Packages")
 library("devtools")
 library("lattice")
 library("ggplot2")
+library("RColorBrewer")
 
 ################################################################################
 ##### Transform Input Files Into Matricies and Combine Into A Single Array #####
@@ -140,27 +141,43 @@ for (task in tasks){
 		abline(h = 0.50, col = "red", lwd = 2.5)
 	dev.off()
 
+########################################################################
+##### Create Figure of Histograms At Multiple Despiking Thresholds #####
+########################################################################
+
+	HISTOGRAMS<-data.frame(matrix(NA, nrow = 0, ncol = 2))
+	for (subnum in 1:nrow(OUTPUT)){
+		identifier<-paste0(subjects[subnum],"x",sessions[subnum])
+		volnumsTOTAL<-data.frame(matrix("None", nrow = OUTPUT[subnum,"volTOTAL"], ncol = 1))
+		volnumsAT20<-data.frame(matrix("0.20", nrow = OUTPUT[subnum,"volAT20"], ncol = 1))
+		volnumsAT30<-data.frame(matrix("0.30", nrow = OUTPUT[subnum,"volAT30"], ncol = 1))
+		volnumsAT40<-data.frame(matrix("0.40", nrow = OUTPUT[subnum,"volAT40"], ncol = 1))
+		volnumsAT50<-data.frame(matrix("0.50", nrow = OUTPUT[subnum,"volAT50"], ncol = 1))
+		DESPIKE<-rbind(volnumsTOTAL, setNames(rev(volnumsAT50), names(volnumsTOTAL)))
+		DESPIKE<-rbind(DESPIKE, setNames(rev(volnumsAT40), names(DESPIKE)))
+		DESPIKE<-rbind(DESPIKE, setNames(rev(volnumsAT30), names(DESPIKE)))
+		DESPIKE<-rbind(DESPIKE, setNames(rev(volnumsAT20), names(DESPIKE)))
+		DESPIKE$subid<-identifier
+		HISTOGRAMS<-rbind(HISTOGRAMS, setNames(rev(DESPIKE), names(DESPIKE)))
+	}
+	colnames(HISTOGRAMS)[1]<-"threshold"
+
+
+	ggplot(HISTOGRAMS, aes(HISTOGRAMS[,1], fill = HISTOGRAMS[,2])) +
+		ggtitle(paste("Volumes After Framewise Displacement Despiking For",task,"Task")) +
+		xlab("Scan Sessions") +
+		ylab("Total Number of Volumes") +
+		labs(fill = "Motion Threshold (FD):") +
+		geom_bar(position = "identity", alpha = .4) +
+  		theme(axis.title.x=element_text(size = rel(1.25),face = "bold"),
+		axis.text.x=element_blank(),
+		axis.title.y = element_text(size = rel(1.25),face = "bold"),
+		plot.title = element_text(size = rel(1.25),face = "bold"),
+		panel.background = element_rect(fill = "white", colour = "black"),
+		legend.position = "top")
 
 
 
-
-
-> dev.copy(png,'myplot.png')
-> dev.off()
-
-pdf(paste(FigSubDir,"/n",dim(DATASET)[1],"_R-Matrix_",CorrType,"_",FileName,"_",Date,".pdf", sep=''),width=6,height=5,paper='special')
-levelplot(Rmatrix, col.regions=heat.colors(100))
-dev.off()
-
-
-
-	
-ddf = data.frame(NUMS = rnorm(500), GRP = sample(LETTERS[1:5],500,replace=T))
-
-boxplot(NUMS ~ GRP, data = ddf, lwd = 2, ylab = 'NUMS')
-
-spreadPointsMultiple(data=ddf, responseColumn="NUMS", categoriesColumn="GRP",
-                     col="blue", plotOutliers=TRUE)
 
 
 
