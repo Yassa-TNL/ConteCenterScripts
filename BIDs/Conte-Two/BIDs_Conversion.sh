@@ -4,7 +4,7 @@
 ##########################              Robert Jirsaraie                 ##########################
 ##########################              rjirsara@uci.edu                 ##########################
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 <<Use
 
@@ -13,7 +13,7 @@ to BIDs format where they will be processed further through various pipelines.
 
 Use
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
@@ -28,81 +28,81 @@ sites='UCI UCSD'
 
 for site in $sites ; do
 
-  dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}
+	dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-Two-${site}
 
-  fw ls "yassalab/Conte-Two-${site}" | sed s@'rw '@''@g | grep -v test | grep -v Conte-Two-${site} | grep T > ${dir_dicom}/SUBS_fw.txt
-  ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
-  NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | grep '<' | sed s@'< '@''@g`
-  rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
+	fw ls "yassalab/Conte-Two-${site}" | sed s@'rw '@''@g | grep -v test | grep -v Conte-Two-${site} | grep T > ${dir_dicom}/SUBS_fw.txt
+	ls /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/ | sed s@'sub-'@''@g > ${dir_dicom}/SUBS_hpc.txt
+	NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | sed -n '1!p' | grep '<' | sed s@'< '@''@g`
+	rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
-  if [ -z "$NewSubs" ]; then
+	if [ -z "$NewSubs" ]; then
 
-    echo ""
-    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
-    echo "Everything is up-to-date for ${site}"
-    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
+		echo ""
+		echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
+		echo "Everything is up-to-date for ${site}"
+		echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
 
-  else  
+	else	
 
-    echo ""
-    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
-    echo "${site} Has Newly Scanned Subjects: $NewSubs" 
-    echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
+		echo ""
+		echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
+		echo "${site} Has Newly Scanned Subjects: $NewSubs" 
+		echo "⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # ⚡ # "
 
 ###############################################
 ### Submit Jobs for Newly Detected Subjects ###
 ###############################################
 
-    for subid in $NewSubs ; do
+		for subid in $NewSubs ; do
 
-      JobName=`echo ${site}${subid}`
-      job=`qstat -u $USER | grep ${JobName} | awk {'print $5'} | tr '\n' ' ' | cut -d ' ' -f1`
+			JobName=`echo ${site}${subid}`
+			job=`qstat -u $USER | grep ${JobName} | awk {'print $5'} | tr '\n' ' ' | cut -d ' ' -f1`
 
-      if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] || [ "$job" == "hqw" ] ; then
+			if [ "$job" == "r" ] || [ "$job" == "Rr" ] || [ "$job" == "Rq" ] || [ "$job" == "qw" ] || [ "$job" == "hqw" ] ; then
 
-        echo ''
-        echo "############################################"
-        echo "# ${JobName} is currently being processed..."
-        echo "############################################"
-        echo ''
+				echo ''
+				echo "############################################"
+				echo "# ${JobName} is currently being processed..."
+				echo "############################################"
+				echo ''
 
-      else
+			else
 
-        echo ''
-        echo "###################################################"
-        echo "# ${JobName} ARE BEING SUBMITTED FOR DOWNLOADING..."
-        echo "###################################################"
-        echo ''
+				echo ''
+				echo "###################################################"
+				echo "# ${JobName} ARE BEING SUBMITTED FOR DOWNLOADING..."
+				echo "###################################################"
+				echo ''
 
-	JobNameA=`echo ${site}${subid}A`
-    	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
-    	qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
+				JobNameA=`echo ${site}${subid}A`
+				Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_Download.sh
+				qsub -N ${JobNameA} ${Pipeline} ${subid} ${site} ${dir_dicom}
 
-	if [ ${site} == "UCI" ] ; then
+				if [ ${site} == "UCI" ] ; then
 
-	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
-	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+					Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
+					${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
 
- 	elif [ ${site} == "UCSD" ] ; then
+ 				elif [ ${site} == "UCSD" ] ; then
 
-	  Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
-	  ${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
+					Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PullPsychoPyData.exp
+					${Pipeline} ${FIBRE_PASSWORD} ${subid} ${dir_dicom}/BIDs_Events 1>/dev/null
 
+				fi
+
+				JobNameB=`echo ${site}${subid}B`
+				Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
+				qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${site}
+
+				JobNameC=`echo ${site}${subid}C`
+				Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
+				echo "python ${Pipeline} ${subid} ${site}" | qsub -hold_jid ${JobNameB} -N ${JobNameC} -q yassalab -pe openmp 8 
+
+			fi
+		done
 	fi
-
-	JobNameB=`echo ${site}${subid}B`
-	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/PushPsychPyData.sh
-	qsub -hold_jid ${JobNameA} -N ${JobNameB} ${Pipeline} ${subid} ${site}
-
-	JobNameC=`echo ${site}${subid}C`
-	Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/BIDs_MetaData.py
-	echo "python ${Pipeline} ${subid} ${site}" | qsub -hold_jid ${JobNameB} -N ${JobNameC} -q yassalab -pe openmp 8 
-
-      fi
-    done
-  fi
 done
 
 ###################################################################################################
-#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
