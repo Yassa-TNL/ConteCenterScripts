@@ -10,7 +10,7 @@
 '''
 
 Runs all 3 blocks of the Doors Task and Processes log file if task runs to completion. This custom-verion
-was designed to be used on the 3T Seimens MRI scanner at UC Irvine. 
+was designed to be used on the 3T GE MRI scanner at UC San Deigo. 
 
 '''
 ###################################################################################################
