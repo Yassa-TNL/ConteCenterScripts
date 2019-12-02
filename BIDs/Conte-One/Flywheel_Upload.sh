@@ -18,7 +18,7 @@ Use
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
-
+	
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
 source ~/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
@@ -35,9 +35,9 @@ NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | grep '>' | se
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
 
 if [ -z "$NewSubs" ]; then
-  echo "Everything is up-to-date - No newly scanned subjects detected"
+	echo "Everything is up-to-date - No newly scanned subjects detected"
 else
-  echo 'Newly Scanned Subjects Detected: '$NewSubs 
+	echo 'Newly Scanned Subjects Detected: '$NewSubs 
 fi
 
 ##########################################################
@@ -46,32 +46,31 @@ fi
 
 for subject in $NewSubs ; do
 
-  subid=`echo $subject | cut -d '_' -f1`
-  ses=`echo $subject | cut -d '_' -f3`
-  datatype=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/`
+	subid=`echo $subject | cut -d '_' -f1`
+	ses=`echo $subject | cut -d '_' -f3`
+	datatype=`ls /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/`
 
-  for data in $datatype ; do
+	for data in $datatype ; do
 
-  if [ $data = "DICOMS" ]; then
-    echo "Dicoms Detected for $subject"
-    dicom_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
-    /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadDicoms.exp ${dicom_dir} ${subject}
-  fi
+		if [ $data = "DICOMS" ]; then
+			echo "Dicoms Detected for $subject"
+			dicom_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
+			/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadDicoms.exp ${dicom_dir} ${subject}
+		fi
 
-  if [ $data = "PARREC" ]; then
-    echo "ParRec Files Detected for $subject"
-    fw_date=`fw ls "yassalab/Conte-One/${subject}" | head -n1 | awk {'print $5,$6'}`
-    parrec_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
-    /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadParRecs.exp ${parrec_dir} ${subject} "${fw_date}"
-  fi
+		if [ $data = "PARREC" ]; then
+			echo "ParRec Files Detected for $subject"
+			fw_date=`fw ls "yassalab/Conte-One/${subject}" | head -n1 | awk {'print $5,$6'}`
+			parrec_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
+			/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadParRecs.exp ${parrec_dir} ${subject} "${fw_date}"
+		fi
 
-  if [ $data = "NIFTIS" ]; then
-    echo "Nifti Files Detected for $fw_subid"
-    nifti_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
-    /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadNiftis.exp ${nifti_dir}
-  fi
-
-  done
+		if [ $data = "NIFTIS" ]; then
+			echo "Nifti Files Detected for $fw_subid"
+			nifti_dir=`echo /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${subid}_*_${ses}/${data}`
+			/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/UploadNiftis.exp ${nifti_dir}
+		fi
+	done
 done
 
 ###################################################################################################
