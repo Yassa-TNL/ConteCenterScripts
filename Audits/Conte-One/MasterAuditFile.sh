@@ -25,6 +25,7 @@ module load afni/v19.0.01
 
 source=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/ConteMRI_All_Timepoints_Original.csv
 dir_temp=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/logs
+dos2unix ${source}
 
 awk -F "\"*,\"*" '{print $1,$5,$6}' $source > ${dir_temp}/TEMP_MRI0
 awk -F "\"*,\"*" '{print $1,$7,$8}' $source > ${dir_temp}/TEMP_MRI1
@@ -46,7 +47,7 @@ cat ${dir_temp}/TEMP_MRI{0..3}_Reduced_Relabeled.txt > ${dir_temp}/TEMP_MRI_Mast
 
 FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenter/Audits/Conte-One/Audit_Master_ConteMRI.csv
 
-echo 'subid,Session,ScanDate' > ${FINAL_OUTPUT}
+echo 'sub,ses,ScanDate' > ${FINAL_OUTPUT}
 cat ${dir_temp}/TEMP_MRI_Master_Audit.txt >> ${FINAL_OUTPUT}
 sort -k1 -t ',' -g ${FINAL_OUTPUT} -o  ${FINAL_OUTPUT}
 rm ${dir_temp}/TEMP_MRI*
