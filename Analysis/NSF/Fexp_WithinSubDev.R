@@ -16,7 +16,7 @@ library(RColorBrewer)
 ### Read in Data ###
 ####################
 
-data<-read.csv("/dfs2/yassalab/rjirsara/NSF/Data/COVA-n275_Age+Sex_20190829_RESP-n360_Aseg_volume_20190829/AllScans/n268_gamm4_sAgeAtScank4-Gender_random_1sub_Merged.csv")
+data<-read.csv("/dfs2/yassalab/rjirsara/NSF/Data/COVA-n424_Age+Sex_20191008_RESP-n415_Aseg_volume_20191105/QAMeeting/n414_gam_sAgeAtScank4_Merged.csv")
 
 ########################################################################################
 ### Create Subject-Level Plots of Total Gray Volume Changes by Session and AgeAtScan ###
@@ -31,7 +31,7 @@ for (varname in vars){
 	facet_wrap(~sub)
 
   ### Plot Line of Best Fit
-  ggplot(data = allscans, aes(x = varname, y = TotalGrayVol, group = sub)) + 
+  ggplot(data = data, aes(x = varname, y = TotalGrayVol, group = sub)) + 
 	geom_point() + 
 	stat_smooth(method = "lm",se = FALSE) + 
 	facet_wrap(~sub)
