@@ -19,11 +19,21 @@ Use
 module purge 2>/dev/null 
 module load singularity/3.0.0 2>/dev/null 
 
+###########################################################################
+##### Define Files, Scripts, Preprocessed Files, and Output Directory #####
+###########################################################################
+
+Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
+xcpEngine_rootdir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine
+FmriprepDir=/dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One
+XcpDir=/dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One
+TASKS='REST'
+#HIPP AMG'
+
 ########################################################
 ##### Build xcpEngine Singularity Image if Missing #####
 ########################################################
 
-xcpEngine_rootdir='/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine'
 xcpEngine_container=`echo ${xcpEngine_rootdir}/xcpEngine-latest.simg`
 if [ -f $xcpEngine_container ] ; then
 
@@ -67,29 +77,38 @@ fi
 ##### Define New Subjects ##### 
 ###############################
 
-#task-HIPP task-AMG
-TASKS='REST'
-
 for TASK in ${TASKS}; do 
 
-	fmriPreProcs=`ls -1d /dfs2/yassalab/rjirsara/ConteCenter/fmriprep/Conte-One/fmriprep/sub-*/ses-*/func/sub-*_ses-*_task-${TASK}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz | head -n1`
+	fmriPreProcs=`ls -1d ${FmriprepDir}/fmriprep/sub-*/ses-*/func/sub-*_ses-*_task-${TASK}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz`
 
+	designoptions=`cat $Pipeline | grep 'designs_options' | grep fc | cut -d '"' -f2`
 	for fmriInput in ${fmriPreProcs} ; do
 
 		sub=`echo $fmriInput | cut -d '/' -f9 | cut -d '-' -f2`
 		ses=`echo $fmriInput | cut -d '/' -f10 | cut -d '-' -f2`
-		xcpOutput=`echo /dfs2/yassalab/rjirsara/ConteCenter/xcpEngine/Conte-One/pipe-fc-*/task-${TASK}/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}.nii.gz | cut -d ' ' -f1`
 
-		if [ -f ${xcpOutput} ] ; then
+		designoptions=`cat $Pipeline | grep 'designs_options' | grep fc | cut -d '"' -f2`
+		for design in $designoptions ; do
+			SearchForOutput=`echo ${XcpDir}/pipe-${design}/task-${TASK}/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}.nii.gz`
+			if [ ! -f "${SearchForOutput}" ] ; then
+				SUBMITJOB=`echo "Output Missing For $design"`
+			fi
+		done
 
+		if [ -z "${SUBMITJOB}" ] ; then
+	
 			echo ''
 			echo "#################################################"
 			echo "#sub-${sub} ses-${ses} already processed ${TASK} "
 			echo "#################################################"
 			echo ''
-
+			for design in $designoptions ; do
+				ls ${XcpDir}/pipe-${design}/task-${TASK}/sub-${sub}/ses-${ses}/sub-${sub}_ses-${ses}.nii.gz
+			done
+		
 		else
 
+			unset "SUBMITJOB"
 			JobName=`echo "${TASK:0:2}"${sub}X${ses}`
 			JobStatus=`qstat -u $USER | grep ${JobName} | awk {'print $5'}`
 			if [ ! -z "$JobStatus" ] ; then
@@ -99,7 +118,7 @@ for TASK in ${TASKS}; do
 				echo "#sub-${sub} ses-${ses} currently processing ${TASK} "
 				echo "####################################################"
 				echo ''
-
+				echo "Current Job Status: $JobStatus"
 			else
 
 				echo ''
@@ -108,7 +127,6 @@ for TASK in ${TASKS}; do
 				echo "#######################################################"
 				echo ''
 
-				Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/xcpEngine/Conte-One/xcpEngine_postproc_pipeline.sh
 				qsub -N ${JobName} ${Pipeline} ${sub} ${ses} ${fmriInput} ${xcpEngine_container}
 
 			fi
