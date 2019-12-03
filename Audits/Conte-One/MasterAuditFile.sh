@@ -63,7 +63,7 @@ header_new=`echo ${header_og},BehVisit`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 
 for row in $rows ; do
   subid=`echo $row | cut -d ',' -f1`
@@ -87,7 +87,7 @@ mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
 ###DICOMS
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   subid=`echo $row | cut -d ',' -f1`
   session=`echo $row | cut -d ',' -f2`
@@ -109,7 +109,7 @@ done
 
 ###PAR/REC 
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   subid=`echo $row | cut -d ',' -f1`
   session=`echo $row | cut -d ',' -f2`
@@ -137,7 +137,7 @@ header_new=`echo ${header_og},FileDate`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   subid=`echo $row | cut -d ',' -f1`
   session=`echo $row | cut -d ',' -f2`
@@ -169,7 +169,7 @@ header_new=`echo ${header_og},${2}`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   subid=`echo $row | cut -d ',' -f1`
   session=`echo $row | cut -d ',' -f2`
@@ -224,7 +224,7 @@ header_new=`echo ${header_og},AgeAtScan,Gender`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   sub=`echo $row | cut -d ',' -f1`
   ses=`echo $row | cut -d ',' -f2`
@@ -248,7 +248,10 @@ for row in $rows ; do
 done
 
 chmod ug+wrx $FINAL_OUTPUT
- echo "Master File Created Successfully"
+
+echo "Master File Created Successfully"
+exit
+
 ############################################
 ### Add Audit of DBK Freesurfer Analysis ###
 ############################################
@@ -260,7 +263,7 @@ header_new=`echo ${header_og},Freesurfer_DBK`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
-rows=`cat ${FINAL_OUTPUT} | grep -v 'subid' | tr '\n' ' '`
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
 for row in $rows ; do
   sub=`echo $row | cut -d ',' -f1`
   ses=`echo $row | cut -d ',' -f2`
