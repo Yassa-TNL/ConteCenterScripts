@@ -4,7 +4,15 @@
             "dataType": "anat",
             "modalityLabel": "T1w",
             "criteria": {
-                "SeriesDescription": "*T1w*"
+                "SeriesDescription": "anat-T1w"
+            }
+    },
+        {
+            "dataType": "anat",
+            "modalityLabel": "T1w",
+            "customLabels": "acq-PU",
+            "criteria": {
+                "SidecarFilename": "*PUanat-T1w*"
             }
     },
         {
@@ -17,25 +25,57 @@
     },
         {
             "dataType": "fmap",
-            "modalityLabel": "magnitude1",
-            "customLabels": "acq-dirPA",
+            "modalityLabel": "epi",
+            "customLabels": "dir-PA",
             "criteria": {
                 "SidecarFilename": "*fmap-magnitude1_acq-dirPA*"
             }
     },
         {
             "dataType": "fmap",
-            "modalityLabel": "magnitude2",
-            "customLabels": "acq-dirPA",
+            "modalityLabel": "dwi",
+            "customLabels": "dir-PA",
             "criteria": {
                 "SidecarFilename": "*fmap-magnitude2_acq-dirPA*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "dwi",
+            "customLabels": "dir-PA",
+            "criteria": {
+                "SidecarFilename": "*Diffusion_Field_Map*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "phasediff",
+            "customLabels": "acq-fwd",
+            "criteria": {
+                "SidecarFilename": "*topup_fwd*"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "phasediff",
+            "customLabels": "acq-rvs",
+            "criteria": {
+                "SidecarFilename": "*topup_rvs*"
             }
     },
         {
             "dataType": "dwi",
             "modalityLabel": "dwi",
             "criteria": {
-                "SeriesDescription": "*dwi"
+                "SeriesDescription": "dwi"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-TRACE",
+            "criteria": {
+                "SeriesDescription": "dwi_TRACEW_SKIP_THIS_TIME"
             }
     },
         {
@@ -44,6 +84,30 @@
             "customLabels": "acq-ZOOMcor",
             "criteria": {
                 "SeriesDescription": "*dwi_acq-ZOOMcor*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-b500",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b500*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-b1500",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b1500*"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-b3000",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b3000*"
             }
     },
         {
@@ -59,7 +123,7 @@
             "modalityLabel": "bold",
             "customLabels": "run-01_task-doors",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run-01_bold*"
+                "SeriesDescription": "*func_task-Doors_run*01_bold*"
             }
     },
         {
@@ -67,7 +131,7 @@
             "modalityLabel": "bold",
             "customLabels": "run-02_task-doors",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run-02_bold*"
+                "SeriesDescription": "*func_task-Doors_run*02_bold*"
             }
     },
         {
@@ -75,7 +139,7 @@
             "modalityLabel": "bold",
             "customLabels": "run-03_task-doors",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run-03_bold*"
+                "SeriesDescription": "*func_task-Doors_run*03_bold*"
             }
         }
     ]
