@@ -61,7 +61,7 @@ for subject in ${AllSubs} ; do
        echo ''
 
        JobName=`echo FS${sub}x${ses}`
-       Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/freesurfer/Conte-One/freesurfer_pipeline.sh 
+       Pipeline=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/freesurfer/Conte-One/freesurfer_anatomical_pipeline.sh
        
        qsub -N ${JobName} ${Pipeline} ${sub} ${ses}
 
