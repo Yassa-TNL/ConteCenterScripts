@@ -46,12 +46,16 @@ for subid in $NewSubs ; do
 	sub=`echo $subid | cut -d '_' -f1`
 	ses=`echo $subid | cut -d '_' -f2` 
 	Dicoms=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/DICOMS
-	Residual=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}
+	Residual=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_${ses}
 	mkdir -p $Residual
 
-	dcm2bids -d $Dicoms -p ${sub} -s ${ses} -c \
-	/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/config_Conte-One.json \
-	-o ${Residual} --forceDcm2niix --clobber
+	dcm2bids -d $Dicoms \
+		-p ${sub} \
+		-s ${ses} \
+		-c /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-One/config_Conte-One.json \
+		-o ${Residual} \
+		--forceDcm2niix \
+		--clobber
 
 #########################################################
 ### Convert PARREC files to NIFTI For Double Checking ###
@@ -121,11 +125,11 @@ for subid in $NewSubs ; do
 
 	OUTPUT=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-One/sub-${sub}
 	mkdir -p ${OUTPUT}
-	mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}/sub-${sub}/ses-${ses} ${OUTPUT}
+	mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_${ses}/sub-${sub}/ses-${ses} ${OUTPUT}
 	chmod -R 775 ${OUTPUT}
 
-	mkdir /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS
-	mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_*_${ses}/tmp_* /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS/
+	mkdir /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_${ses}/NIFTIS
+	mv /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/${sub}_${ses}/tmp_* /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}/NIFTIS/
 	chmod -R 775 /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/${sub}_*_${ses}
 
 	cat /dfs2/yassalab/rjirsara/ConteCenter/Dicoms/Conte-One/Spooling/PARREC_Replacements.csv >> $audit_dir/Recover_Missing_Niftis.csv
