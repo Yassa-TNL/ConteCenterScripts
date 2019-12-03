@@ -21,15 +21,15 @@ xcpEngine_container=$4
 
 if [[ $InputFile == *"_bold.nii.gz" ]] ; then
 
-	designs_options="fc-36p fc-24p_gsr"
+	designs_options="fc-24p fc-24p_gsr fc-36p fc-36p_scrub fc-36p_despike fc-aroma"
 	TASK=`echo $InputFile | cut -d '_' -f3 | cut -d '-' -f2`
 
 elif [[ $InputFile == *"_T1w.nii.gz" ]] ; then
 
-	designs_options="anat-antsct anat-complete anat_jlf_complete anat-minimal"
+	designs_options="anat_jlf_complete"
 	TASK=`echo $InputFile | cut -d '/' -f10`
 
-fi
+fi    
 
 #############################################
 ### Define Cohort, Command, and Log Files ###
@@ -42,7 +42,7 @@ for DESIGN in ${designs_options} ; do
 	cohortfile=${dir_root_logs}/sub-${sub}_ses-${ses}_cohort.csv
 	logfile=${dir_root_logs}/sub-${sub}_ses-${ses}_output.txt
 
-	rm "${TASK:0:2}"${sub}X${ses}.*
+	rm "${TASK:0:2}"${sub}X${ses}.* | cut -c1-10
 	mkdir -p ${dir_root_logs}
 
 	echo "id0,id1,img" > $cohortfile
