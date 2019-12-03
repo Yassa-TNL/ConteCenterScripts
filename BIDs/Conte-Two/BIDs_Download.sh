@@ -7,11 +7,8 @@
 ### Load Software and Inputs ###
 ################################
 
-module purge ; module load anaconda/2.7-4.3.1
-module load fsl/6.0.1
-module load flywheel/8.5.0
+module purge ; module load anaconda/2.7-4.3.1 ; module load fsl/6.0.1
 export PATH=$PATH:/data/users/rjirsara/flywheel/linux_amd64
-export PATH=$PATH:/dfs3/som/rao_col/bin
 source ~/MyPassCodes.txt
 fw login ${FLYWHEEL_API_TOKEN}
 
@@ -19,65 +16,79 @@ subid=`echo $1`
 site=`echo $2`
 dir_dicom=`echo $3`
 
-#####################
-### Quality Check ###
-#####################
+#############################
+### Quality of Life Check ###
+#############################
 
 if [[ -z $subid || -z $site || -z $dir_dicom ]] ; then
 
-  echo "Required Input Variables Not Define - Exiting..."
-  exit 0
+	echo "Required Input Variables Not Define - Exiting..."
+	exit 0
+
+else
+
+	config=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/config_Conte-Two.json
+	mkdir -p ${dir_dicom}/${subid}/BIDs_Residual
 
 fi
 
-#####################################
-### Download Dicoms from Flywheel ###
-#####################################
+######################################
+### Download and Reorganize Dicoms ###
+######################################
 
 mkdir -p ${dir_dicom}/${subid}
-fw download "yassalab/Conte-Two-${site}/${subid}/Brain^ConteTwo" --include dicom --force --output ${dir_dicom}/${subid}/${subid}_fw_download.tar
+fw download "yassalab/Conte-Two-${site}/${subid}" \
+	--include dicom \
+	--force \
+	--output ${dir_dicom}/${subid}/${subid}_fw_download.tar
 tar -xvf ${dir_dicom}/${subid}/${subid}_fw_download.tar -C ${dir_dicom}/${subid}
-rm ${dir_dicom}/${subid}/${subid}_fw_download.tar
 
-CompressedDicoms=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two-${site}/${subid}/BrainConteTwo -name '*.dicom.zip'`
-  
+CleanFileNames=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two-${site}/${subid} -name '*.dicom.zip' | sed s@' '@'TEMP'@g`
+for RemoveSpaces in $CleanFileNames ; do
+
+	mkdir -p `dirname $RemoveSpaces | sed s@'TEMP'@'_'@g`
+	mv -f "`echo $RemoveSpaces | sed s@'TEMP'@' '@g`" `echo $RemoveSpaces | sed s@'TEMP'@'_'@g`
+
+done
+
+CompressedDicoms=`find ${dir_dicom}/${subid}/scitran/yassalab/Conte-Two-${site}/${subid} -name '*.dicom.zip'`
 for UNZIP in $CompressedDicoms ; do
-  Sequence=`ls $UNZIP | cut -d '/' -f14`
-  mkdir -p ${dir_dicom}/${subid}/DICOMs/${Sequence}
-  unzip $UNZIP -d  ${dir_dicom}/${subid}/DICOMs/${Sequence}
-  mv ${dir_dicom}/${subid}/DICOMs/${Sequence}/*/* ${dir_dicom}/${subid}/DICOMs/${Sequence}/
-  rmdir `find ${dir_dicom}/${subid}/DICOMs/${Sequence}/ -type d -empty`
+
+	Sequence=`echo $UNZIP | cut -d '/' -f14`
+	mkdir -p ${dir_dicom}/${subid}/DICOMs/${Sequence}
+	unzip $UNZIP -d	"${dir_dicom}/${subid}/DICOMs/${Sequence}"
+	mv ${dir_dicom}/${subid}/DICOMs/${Sequence}/*/* ${dir_dicom}/${subid}/DICOMs/${Sequence}/
+	rmdir `find ${dir_dicom}/${subid}/DICOMs/${Sequence}/ -type d -empty`
+
 done
 
 ####################################
 ### Covert Dicoms To BIDs Format ###
 ####################################
 
-mkdir -p ${dir_dicom}/${subid}/BIDs_Residual
-
 dcm2bids -d ${dir_dicom}/${subid}/DICOMs \
-  -p ${subid} \
-  -s ${site} \
-  -c /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/Conte-Two/config_Conte-Two.json \
-  -o ${dir_dicom}/${subid}/BIDs_Residual \
-  --forceDcm2niix \
-  --clobber
-
+	-p ${subid} \
+	-s ${site} \
+	-c ${config} \
+	-o ${dir_dicom}/${subid}/BIDs_Residual \
+	--forceDcm2niix \
+	--clobber
+	
 ######################################
 ### Reorganize Directory Structure ###
 ######################################
 
-cp -r ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} ${dir_dicom}/BIDs/sub-${subid}
-cp -r ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid} /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/
-  
-zip ${dir_dicom}/${subid}/${subid}_DICOMs.zip -r ${dir_dicom}/${subid}/DICOMs
-chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
-chmod -R ug+wrx ${dir_dicom}/BIDs/sub-${subid}
-chmod -R ug+wrx ${dir_dicom}/${subid}
-rm -rf ${dir_dicom}/${subid}/DICOMs  
+rm ${site}${subid}A.*
 rm -rf ${dir_dicom}/${subid}/scitran
-rm -rf ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid}
-rm ${site}${subid}A.e* ${site}${subid}A.o*
+#rm -rf ${dir_dicom}/${subid}/DICOMs 
+rm ${dir_dicom}/${subid}/${subid}_fw_download.tar
+
+outdir=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
+mkdir -p ${outdir}
+mv ${dir_dicom}/${subid}/BIDs_Residual/sub-${subid}/ses-${site} ${outdir}
+
+chmod -R ug+wrx /dfs2/yassalab/rjirsara/ConteCenter/BIDs/Conte-Two/sub-${subid}
+chmod -R ug+wrx ${dir_dicom}/${subid}
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
