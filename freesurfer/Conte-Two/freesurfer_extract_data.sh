@@ -22,8 +22,7 @@ module load freesurfer/6.0
 ###################################################################
 
 inputdir=/dfs2/yassalab/rjirsara/ConteCenter/freesurfer/Conte-Two
-#outdir=/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-Two/T1w
-outdir=/dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/freesurfer/Conte-Two/test
+outdir=/dfs2/yassalab/rjirsara/ConteCenter/Datasets/Conte-Two/T1w
 
 #######################################################
 ##### Extract the Volume from Subcortical Regions #####
@@ -115,7 +114,7 @@ if [ "$subs_volume" = "$subs_thickness" ] && [ "$subs_thickness" = "$subs_area" 
 
 	echo 'All Cortical Files will be Merged Into Master Freesurfer Spreadsheets'
 
-	awk -F"," 'BEGIN { OFS = "," } {$3="CortCT"; print}' ${outdir}/FreeVol/n${count}_Aseg_volume_${TODAY}.csv > ${outdir}/TEMP_SUBCORT_VOLUME_FINAL
+	awk -F"," 'BEGIN { OFS = "," } {$3="SubCortVol"; print}' ${outdir}/FreeVol/n${count}_Aseg_volume_${TODAY}.csv > ${outdir}/TEMP_SUBCORT_VOLUME_FINAL
 
 	cut -d ',' -f1-2 --complement ${outdir}/FreeVol/n${count}_Aparc-Destrieux_volume_${TODAY}.csv > ${outdir}/TEMP_VOLUME
 	awk -F"," 'BEGIN { OFS = "," } {$1="CortVol"; print}' ${outdir}/TEMP_VOLUME > ${outdir}/TEMP_VOLUME_FINAL
