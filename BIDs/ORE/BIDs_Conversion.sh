@@ -33,7 +33,7 @@ fw login ${FLYWHEEL_API_TOKEN}
 dir_dicom=/dfs2/yassalab/rjirsara/ConteCenter/Dicoms/ORE
 dir_bids=/dfs2/yassalab/rjirsara/ConteCenter/BIDs/ORE
 
-fw ls "yassalab/ORE" | sed s@'none '@''@g | grep -v test | grep -v Pilot > ${dir_dicom}/SUBS_fw.txt
+fw ls "yassalab/ORE" | sed s@'rw '@''@g | grep -v test | grep -v Pilot > ${dir_dicom}/SUBS_fw.txt
 ls ${dir_bids} | sed s@'sub-'@''@g | grep -v dataset > ${dir_dicom}/SUBS_hpc.txt
 NewSubs=`diff ${dir_dicom}/SUBS_fw.txt ${dir_dicom}/SUBS_hpc.txt | grep '< ' | sed s@'< '@' '@g`
 rm ${dir_dicom}/SUBS_hpc.txt ${dir_dicom}/SUBS_fw.txt
@@ -75,6 +75,7 @@ for subid in $NewSubs ; do
 
 	dcm2bids -d ${dir_dicom}/${subid}/DICOMs \
 		-p ${subid} \
+		-s 1 \
 		-c /dfs2/yassalab/rjirsara/ConteCenter/ConteCenterScripts/BIDs/ORE/config_ORE.json \
 		-o ${dir_dicom}/${subid}/BIDs_Residual \
 		--forceDcm2niix \
