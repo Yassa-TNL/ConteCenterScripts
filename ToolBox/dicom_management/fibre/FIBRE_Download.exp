@@ -1,0 +1,20 @@
+#!/usr/bin/expect
+#################
+
+set DIR_FIBRE [lindex $argv 0]
+set DIR_LOCAL [lindex $argv 1]
+set FIBRE_PASSWORD [lindex $argv 2]
+
+#################################################
+### Transfer Files From FIBRE To Local Server ###
+#################################################
+
+spawn mkdir -p $DIR_LOCAL
+spawn sftp --r mriuser@fibre-data.rgs.uci.edu:${DIR_FIBRE} ${DIR_LOCAL}
+expect "mriuser@fibre-data.rgs.uci.edu's password:"
+send "${FIBRE_PASSWORD}\n"
+interact
+
+###################################################################################################
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+###################################################################################################
