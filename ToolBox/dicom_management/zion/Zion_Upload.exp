@@ -1,0 +1,20 @@
+#!/usr/bin/expect
+#################
+
+set DIR_HPC [lindex $argv 0]
+set DIR_ZION [lindex $argv 1]
+set ZION_USERNAME [lindex $argv 2]
+set ZION_PASSWORD [lindex $argv 3]
+
+###########################################################
+### Transfer Files From the Local Server to Zion Server ###
+###########################################################
+
+spawn rsync -auv ${DIR_HPC} ${ZION_USERNAME}@revan.bio.uci.edu:${DIR_ZION}
+expect "@revan.bio.uci.edu's password:"
+send "${ZION_PASSWORD}\n"
+interact
+
+###################################################################################################
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+###################################################################################################
