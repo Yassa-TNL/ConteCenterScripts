@@ -1,0 +1,21 @@
+#!/usr/bin/expect
+#################
+
+set UPLOAD [lindex $argv 0]
+set LAB [lindex $argv 1]
+set PROJECT [lindex $argv 2]
+set SUBID [lindex $argv 3]
+set DATE [lindex $argv 4]
+
+########################################################
+### Transfer Files From the Local Server To Flywheel ###
+########################################################
+
+spawn fw import parrec $UPLOAD "$LAB" "$PROJECT" --no-audit-log --skip-existing --subject ${SUBID} --session ${DATE}
+expect "Confirm upload? (yes/no):"
+send "yes\n"
+interact
+
+###################################################################################################
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
+###################################################################################################
