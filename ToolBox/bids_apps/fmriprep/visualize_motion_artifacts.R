@@ -16,10 +16,18 @@ DIR_LOCAL_DATA = args[2]
 ################################################################
 
 print(paste0("Searching For Data To Be Processed"))
-ALLFILES<-unlist(strsplit(list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), include.dirs=FALSE, pattern = ".tsv", recursive=TRUE), '_'))
-ALLTASKS<-grep("task-",ALLFILES)
-ALLTASKS<-unique(ALLFILES[TaskNamesOnly<-grep("task-",ALLFILES)])
-ALLTASKS<-gsub("task-", "",ALLTASKS)
+
+INPUTFILES = list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), full.names=TRUE, pattern = "_desc-confounds_regressors.tsv", recursive=TRUE)
+ALLTASKS<-unlist(strsplit(list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), pattern = "_desc-confounds_regressors.tsv", recursive=TRUE), '_'))
+ALLTASKS<-gsub("task-", "",unique(ALLTASKS[grep("task-",ALLTASKS)]))
+
+rbind.all.columns <- function(x, y){
+ 	x.diff <- setdiff(colnames(x), colnames(y))
+	y.diff <- setdiff(colnames(y), colnames(x))
+	x[, c(as.character(y.diff))] <- NA
+	y[, c(as.character(x.diff))] <- NA
+ 	return(rbind(x, y))
+}
 
 ##################################
 ##### Load Required Packages #####
@@ -39,21 +47,18 @@ suppressMessages(require(cowplot))
 ################################################################################
 
 for (task in ALLTASKS){
-
 	print(paste0("##########################################"))
 	print(paste0("Now Processing Data From the ",task," Task"))
 	print(paste0("##########################################"))
-
 	print(paste0("Locating FMRIPREP Confounds TSV Files For Processing"))
-	InputExtension <- paste("_task-",task,"_desc-confounds_regressors.tsv", sep="")
-	InputFiles = list.files(path = DIR_LOCAL_APPS, pattern = InputExtension, full.names = TRUE, recursive=TRUE)
-	InputFiles<-InputFiles[!grepl("problematic",InputFiles)]
-	if (file.exists(InputFiles[1]) == TRUE){
+	TASKFILES<-INPUTFILES[grep(paste0("task-",task),INPUTFILES)]
+	TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
+	if (file.exists(TASKFILES[1]) == TRUE){
 		MaxVolumesPossible<-0
-		for (InFile in InputFiles){		
-			subdata<-read.table(file = InFile, sep = '\t', header = TRUE)
-			if (nrow(subdata) > MaxVolumesPossible){
-				MaxVolumesPossible<-nrow(subdata)
+		for (FILE in TASKFILES){		
+			CONTENT<-read.table(file = FILE, sep = '\t', header = TRUE)
+			if (nrow(CONTENT) > MaxVolumesPossible){
+				MaxVolumesPossible<-nrow(CONTENT)
 			}
 		}
 	} else {
@@ -62,42 +67,40 @@ for (task in ALLTASKS){
 		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
 		quit(save="no")
 	}
-
 	print(paste0("Organizing Subject-level Files Into Master Dataset For Analysis"))
-	OUTPUT<-data.frame(matrix(NA, nrow = 1, ncol = MaxVolumesPossible+12))
+	OUTPUT<-data.frame(matrix(NA, nrow = 1, ncol = 12+MaxVolumesPossible))
 	colnames(OUTPUT) <- gsub("X", "V", colnames(OUTPUT))
-	for (InFile in InputFiles){	
-		FileName<-basename(InFile)
-		FileName<-gsub(InputExtension,"",FileName)
-		FileName<-strsplit(FileName[[1]][1] , "_")
-		subdata<-read.table(file = InFile, sep = '\t', header = TRUE)
-		subdata <- suppressWarnings(data.frame(lapply(subdata, function(x) as.numeric(as.character(x)))))
-
-		sub<-strsplit(FileName[[1]][1], "-")[[1]][2]
-		ses<-strsplit(FileName[[1]][2], "-")[[1]][2]
-		fdMEAN<-summary(subdata$framewise_displacement)[4]
-		fdSD<-sd(subdata$framewise_displacement,na.rm=TRUE)
-		dvarsMEAN<-summary(subdata$dvars)[4]
-		dvarsSD<-sd(subdata$dvars,na.rm=TRUE)
-		gsMEAN<-summary(subdata$global_signal)[4]
-		volTOTAL<-dim(subdata)[1]
-		volAT25<-length(which(subdata$framewise_displacement < 0.25))
-		volAT50<-length(which(subdata$framewise_displacement < 0.50))
-		volAT75<-length(which(subdata$framewise_displacement < 0.75))
-		volAT100<-length(which(subdata$framewise_displacement < 1.00))
-
-		newrow<-c(sub,ses,fdMEAN,fdSD,dvarsMEAN,dvarsSD,gsMEAN,volTOTAL,volAT25,volAT50,volAT75,volAT100,subdata$framewise_displacement)
-		newrow<-as.data.frame(t(as.data.frame(newrow)))
-		rbind.all.columns <- function(x, y){
- 			x.diff <- setdiff(colnames(x), colnames(y))
-			y.diff <- setdiff(colnames(y), colnames(x))
- 			x[, c(as.character(y.diff))] <- NA
- 			y[, c(as.character(x.diff))] <- NA
- 			return(rbind(x, y))
+	for (DIR_INPUT in unique(dirname(TASKFILES))){
+		CONTENT<-data.frame("")
+		colnames(CONTENT) <- gsub("X", "V", colnames(CONTENT))
+		FILES<-INPUTFILES[grep(DIR_INPUT, INPUTFILES)]
+		INPUTFILES[grep(paste0("task-",task),FILES)]
+		for (FILE in FILES[grep(paste0("task-",task),FILES)]){
+			TEMP<-read.table(file = FILE, sep = '\t', header = TRUE)
+			TEMP<-suppressWarnings(data.frame(lapply(TEMP, function(x) as.numeric(as.character(x)))))
+			CONTENT<-rbind.all.columns(CONTENT,TEMP)
 		}
+		CONTENT<-CONTENT[-c(1),]
+		FileName<-basename(FILE)
+		SUB<-gsub("sub-","",unlist(strsplit(FileName, "_"))[grep("sub-",unlist(strsplit(FileName, "_")))])
+		SES<-gsub("ses-","",unlist(strsplit(FileName, "_"))[grep("ses-",unlist(strsplit(FileName, "_")))])
+		if (length(SES) == 0){			
+			SES<-"NA"
+		}
+		fdMEAN<-summary(CONTENT$framewise_displacement)[4]
+		fdSD<-sd(CONTENT$framewise_displacement,na.rm=TRUE)
+		dvarsMEAN<-summary(CONTENT$dvars)[4]
+		dvarsSD<-sd(CONTENT$dvars,na.rm=TRUE)
+		gsMEAN<-summary(CONTENT$global_signal)[4]
+		volTOTAL<-dim(CONTENT)[1]
+		volAT25<-length(which(CONTENT$framewise_displacement < 0.25))
+		volAT50<-length(which(CONTENT$framewise_displacement < 0.50))
+		volAT75<-length(which(CONTENT$framewise_displacement < 0.75))
+		volAT100<-length(which(CONTENT$framewise_displacement < 1.00))
+		newrow<-c(SUB,SES,fdMEAN,fdSD,dvarsMEAN,dvarsSD,gsMEAN,volTOTAL,volAT25,volAT50,volAT75,volAT100,CONTENT$framewise_displacement)
+		newrow<-as.data.frame(t(as.data.frame(newrow)))
 		OUTPUT<-rbind.all.columns(OUTPUT, newrow)
 	}
-
 	print(paste0("Cleaning Master Dataset For Figures of QA Data"))
 	names(OUTPUT) <- c("sub","ses","fdMEAN","fdSD","dvarsMEAN","dvarsSD","gsMEAN","volTOTAL","volAT25","volAT50","volAT75","volAT100")
 	OUTPUT <- suppressWarnings(data.frame(lapply(OUTPUT, function(x) as.numeric(as.character(x)))))
@@ -113,7 +116,6 @@ for (task in ALLTASKS){
 	VisualDir<-paste0(TaskDir ,"/motionVisual/")
 	suppressWarnings(dir.create(VisualDir, recursive=TRUE))
 	setwd(DIR_LOCAL_DATA )
-
 	SubjectFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_FD-Boxplots_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
 	GroupFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Grp-Lev_FD-Lineplots_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
 	SubjectVols<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_TemporalCensoring_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
@@ -140,7 +142,7 @@ for (task in ALLTASKS){
 	boxplot(VOLUMES[,c(1:nrow(OUTPUT))],
 		main = paste0("Subject-Level Distributions of Head Motion for ",task," Task"),
 		ylab = "Head-Motion (Framewise-Displacement)",
-		xlab = paste0("Scan Sessions (n = ",length(InputFiles),")"),
+		xlab = paste0("Scan Sessions (n = ",nrow(OUTPUT),")"),
 		col = "#000000",
 		border = "#000000",
 		pch = 20,
@@ -216,7 +218,7 @@ for (task in ALLTASKS){
 
 	ggplot(HISTOGRAMS, aes(HISTOGRAMS[,1], fill = HISTOGRAMS[,2])) +
 		ggtitle(paste0("Volumes After Framewise Displacement Censoring For ",task," Task")) +
-		xlab(paste0("Scan Sessions (n = ",length(InputFiles),")")) +
+		xlab(paste0("Scan Sessions (n = ",nrow(OUTPUT),")")) +
 		ylab(paste0("Total Number of Volumes (max = ",MaxVolumesPossible,")")) +
 		labs(fill = "Motion Threshold (FD):") +
 		geom_bar(position = "identity", alpha = .675) +
