@@ -106,6 +106,7 @@ for (task in ALLTASKS){
 	OUTPUT <- suppressWarnings(data.frame(lapply(OUTPUT, function(x) as.numeric(as.character(x)))))
 	OUTPUT<-OUTPUT[-c(1),]
 	OUTPUT<-OUTPUT[order(-OUTPUT[,"volTOTAL"],-OUTPUT[,"fdMEAN"] ),]
+	MaxVolumesCombined<-dim(OUTPUT)[2]-12
 
 #################################################################
 ##### Create Ouput Directories and Define Output File Names #####
@@ -116,11 +117,11 @@ for (task in ALLTASKS){
 	VisualDir<-paste0(TaskDir ,"/motionVisual/")
 	suppressWarnings(dir.create(VisualDir, recursive=TRUE))
 	setwd(DIR_LOCAL_DATA )
-	SubjectFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_FD-Boxplots_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
-	GroupFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Grp-Lev_FD-Lineplots_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
-	SubjectVols<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_TemporalCensoring_volmax-",MaxVolumesPossible,"_task-",task,".pdf")
-	QADataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_Quality-Assurance_volmax-",MaxVolumesPossible,"_task-",task,".csv")
-	VolumesDataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_TimeSeries_volmax-",MaxVolumesPossible,"_task-",task,".csv")
+	SubjectFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_FD-Boxplots_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
+	GroupFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Grp-Lev_FD-Lineplots_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
+	SubjectVols<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_TemporalCensoring_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
+	QADataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_Quality-Assurance_volmax-",MaxVolumesCombined,"_task-",task,".csv")
+	VolumesDataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_QA-TimeSeries_volmax-",MaxVolumesCombined,"_task-",task,".csv")
 
 #######################################################################################
 ##### Create Scatterplot of Subject-Level Distributions of Framewise Displacement #####
@@ -219,7 +220,7 @@ for (task in ALLTASKS){
 	ggplot(HISTOGRAMS, aes(HISTOGRAMS[,1], fill = HISTOGRAMS[,2])) +
 		ggtitle(paste0("Volumes After Framewise Displacement Censoring For ",task," Task")) +
 		xlab(paste0("Scan Sessions (n = ",nrow(OUTPUT),")")) +
-		ylab(paste0("Total Number of Volumes (max = ",MaxVolumesPossible,")")) +
+		ylab(paste0("Total Number of Volumes (max = ",MaxVolumesCombined,")")) +
 		labs(fill = "Motion Threshold (FD):") +
 		geom_bar(position = "identity", alpha = .675) +
   		theme(axis.title.x=element_text(size = rel(1.25),face = "bold"),
