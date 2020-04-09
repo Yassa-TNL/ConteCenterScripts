@@ -27,7 +27,7 @@ if( missing("FCON_COLS") | missing("IN_CSV") | missing("DIR_OUT") | missing("FOR
 	cat('\n')
 	cat(" Call Example on HPC:",'\n')
 	cat('\n')
-	cat('ConnMat(FCON_COLS=, IN_CSV="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/datasets/dwi/Covariates_MERGED.csv", DIR_OUT="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/analyses/GrangerDTI", FORMULA="~Age", CORR_TYPE="pearson", CHANGE_CLASS=list("as.numeric"), DIR_SUBOUT="EXAMPLE", VARS_INTEREST=c("CA1","CA2","DG"))','\n')
+	cat('ConnMat(FCON_COLS=, IN_CSV="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/MarquezEPI/Results/COVA-ADRC_ConnMat_Betas/ADRC_ConnMat_Betas.csv", DIR_OUT="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/MarquezEPI/Results/COVA-ADRC_ConnMat_Betas", FORMULA="~ravlt_A7+Age", CORR_TYPE="pearson", CHANGE_CLASS=list("as.numeric","as.numeric"), VARS_INTEREST=c("EC","PRC","MPFC","ACC"))','\n')
 	cat('\n')
 	cat('\n')
 	stop("Required Input Arguments Not Given") 
