@@ -1,7 +1,7 @@
 #!/usr/bin/env Rscript
 ######################
 
-ConnMat <- function(MATRICES, IN_CSV, DIR_OUT, FORMULA, CORR_TYPE="pearson", CHANGE_CLASS = NULL, DIR_SUBOUT = NULL , VARS_INTETREST = NULL){
+ConnMat <- function(MATRICES, IN_CSV, DIR_OUT, FORMULA, CORR_TYPE="pearson", CHANGE_CLASS = NULL, DIR_SUBOUT = NULL , VARS_INTEREST = NULL){
 
 if( missing("MATRICES") | missing("IN_CSV") | missing("DIR_OUT") | missing("FORMULA")){
 	cat('\n')
@@ -23,11 +23,11 @@ if( missing("MATRICES") | missing("IN_CSV") | missing("DIR_OUT") | missing("FORM
 	cat("CORR_TYPE: Type Of correlation. Options: pearson vs kendall vs Spearman ",'\n')
 	cat("CHANGE_CLASS: Change class for each variable defined in model respectively",'\n')
 	cat("DIR_SUBOUT: Add sub-directory in output path for more organization",'\n')
-	cat("VARS_INTETREST: A string of column names to keep from analysis",'\n')
+	cat("VARS_INTEREST: A string of column names to keep from analysis",'\n')
 	cat('\n')
 	cat(" Call Example on HPC:",'\n')
 	cat('\n')
-	cat('ConnMat(MATRICES="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/datasets/dwi/n55_left_MERGED", IN_CSV="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/datasets/dwi/Covariates_MERGED.csv", DIR_OUT="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/analyses/GrangerDTI", FORMULA="~RAVLT.A7", CORR_TYPE="pearson", CHANGE_CLASS=list("as.numeric"), DIR_SUBOUT="EXAMPLE", VARS_INTETREST=c("CA1","CA2","DG"))','\n')
+	cat('ConnMat(MATRICES="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/datasets/dwi/n55_left_MERGED", IN_CSV="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/datasets/dwi/Covariates_MERGED.csv", DIR_OUT="/dfs2/yassalab/rjirsara/ConteCenterScripts/NinetyPlus/analyses/GrangerDTI", FORMULA="~RAVLT.A7", CORR_TYPE="pearson", CHANGE_CLASS=list("as.numeric"), DIR_SUBOUT="EXAMPLE", VARS_INTEREST=c("CA1","CA2","DG"))','\n')
 	cat('\n')
 	cat('\n')
 	stop("Required Input Arguments Not Given") 
@@ -330,8 +330,8 @@ ConstructMatrix <- function(VALUES,COLUMNNAMES){
 Rmatrix<-ConstructMatrix(Rvals,ColumnNAMES)
 Pmatrix<-ConstructMatrix(Pvals,ColumnNAMES)
 
-if (!is.null(VARS_INTETREST) && length(VARS_INTETREST) > 0){
-	VarNumInterest<-suppressWarnings(which(rownames(Rmatrix) == VARS_INTETREST))
+if (!is.null(VARS_INTEREST) && length(VARS_INTEREST) > 0){
+	VarNumInterest<-suppressWarnings(which(rownames(Rmatrix) == VARS_INTEREST))
 	Rmatrix<-Rmatrix[VarNumInterest,VarNumInterest]
 	Pmatrix<-Pmatrix[VarNumInterest,VarNumInterest]
 }
