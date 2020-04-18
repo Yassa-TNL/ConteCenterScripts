@@ -79,7 +79,7 @@ for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
 			DIRECTION=`echo ${DIRECTION} | cut -d '_' -f2`
 			for JSON in `echo $DIR_LOCAL_FMAP/*[da][ic][rq]-${PHASE}*.json` ; do
 				if [[ -f $JSON ]] ; then
-					FILE_PHASE=`cat $JSON | grep "PhaseEncodingDir" | cut -d ' ' -f2 | sed s@'"'@@g | sed s@','@@g`
+					FILE_PHASE=`cat $JSON | grep "PhaseEncodingDir" | awk '{$1=$1;print}' | cut -d ' ' -f2 | sed s@'"'@@g | sed s@','@@g`
 					if [[ $FILE_PHASE != ${DIRECTION} ]] ; then
 						PROBLEMATIC_FILES=`echo $JSON | sed s@'json'@'*'@g`
 						mkdir -p ${DIR_LOCAL_DICOMS}/${SUBID}/tmp_wrongphase
