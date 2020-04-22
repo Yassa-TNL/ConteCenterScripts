@@ -17,8 +17,8 @@
 #DWI
 
 OutDirRoot <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/datasets"
-source("/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/scripts/analyses/HarmonizePilots/combat/harmonization_pipeline.R")
-source("/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/scripts/analyses/HarmonizePilots/combat/harmonization_functions.R")
+source("/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox/data_analysis/combat/harmonization_pipeline.R")
+source("/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox/data_analysis/combat/harmonization_functions.R")
 require(mgcv)
 
 ##############################################################
@@ -60,38 +60,18 @@ data <- as.matrix(data[-c(1,2),-c(4)])
 ##### Remove Empty or Missing Data Columns For FUNC Data #####
 ##############################################################
 
-UCIxREST<-"/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p/sub-Pilot2T/ses-UCI/task-REST/fcon/schaefer100x7/sub-Pilot2T_ses-UCI_task-REST_schaefer100x7_network.txt"
-tc <- as.matrix(unname(read.table(UCIxREST,header=F)))
-tc[is.na(tc)]   <- NaN
-UCIxREST<-c(tc)
+FILES<-list.files("/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p_despike/sub-Pilot2T", recursive=T, full.names=T, pattern="schaefer100x7_network.txt")
+FILES<-FILES[!grepl("run-", FILES)]
 
-UCSDxREST<-"/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p/sub-Pilot2T/ses-UCSD/task-REST/fcon/schaefer100x7/sub-Pilot2T_ses-UCSD_task-REST_schaefer100x7_network.txt"
-tc <- as.matrix(unname(read.table(UCSDxREST,header=F)))
-tc[is.na(tc)]   <- NaN
-UCSDxREST<-c(tc)
-
-UCIxDOORS<-"/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p/sub-Pilot2T/ses-UCI/task-doors/sub-Pilot2T_ses-UCI_task-doors_schaefer100x7_ts.1D"
-tc <- as.matrix(unname(read.table(UCIxDOORS,header=F)))
-adjmat                  <- suppressWarnings(cor(tc))
-adjmat[is.na(adjmat)]   <- NaN
-TEMPLATE<-"/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p/sub-Pilot2T/ses-UCI/task-doors/run-01/fcon/schaefer100x7/sub-Pilot2T_ses-UCI_task-doors_run-01_schaefer100x7.net"
-tc <- as.(read.table(file = TEMPLATE, sep = '\t', header = TRUE))
-
-tc<-tc[-c(1),]
-for 
-UCIxDOORS<-c(adjmat)
-
-UCSD<-"/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/apps/xcpengine/fc-36p/sub-Pilot2T/ses-UCSD/task-REST/fcon/schaefer100x7/sub-Pilot2T_ses-UCSD_task-REST_schaefer100x7_network.txt"
-tc <- as.matrix(unname(read.table(UCSD,header=F)))
-tc[is.na(tc)]   <- NaN
-UCSDxREST<-c(tc)
-
-
-
-data<-t(rbind(UCI,UCSD))
-data<-data[complete.cases(data),]
-data<-data[which(rowSums(data) != 2),]
-data<-t(data)
+DATA<-as.data.frame("")
+for (file in FILES){
+	temp <- as.matrix(unname(read.table(file,header=F)))
+	temp[is.na(temp)]   <- NaN
+	DATA<-cbind(DATA,temp)
+}
+DATA<-DATA[,-c(1)]
+names(DATA)<-c("UCIxDOORS","UCIxREST","UCSDxDOORS","UCSDxREST")
+data<-as.matrix(DATA)
 
 ########################################################
 ##### Define which columns are from what Timepoint #####
@@ -99,9 +79,9 @@ data<-t(data)
 
 print("Defining Batches")
 
-batch = c(1:ncol(data))
-batch[grep("UCI",colnames(data))]<-1
-batch[grep("UCSD",colnames(data))] <-2
+batch = c(1:ncol(DATA))
+batch[grep("UCI",colnames(DATA))]<-1
+batch[grep("UCSD",colnames(DATA))] <-2
 
 ########################################
 ##### Execute ComBat Harominzation #####
@@ -127,8 +107,8 @@ CoreFileName<-strsplit(basename(InFile), "_")[[1]]
 OutFileRaw<-paste0(DataOutDir,'/n',SubNum,"_",CoreFileName[2],"_",CoreFileName[3],"-RAW_",Date,".csv")
 OutFileComBat<-gsub("RAW", "ComBat", OutFileRaw)
 
-write.csv(as.data.frame(data), OutFileRaw)
-write.csv(as.data.frame(data.harmonized), OutFileComBat)
+write.csv(as.data.frame(data), "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/datasets/REST/raw.csv")
+write.csv(as.data.frame(data.harmonized), "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/datasets/REST/combat.csv")
 Sys.chmod(list.files(dirname(DataOutDir), full.names=TRUE, recursive=TRUE), "775", use_umask = FALSE)
 
 print("Script Run Successfully")

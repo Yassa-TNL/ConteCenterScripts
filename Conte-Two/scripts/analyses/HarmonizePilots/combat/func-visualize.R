@@ -55,46 +55,45 @@ suppressMessages(require(RColorBrewer))
 Subject1<-paste0(OutRoot,"/Figures/Pilot1T_ScatterPlot-COMBAT-Evaluation_T1w.pdf")
 suppressWarnings(dir.create(dirname(Subject1), recursive=TRUE))
 
-raw.scatterplot<-RestructSubLevel("Pilot1T",RAW)$scatter
-combat.scatterplot<-RestructSubLevel("Pilot1T",COMBAT)$scatter
+raw.scatterplot<-RestructSubLevel("REST",RAW)$scatter
+combat.scatterplot<-RestructSubLevel("REST",COMBAT)$scatter
 
-CORraw<-round(rsq(raw.scatterplot$Pilot1TxUCI,raw.scatterplot$Pilot1TxUCSD),digits=3)
-CORcombat<-round(rsq(combat.scatterplot$Pilot1TxUCI,combat.scatterplot$Pilot1TxUCSD),digits=3)
-
-ggplot() + 
-	geom_point(data=raw.scatterplot, aes(Pilot1TxUCI,Pilot1TxUCSD), colour="#c70000", size=1.8) + 
-	geom_point(data=combat.scatterplot, aes(Pilot1TxUCI,Pilot1TxUCSD), colour="#169e00", size=1.8) +
-	geom_abline(data=raw.scatterplot, mapping=aes(slope=1, intercept=0), colour="#000000", size=2, alpha=0.65) +
-	labs(x="UCI Scanner (Siemens)", y= "UCSD Scanner (GE)") +
-	ggtitle(paste0("ComBat Harmonization of 205 Brain Volume Regions For Pilot #1")) +
-	annotate("text", x = 35, y = 200, label = paste0("R-squared of Raw Values = ",CORraw),colour = "#c70000") +
-	annotate("text", x = 52, y = 192, label = paste0("R-squared of ComBat-Corrected Values = ",CORcombat), colour = "#169e00")
-ggsave(file=Subject1,device = "pdf",width = 7, height = 7, units = c("in"))
-
-##############################################
-### Save Figure For Pilot Subject Number 2 ###
-##############################################
-
-Subject2<-paste0(OutRoot,"/Figures/Pilot2T_ScatterPlot-COMBAT-Evaluation_T1w.pdf")
-suppressWarnings(dir.create(dirname(Subject2), recursive=TRUE))
-
-raw.scatterplot<-RestructSubLevel("Pilot2T",RAW)$scatter
-combat.scatterplot<-RestructSubLevel("Pilot2T",COMBAT)$scatter
-
-CORraw<-round(rsq(raw.scatterplot$Pilot2TxUCI,raw.scatterplot$Pilot2Tx1xUCSD),digits=3)
-CORcombat<-round(rsq(combat.scatterplot$Pilot2TxUCI,combat.scatterplot$Pilot2Tx1xUCSD),digits=3)
+CORraw<-round(rsq(raw.scatterplot$UCIxREST,raw.scatterplot$UCSDxREST),digits=3)
+CORcombat<-round(rsq(combat.scatterplot$UCIxREST,combat.scatterplot$UCSDxREST),digits=3)
+OUTFILE="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/datasets/REST/COMBAT/RESTING.pdf"
 
 ggplot() + 
-	geom_point(data=raw.scatterplot, aes(Pilot2TxUCI,Pilot2Tx1xUCSD), colour="#c70000", size=1.8) + 
-	geom_point(data=combat.scatterplot, aes(Pilot2TxUCI,Pilot2Tx1xUCSD), colour="#169e00", size=1.8) +
+	geom_point(data=raw.scatterplot, aes(UCIxREST,UCSDxREST), colour="#c70000", size=1.8) + 
+	geom_point(data=combat.scatterplot, aes(UCIxREST,UCSDxREST), colour="#169e00", size=1.8) +
 	geom_abline(data=raw.scatterplot, mapping=aes(slope=1, intercept=0), colour="#000000", size=2, alpha=0.65) +
 	labs(x="UCI Scanner (Siemens)", y= "UCSD Scanner (GE)") +
-	ggtitle(paste0("ComBat Harmonization of 205 Brain Volume Regions For Pilot #2")) +
-	annotate("text", x = 35, y = 200, label = paste0("R-squared of Raw Values = ",CORraw),colour = "#c70000") +
-	annotate("text", x = 52, y = 192, label = paste0("R-squared of ComBat-Corrected Values = ",CORcombat), colour = "#169e00")
-ggsave(file=Subject2,device = "pdf",width = 7, height = 7, units = c("in"))
+	ggtitle(paste0("ComBat Harmonization of Resting-State Scan (4,950 Unique Edges)")) +
+	annotate("text", x = -.55, y = .93, label = paste0("R-squared of Raw Values = ",CORraw),colour = "#c70000") +
+	annotate("text", x = -.4, y = 1, label = paste0("R-squared of ComBat-Corrected Values = ",CORcombat), colour = "#169e00") +
+	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
+ggsave(file=OUTFILE,device = "pdf",width = 7, height = 7, units = c("in"))
 
-Sys.chmod(list.files(path= OutRoot, pattern="*", full.names = TRUE, recursive=TRUE), mode = "0775")
+##############################################
+### Save Figure For Pilot Subject Number 1 ###
+##############################################
+
+raw.scatterplot<-RestructSubLevel("DOORS",RAW)$scatter
+combat.scatterplot<-RestructSubLevel("DOORS",COMBAT)$scatter
+
+CORraw<-round(rsq(raw.scatterplot$UCIxDOORS,raw.scatterplot$UCSDxDOORS),digits=3)
+CORcombat<-round(rsq(combat.scatterplot$UCIxDOORS,combat.scatterplot$UCSDxDOORS),digits=3)
+OUTFILE="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/analyses/HarmonizePilots/datasets/REST/COMBAT/DOORS.pdf"
+
+ggplot() + 
+	geom_point(data=raw.scatterplot, aes(UCIxDOORS,UCSDxDOORS), colour="#c70000", size=1.8) + 
+	geom_point(data=combat.scatterplot, aes(UCIxDOORS,UCSDxDOORS), colour="#169e00", size=1.8) +
+	geom_abline(data=raw.scatterplot, mapping=aes(slope=1, intercept=0), colour="#000000", size=2, alpha=0.65) +
+	labs(x="UCI Scanner (Siemens)", y= "UCSD Scanner (GE)") +
+	ggtitle(paste0("ComBat Harmonization of Doors Task-Based Scan (4,950 Unique Edges)")) +
+	annotate("text", x = -.45, y = .93, label = paste0("R-squared of Raw Values = ",CORraw),colour = "#c70000") +
+	annotate("text", x = -.33, y = 1, label = paste0("R-squared of ComBat-Corrected Values = ",CORcombat), colour = "#169e00") +
+	theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"))
+ggsave(file=OUTFILE,device = "pdf",width = 7, height = 7, units = c("in"))
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
