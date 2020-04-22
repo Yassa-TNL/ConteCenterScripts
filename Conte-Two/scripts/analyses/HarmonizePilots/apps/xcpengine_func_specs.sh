@@ -48,7 +48,7 @@ fi
 ###################################################################
 
 SCRIPT_FUNC_XCPENGINE=${DIR_LOCAL_SCRIPTS}/pipeline_func_xcpengine.sh
-DESIGN_FILES="fc-36p.dsn fc-36p_despike.dsn"
+DESIGN_FILES="fc-36p_despike.dsn"
 TEMPLATE_SPACE="MNI152NLin2009cAsym"
 TASKS_LABELS="REST doors"
 
@@ -96,7 +96,7 @@ if [[ -f $SCRIPT_RESID_COR_FCON ]] ; then
 	echo "############################################################################"
 	echo "Creating Figures of Residual Correlations and Distance Dependance Artifacts "
 	echo "############################################################################"
-	qsub -hold_jid ${JOBNAME} -N QAFIGS $SCRIPT_RESID_COR_FCON $DIR_LOCAL_SCRIPTS $DIR_LOCAL_APPS $DIR_LOCAL_DATA ${ATLAS_LABEL}
+	#qsub -hold_jid ${JOBNAME} -N QAFIGS $SCRIPT_RESID_COR_FCON $DIR_LOCAL_SCRIPTS $DIR_LOCAL_APPS $DIR_LOCAL_DATA ${ATLAS_LABEL}
 fi
 
 ##############################################################################
@@ -110,7 +110,7 @@ if [[ -f $SCRIPT_HIST_DOF_LOSS ]] ; then
 	echo "############################################################################"
 	echo "Creating Figures of Residual Correlations and Distance Dependance Artifacts "
 	echo "############################################################################"
-	qsub -hold_jid ${JOBNAME} -N QAFIGS $SCRIPT_HIST_DOF_LOSS $DIR_LOCAL_APPS $DIR_LOCAL_DATA
+	#qsub -hold_jid ${JOBNAME} -N QAFIGS $SCRIPT_HIST_DOF_LOSS $DIR_LOCAL_APPS $DIR_LOCAL_DATA
 fi
 
 ###########################################################################
@@ -124,7 +124,7 @@ if [[ -f $SCRIPT_EXTRACT_SIGNAL ]] ; then
 	echo "#####################################################"
 	echo "Extracting Signal Across The Timeseries Of Each Scan "
 	echo "#####################################################"
-	qsub -hold_jid ${JOBNAME} -N EXTRACTSIG $SCRIPT_EXTRACT_SIGNAL $DIR_LOCAL_SCRIPTS $DIR_LOCAL_APPS 
+	#qsub -hold_jid ${JOBNAME} -N EXTRACTSIG $SCRIPT_EXTRACT_SIGNAL $DIR_LOCAL_SCRIPTS $DIR_LOCAL_APPS 
 fi
 
 ###################################################################################################

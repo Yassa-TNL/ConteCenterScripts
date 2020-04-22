@@ -82,6 +82,19 @@ if [[ -f $SCRIPT_FMRIPREP && ! -z $OUTPUT_SPACES && -d $DIR_LOCAL_BIDS ]] ; then
 	done
 fi
 
+################################################
+### Curate and Create Visuals Of Head-Motion ###
+################################################
+
+SCRIPT_HEADMOTION=${DIR_LOCAL_SCRIPTS}/visualize_motion_artifacts.R
+
+if [[ -f $SCRIPT_HEADMOTION ]] ; then
+	echo ""
+	echo "####################################################"
+	echo "Curating QA Data and Creating Visual of Head Motion "
+	echo "####################################################"
+	qsub -hold_jid ${JOBNAME} -N HEADMOTION $SCRIPT_HEADMOTION $DIR_LOCAL_APPS $DIR_LOCAL_DATA
+fi
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
