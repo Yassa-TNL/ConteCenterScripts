@@ -1,0 +1,59 @@
+{
+    "descriptions": [
+        {
+            "dataType": "anat",
+            "modalityLabel": "T1w",
+            "criteria": {
+                "SeriesDescription": "*0.8mm_TR2.3_t1_mprage*"
+            }
+    },
+        {
+            "dataType": "anat",
+            "modalityLabel": "T2w",
+            "customLabels": "acq-TSE",
+            "criteria": {
+                "SidecarFilename": "*t2_tse_tra_448_2mm*"
+            }
+    },
+        {
+            "dataType": "anat",
+            "modalityLabel": "T2w",
+            "customLabels": "acq-FLAIR",
+            "criteria": {
+                "SeriesDescription": "Sagittal_3D_FLAIR"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "epi",
+            "customLabels": "dir-AP",
+            "criteria": {
+                "SidecarFilename": "SKIPPING_BECAUSE_WRONG_PHASE_DIR"
+            }
+    },
+        {
+            "dataType": "fmap",
+            "modalityLabel": "epi",
+            "customLabels": "dir-PA",
+            "criteria": {
+                "SidecarFilename": "SKIPPING_BECAUSE_WRONG_PHASE_DIR"
+            }
+    },
+        {
+            "dataType": "dwi",
+            "modalityLabel": "dwi",
+            "customLabels": "acq-ZOOM",
+            "criteria": {
+                "SeriesDescription": "*ep2d_diff_cor_ZOOMit2.0*"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-rest",
+            "criteria": {
+                "SeriesDescription": "*rsfMRI_Yassa_Philips_Zach_BOLD*"
+            }
+        }
+    ]
+}
