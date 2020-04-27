@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -q yassalab,pub*,free*
-#$ -pe openmp 12-24
+#$ -pe openmp 8-24
 #$ -R y
 #$ -ckpt restart
 ################
