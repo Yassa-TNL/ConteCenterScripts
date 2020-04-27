@@ -11,9 +11,9 @@ args <- commandArgs(trailingOnly=TRUE)
 DIR_LOCAL_APPS = args[1]
 DIR_LOCAL_DATA = args[2]
 
-################################################################
-##### If Not Specified Find All Task Names To Be Processed #####
-################################################################
+###############################################
+##### Find All Task Names To Be Processed #####
+###############################################
 
 print(paste0("Searching For Data To Be Processed"))
 
@@ -74,7 +74,6 @@ for (task in ALLTASKS){
 		CONTENT<-data.frame("")
 		colnames(CONTENT) <- gsub("X", "V", colnames(CONTENT))
 		FILES<-INPUTFILES[grep(DIR_INPUT, INPUTFILES)]
-		INPUTFILES[grep(paste0("task-",task),FILES)]
 		for (FILE in FILES[grep(paste0("task-",task),FILES)]){
 			TEMP<-read.table(file = FILE, sep = '\t', header = TRUE)
 			TEMP<-suppressWarnings(data.frame(lapply(TEMP, function(x) as.numeric(as.character(x)))))
@@ -103,7 +102,8 @@ for (task in ALLTASKS){
 	}
 	print(paste0("Cleaning Master Dataset For Figures of QA Data"))
 	names(OUTPUT) <- c("sub","ses","fdMEAN","fdSD","dvarsMEAN","dvarsSD","gsMEAN","volTOTAL","volAT25","volAT50","volAT75","volAT100")
-	OUTPUT <- suppressWarnings(data.frame(lapply(OUTPUT, function(x) as.numeric(as.character(x)))))
+	names(OUTPUT)
+	OUTPUT[,-c(1,2)] <- suppressWarnings(data.frame(lapply(OUTPUT[,-c(1,2)], function(x) as.numeric(as.character(x)))))
 	OUTPUT<-OUTPUT[-c(1),]
 	OUTPUT<-OUTPUT[order(-OUTPUT[,"volTOTAL"],-OUTPUT[,"fdMEAN"] ),]
 	MaxVolumesCombined<-dim(OUTPUT)[2]-12
@@ -113,15 +113,14 @@ for (task in ALLTASKS){
 #################################################################
 
 	print(paste0("Defining Output File Names and Paths"))
-	TaskDir<-paste0(DIR_LOCAL_DATA,"/",task,"/")
-	VisualDir<-paste0(TaskDir ,"/motionVisual/")
-	suppressWarnings(dir.create(VisualDir, recursive=TRUE))
-	setwd(DIR_LOCAL_DATA )
-	SubjectFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_FD-Boxplots_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
-	GroupFD<-paste0(VisualDir,"n",nrow(OUTPUT),"_Grp-Lev_FD-Lineplots_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
-	SubjectVols<-paste0(VisualDir,"n",nrow(OUTPUT),"_Sub-Lev_TemporalCensoring_volmax-",MaxVolumesCombined,"_task-",task,".pdf")
-	QADataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_Quality-Assurance_volmax-",MaxVolumesCombined,"_task-",task,".csv")
-	VolumesDataset<-paste0(VisualDir,"n",nrow(OUTPUT),"_QA-TimeSeries_volmax-",MaxVolumesCombined,"_task-",task,".csv")
+	setwd(DIR_LOCAL_DATA)
+	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/",task,"/prestats")
+	suppressWarnings(dir.create(DIR_ROOT, recursive=TRUE))
+	SubjectVols<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Histogram_task-",task,".pdf")
+	SubjectFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Boxplot_task-",task,".pdf")
+	GroupFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Lineplot_task-",task,".pdf")
+	QADataset<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_QA-Summary_task-",task,".csv")
+	VolumesDataset<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD_volmax-",MaxVolumesCombined,"_ts_task-",task,".csv")
 
 #######################################################################################
 ##### Create Scatterplot of Subject-Level Distributions of Framewise Displacement #####
@@ -130,6 +129,7 @@ for (task in ALLTASKS){
 	print(paste0("Creating Figure of Subject-Level Distributions of FD"))
 	VOLUMES<-t(OUTPUT[,c(13:ncol(OUTPUT))])
 	CONCAT<-melt(VOLUMES, id.vars=1)
+	CONCAT<-CONCAT[complete.cases(CONCAT$value),]
 	MEAN<-round(summary(CONCAT$value)[4], digits = 3)
 	SD<-round(sd(CONCAT$value, na.rm=TRUE), digits = 3)
 	subjects<-unlist(OUTPUT[,c(1)]) 
@@ -238,12 +238,16 @@ for (task in ALLTASKS){
 
 	print(paste0("Saving Processed Datasets For Subsequent Analyses"))
 	FINAL<-OUTPUT[,c(1:12)]
+	VOLUMES<-t(VOLUMES)
+	colnames(VOLUMES)<-gsub("NA.","vol",colnames(VOLUMES))
 	if (all(is.na(FINAL$ses))){
 		FINAL$ses<-NULL
-		write.csv(FINAL, QADataset)
+		VOLUMES<-gsub("xNA","",row.names(VOLUMES))
+		suppressMessages(suppressWarnings(write.csv(FINAL, QADataset)))
+		suppressMessages(suppressWarnings(write.csv(VOLUMES, VolumesDataset)))
 	} else {
-		write.csv(FINAL, QADataset)
-		write.csv(VOLUMES,VolumesDataset)
+		suppressMessages(suppressWarnings(write.csv(FINAL, QADataset)))
+		suppressMessages(suppressWarnings(write.csv(VOLUMES, VolumesDataset)))
 	}
 	Sys.chmod(list.files(path=DIR_LOCAL_DATA , pattern="*", full.names = TRUE, recursive = TRUE), mode = "0775")
 }
