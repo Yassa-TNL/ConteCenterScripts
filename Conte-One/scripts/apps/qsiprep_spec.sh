@@ -67,7 +67,7 @@ SCRIPT_PREPROC_QSIPREP=${DIR_LOCAL_SCRIPTS}/pipeline_preproc_qsiprep.sh
 OPT_STOP_FIRST_ERROR=FALSE
 
 if [[ -f $SCRIPT_PREPROC_QSIPREP && -d $DIR_LOCAL_BIDS ]] ; then
-	for SUBJECT in `ls ${DIR_LOCAL_BIDS} | grep 'sub' | sed s@'sub-'@''@g` ; do
+	for SUBJECT in `ls ${DIR_LOCAL_BIDS} | grep 'sub' | sed s@'sub-'@''@g | head -n1`  ; do
 		JOBNAME=`echo QP${SUBJECT} | cut -c1-10`
 		JOBSTATUS=`qstat -u $USER | grep "${JOBNAME}\b" | awk {'print $5'}`
 		OUTDIR=`echo $DIR_LOCAL_APPS/qsiprep/sub-${SUBJECT}`
