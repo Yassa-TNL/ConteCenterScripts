@@ -136,7 +136,7 @@ for (task in ALLSCANS){
 #################################################################
 
 	print(paste0("Defining Output File Names and Paths"))
-	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/EPI_",task,"/prestats")
+	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/func_",task,"/prestats")
 	suppressWarnings(dir.create(DIR_ROOT, recursive=TRUE))
 	SubjectVols<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Histogram_task-",task,".pdf")
 	SubjectFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Boxplot_task-",task,".pdf")
