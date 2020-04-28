@@ -72,7 +72,7 @@ for (task in ALLSCANS){
 	} else {
 		TASKFILES<-INPUTFILES[grep(paste0("task-",unlist(strsplit(task,"_"))[1]),INPUTFILES)]
 		TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
-		TASKFILES<-TASKFILES[!grepl(paste0("_run-",unlist(strsplit(task,"_"))[2]),TASKFILES)]
+		TASKFILES<-TASKFILES[grepl(paste0("_run-",unlist(strsplit(task,"_"))[2]),TASKFILES)]
 	}
 	print(paste0("Determining the Max Number of Volumes"))
 	if (file.exists(TASKFILES[1]) == TRUE){
@@ -89,14 +89,15 @@ for (task in ALLSCANS){
 		print(paste("⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ ! ⚡ "))
 		quit(save="no")
 	}
+
 	print(paste0("Organizing Subject-level Files Into Master Dataset For Analysis"))
 	OUTPUT<-data.frame(matrix(NA, nrow = 1, ncol = 12+MaxVolumesPossible))
 	colnames(OUTPUT) <- gsub("X", "V", colnames(OUTPUT))
+
 	for (DIR_INPUT in unique(dirname(TASKFILES))){
 		CONTENT<-data.frame("")
 		colnames(CONTENT) <- gsub("X", "V", colnames(CONTENT))
-		FILES<-INPUTFILES[grep(DIR_INPUT, INPUTFILES)]
-		for (FILE in FILES[grep(paste0("task-",task),FILES)]){
+		for (FILE in TASKFILES[grep(DIR_INPUT, TASKFILES)]){
 			TEMP<-read.table(file = FILE, sep = '\t', header = TRUE)
 			TEMP<-suppressWarnings(data.frame(lapply(TEMP, function(x) as.numeric(as.character(x)))))
 			CONTENT<-rbind.all.columns(CONTENT,TEMP)
