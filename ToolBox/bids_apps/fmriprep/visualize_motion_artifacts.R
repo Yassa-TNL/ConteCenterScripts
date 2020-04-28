@@ -17,9 +17,27 @@ DIR_LOCAL_DATA = args[2]
 
 print(paste0("Searching For Data To Be Processed"))
 
-INPUTFILES = list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), full.names=TRUE, pattern = "_desc-confounds_regressors.tsv", recursive=TRUE)
-ALLTASKS<-unlist(strsplit(list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), pattern = "_desc-confounds_regressors.tsv", recursive=TRUE), '_'))
-ALLTASKS<-gsub("task-", "",unique(ALLTASKS[grep("task-",ALLTASKS)]))
+INPUTFILES<-list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), full.names=TRUE, pattern = "_desc-confounds_regressors.tsv", recursive=TRUE)
+ALLTASKS<-gsub("task-","",unique(unlist(strsplit(INPUTFILES, '_'))[grep("task-",unlist(strsplit(INPUTFILES, '_')))]))
+ALLSCANS=as.character(ALLTASKS)
+setwd(DIR_LOCAL_DATA)
+
+for (task in ALLTASKS){
+	if(length(grep("_run-",INPUTFILES[grep(task,INPUTFILES)])) != 0){
+		RUNS<-unlist(strsplit(INPUTFILES[grep(task,INPUTFILES)],"_"))
+		RUNS<-gsub("run-","",unique(RUNS[grep("run-",RUNS)]))
+		for (run in RUNS){
+			ALLSCANS<-append(ALLSCANS,paste0(task,"_",run))
+		}
+		ALLSCANS[which(ALLSCANS %in% task)]<-paste0(task,"_concat")
+	}
+}
+
+##################################
+##### Load Required Packages #####
+##################################
+
+print("Loading Required Packages")
 
 rbind.all.columns <- function(x, y){
  	x.diff <- setdiff(colnames(x), colnames(y))
@@ -28,12 +46,6 @@ rbind.all.columns <- function(x, y){
 	y[, c(as.character(x.diff))] <- NA
  	return(rbind(x, y))
 }
-
-##################################
-##### Load Required Packages #####
-##################################
-
-print("Loading Required Packages")
 
 suppressMessages(require(RColorBrewer))
 suppressMessages(require(reshape2))
@@ -46,13 +58,23 @@ suppressMessages(require(cowplot))
 ##### Transform Input Files Into Matricies and Combine Into A Single Array #####
 ################################################################################
 
-for (task in ALLTASKS){
+for (task in ALLSCANS){
 	print(paste0("##########################################"))
 	print(paste0("Now Processing Data From the ",task," Task"))
 	print(paste0("##########################################"))
 	print(paste0("Locating FMRIPREP Confounds TSV Files For Processing"))
-	TASKFILES<-INPUTFILES[grep(paste0("task-",task),INPUTFILES)]
-	TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
+	if (!grepl("_", task)){
+		TASKFILES<-INPUTFILES[grep(paste0("task-",task),INPUTFILES)]
+		TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
+	} else if (grepl("_concat", task)){
+		TASKFILES<-INPUTFILES[grep(paste0("task-",unlist(strsplit(task,"_"))[1]),INPUTFILES)]
+		TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
+	} else {
+		TASKFILES<-INPUTFILES[grep(paste0("task-",unlist(strsplit(task,"_"))[1]),INPUTFILES)]
+		TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
+		TASKFILES<-TASKFILES[!grepl(paste0("_run-",unlist(strsplit(task,"_"))[2]),TASKFILES)]
+	}
+	print(paste0("Determining the Max Number of Volumes"))
 	if (file.exists(TASKFILES[1]) == TRUE){
 		MaxVolumesPossible<-0
 		for (FILE in TASKFILES){		
@@ -113,8 +135,7 @@ for (task in ALLTASKS){
 #################################################################
 
 	print(paste0("Defining Output File Names and Paths"))
-	setwd(DIR_LOCAL_DATA)
-	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/",task,"/prestats")
+	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/EPI_",task,"/prestats")
 	suppressWarnings(dir.create(DIR_ROOT, recursive=TRUE))
 	SubjectVols<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Histogram_task-",task,".pdf")
 	SubjectFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Boxplot_task-",task,".pdf")
