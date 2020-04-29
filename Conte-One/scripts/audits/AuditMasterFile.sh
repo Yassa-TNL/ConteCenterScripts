@@ -24,6 +24,7 @@ module load afni/v19.0.01
 ##############################################################
 
 source=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/sources/ConteMRI_All_Timepoints_Original.csv
+FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/Audit_Master_ConteMRI.csv
 dir_temp=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/logs
 dos2unix ${source}
 
@@ -44,7 +45,6 @@ for sesnum in {0..3} ; do
 done
 
 cat ${dir_temp}/TEMP_MRI{0..3}_Reduced_Relabeled.txt > ${dir_temp}/TEMP_MRI_Master_Audit.txt
-FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/Audit_Master_ConteMRI.csv
 
 echo 'sub,ses,ScanDate' > ${FINAL_OUTPUT}
 cat ${dir_temp}/TEMP_MRI_Master_Audit.txt >> ${FINAL_OUTPUT}
@@ -69,7 +69,7 @@ for row in $rows ; do
 	session=`echo $row | cut -d ',' -f2`
 	dir=`echo 	 /dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/dicoms/${subid}_*_${session}`
 	Beh=`echo ${dir} | cut -d '_' -f2`
-	echo "Behavioral Session is	$Beh for Subject: ${subid} Session: ${session}"
+	echo "Behavioral Session is $Beh for Subject: ${subid} Session: ${session}"
 	newrow=`echo ${row},${Beh}`
 	cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
 	mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
@@ -163,57 +163,54 @@ done
 ############################################################
 
 AuditBIDsData(){
-header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},${2}`
-cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
-mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-
-rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
-for row in $rows ; do
-	subid=`echo $row | cut -d ',' -f1`
-	session=`echo $row | cut -d ',' -f2`
-	file=`echo /dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/bids/sub-${subid}/ses-${session}/${1}/*${2}*.nii.gz`
-	file=`echo $file | cut -d ' ' -f1`
-
-	if [ -f ${file} ] ; then
-	 newrow=`echo ${row},1`
-	 cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-	 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-	 echo "${1}-${2} NIFTI Detected for Subject ${subid} Session ${session}"
-	else
-	 val_dicom=`echo $row | cut -d ',' -f5`
-	 val_parrec=`echo $row | cut -d ',' -f6`
-	 val_ses=`echo $row | cut -d ',' -f2`
-	 if [[ $val_dicom -eq 0 ]] && [[ $val_parrec -eq 0 ]] || [[ $val_ses -eq 0 ]] ; then
-		newrow=`echo ${row},NA`
-		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-		echo "${1}-${2} not expected for Subject ${subid} Session ${session}"
-	 else
-		newrow=`echo ${row},0`
-		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-		echo "${1}-${2} missing for Subject ${subid} Session ${session}"
-	 fi
-	fi
-done
+	header_og=`head -n1 ${FINAL_OUTPUT}`
+	header_new=`echo ${header_og},${2}`
+	cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+	mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+	rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
+	for row in $rows ; do
+		subid=`echo $row | cut -d ',' -f1`
+		session=`echo $row | cut -d ',' -f2`
+		file=`echo /dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/bids/sub-${subid}/ses-${session}/${1}/*${2}*.nii.gz`
+		file=`echo $file | cut -d ' ' -f1`
+		if [ -f ${file} ] ; then
+			newrow=`echo ${row},1`
+			cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+			mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+			echo "${1}-${2} NIFTI Detected for Subject ${subid} Session ${session}"
+		else
+	 		val_dicom=`echo $row | cut -d ',' -f5`
+	 		val_parrec=`echo $row | cut -d ',' -f6`
+	 		val_ses=`echo $row | cut -d ',' -f2`
+	 		if [[ $val_dicom -eq 0 ]] && [[ $val_parrec -eq 0 ]] || [[ $val_ses -eq 0 ]] ; then
+				newrow=`echo ${row},NA`
+				cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+				mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+				echo "${1}-${2} not expected for Subject ${subid} Session ${session}"
+			else
+				newrow=`echo ${row},0`
+				cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+				mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+				echo "${1}-${2} missing for Subject ${subid} Session ${session}"
+			fi
+		fi
+	done
 }
 
 sequences='anat_T1w dwi_dwi func_REST func_HIPP func_AMG'
 for seq in $sequences ; do
-
 	folder=`echo $seq | cut -d '_' -f1`
 	name=`echo $seq | cut -d '_' -f2`
 	AuditBIDsData $folder $name
-
 done
 
 ###################################################################
 ### Add Demographic Information - Need To Redo with Full Sample ###
 ###################################################################
 
-Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $3,$4,$5,$6}' \
-	/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/Demo/n424_Age+Sex_20191008.csv \
+DEMO=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/Demo/n424_Age+Sex_20200320.csv
+Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
+	${DEMO} \
 	| sed s@' '@','@g \
 	| sed s@'"'@''@g \
 	| tail -n+2`
@@ -228,10 +225,8 @@ for row in $rows ; do
 	sub=`echo $row | cut -d ',' -f1`
 	ses=`echo $row | cut -d ',' -f2`
 	demo=`echo $Demo_GoogleDrive |	tr ' ' '\n' | grep "^${sub},${ses}," | cut -d ' ' -f1 | cut -d ',' -f3,4`
-
-	echo 
+	echo ""
 	echo "subject: $sub session: $ses demo: $demo"
-
 	if [ -z $demo ] ; then
 		newrow=`echo $row,NA,NA`
 		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
@@ -245,9 +240,43 @@ for row in $rows ; do
 	fi
 done
 
-chmod ug+wrx $FINAL_OUTPUT
+############################################################################
+### Add Inclusion Variable Based On Dr. Glynn's Cross-sectional Criteria ###
+############################################################################
+
+INCLUDE=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/rawdata/MRI_Cohort_Scan_Mini_for_MY_Lab.csv
+Inclusion_Glynn=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
+	${INCLUDE} \
+	| sed s@' '@','@g \
+	| sed s@'"'@''@g \
+	| tail -n+2`
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},Inclusion_Cross`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
+for row in $rows ; do
+	sub=`echo $row | cut -d ',' -f1`
+	ses=`echo $row | cut -d ',' -f2`
+	date=`echo $row | cut -d ',' -f3`
+	include=`echo $Inclusion_Glynn | tr ' ' '\n' | grep "^${sub},${ses},${date}"`
+	if [ -z $include ] ; then
+		newrow=`echo $row,0`
+		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+		echo "Excluding From Cross-Sectional Sample subject: $sub ses: $ses"
+	else
+		newrow=`echo ${row},1`
+		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+		echo "Including Into Cross-Sectional Sample subject: $sub ses: $ses"
+	fi
+done
 
 echo "Master File Created Successfully"
+chmod ug+wrx $FINAL_OUTPUT
 exit 
 
 ############################################
