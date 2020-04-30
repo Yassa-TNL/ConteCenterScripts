@@ -25,7 +25,7 @@ setwd(DIR_LOCAL_DATA)
 for (task in ALLTASKS){
 	if(length(grep("_run-",INPUTFILES[grep(task,INPUTFILES)])) != 0){
 		RUNS<-unlist(strsplit(INPUTFILES[grep(task,INPUTFILES)],"_"))
-		RUNS<-gsub("run-","",unique(RUNS[grep("run-",RUNS)]))
+		RUNS<-unique(RUNS[grep("run-",RUNS)])
 		for (run in RUNS){
 			ALLSCANS<-append(ALLSCANS,paste0(task,"_",run))
 		}
@@ -72,7 +72,7 @@ for (task in ALLSCANS){
 	} else {
 		TASKFILES<-INPUTFILES[grep(paste0("task-",unlist(strsplit(task,"_"))[1]),INPUTFILES)]
 		TASKFILES<-TASKFILES[!grepl("problematic",TASKFILES)]
-		TASKFILES<-TASKFILES[grepl(paste0("_run-",unlist(strsplit(task,"_"))[2]),TASKFILES)]
+		TASKFILES<-TASKFILES[grepl(unlist(strsplit(task,"_"))[2],TASKFILES)]
 	}
 	print(paste0("Determining the Max Number of Volumes"))
 	if (file.exists(TASKFILES[1]) == TRUE){
@@ -136,7 +136,7 @@ for (task in ALLSCANS){
 #################################################################
 
 	print(paste0("Defining Output File Names and Paths"))
-	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/func_",task,"/prestats")
+	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/func-",task,"/prestats")
 	suppressWarnings(dir.create(DIR_ROOT, recursive=TRUE))
 	SubjectVols<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Histogram_task-",task,".pdf")
 	SubjectFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Boxplot_task-",task,".pdf")
