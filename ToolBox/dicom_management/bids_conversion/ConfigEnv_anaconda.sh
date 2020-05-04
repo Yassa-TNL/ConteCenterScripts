@@ -42,6 +42,7 @@ if [[ ! -f ~/.condarc || ! -f ~/Settings/MyCondaEnv.sh ]] ; then
 	npm install -g bids-validator
 	pip install --upgrade dcm2bids
 	pip install https://github.com/INCF/BIDS2NDA/archive/master.zip
+	pip install csvkit
 
 fi
 
