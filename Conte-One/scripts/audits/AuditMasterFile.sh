@@ -200,10 +200,10 @@ AuditBIDsData(){
 	done
 }
 
-sequences='anat_T1w dwi_dwi func_REST func_HIPP func_AMG'
+sequences='anat@T1w dwi@dwi func@AMG func@HIPP func@REST_run-01 func@REST_run-02'
 for seq in $sequences ; do
-	folder=`echo $seq | cut -d '_' -f1`
-	name=`echo $seq | cut -d '_' -f2`
+	folder=`echo $seq | cut -d '@' -f1`
+	name=`echo $seq | cut -d '@' -f2`
 	AuditBIDsData $folder $name
 done
 
@@ -233,7 +233,9 @@ for row in $rows ; do
 	date=`echo $row | cut -d ',' -f3`
 	include=`echo $Inclusion_Glynn | tr ' ' '\n' | grep "^${sub},${ses},${date}"`
 	AMG_AUDIT=`cat $FINAL_OUTPUT | csvcut -c AMG | sed -n ${INDEX}p`
-	if [[ -z $include || ${AMG_AUDIT} != 1 ]] ; then
+	REST1_AUDIT=`cat $FINAL_OUTPUT | csvcut -c REST_run-01 | sed -n ${INDEX}p`
+	REST2_AUDIT=`cat $FINAL_OUTPUT | csvcut -c REST_run-02 | sed -n ${INDEX}p`
+	if [[ -z $include || ${AMG_AUDIT} != 1 || ${REST1_AUDIT} != 1 || ${REST2_AUDIT} != 1 ]] ; then
 		newrow=`echo $row,0`
 		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
 		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
