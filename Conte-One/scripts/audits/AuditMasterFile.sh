@@ -17,14 +17,17 @@ Use
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
-module load afni/v19.0.01
+module purge ; module load anaconda/2.7-4.3.1 afni/v19.0.01
+source ~/Settings/MyPassCodes.sh
+source ~/Settings/MyCondaEnv.sh
+conda activate local
 
 ##############################################################
 ### Tranform the Source File So Each Row is an MRI Session ###
 ##############################################################
 
 source=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/sources/ConteMRI_All_Timepoints_Original.csv
-FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/Audit_Master_ConteMRI.csv
+FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/aggregate_df.csv
 dir_temp=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/logs
 dos2unix ${source}
 
@@ -204,11 +207,11 @@ for seq in $sequences ; do
 	AuditBIDsData $folder $name
 done
 
-###################################################################
-### Add Demographic Information - Need To Redo with Full Sample ###
-###################################################################
+###################################
+### Add Demographic Information ###
+###################################
 
-DEMO=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/Demo/n424_Age+Sex_20200320.csv
+DEMO=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/predictors/n424_Age+Sex_20200320.csv
 Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
 	${DEMO} \
 	| sed s@' '@','@g \
@@ -252,17 +255,21 @@ Inclusion_Glynn=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
 	| tail -n+2`
 
 header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},Inclusion_Cross`
+header_new=`echo ${header_og},IntraFlux_Inclusion`
 cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
 mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 
 rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
+
+INDEX=1
 for row in $rows ; do
+	INDEX=$((INDEX+1))
 	sub=`echo $row | cut -d ',' -f1`
 	ses=`echo $row | cut -d ',' -f2`
 	date=`echo $row | cut -d ',' -f3`
 	include=`echo $Inclusion_Glynn | tr ' ' '\n' | grep "^${sub},${ses},${date}"`
-	if [ -z $include ] ; then
+	AMG_AUDIT=`cat $FINAL_OUTPUT | csvcut -c AMG | sed -n ${INDEX}p`
+	if [[ -z $include || ${AMG_AUDIT} != 1 ]] ; then
 		newrow=`echo $row,0`
 		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
 		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
@@ -274,6 +281,8 @@ for row in $rows ; do
 		echo "Including Into Cross-Sectional Sample subject: $sub ses: $ses"
 	fi
 done
+
+
 
 echo "Master File Created Successfully"
 chmod ug+wrx $FINAL_OUTPUT
