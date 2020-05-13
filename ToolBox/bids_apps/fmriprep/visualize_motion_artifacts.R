@@ -282,14 +282,23 @@ for (task in ALLSCANS){
 		if (any(names(FINAL)=="ses")){
 			colnames(FINAL)[-c(1:2)] <- paste(task, colnames(FINAL)[-c(1:2)], sep = "_")
 			QADATA<-FINAL[c(1:6)]
+			if (length(setdiff(names(QADATA),names(CONTENT))) == 0){
+				CONTENT[grep(paste0(task,"_fd"),names(CONTENT))]<-NULL
+				CONTENT[grep(paste0(task,"_dvars"),names(CONTENT))]<-NULL
+			}
 			CONTENT<-merge(CONTENT,QADATA,by=c("sub","ses"),all=TRUE)
 		} else {
 			colnames(FINAL)[-c(1)] <- paste(task, colnames(FINAL)[-c(1)], sep = "_")
 			QADATA<-FINAL[c(1:5)]
+			if (length(setdiff(names(QADATA),names(CONTENT))) == 0){
+				CONTENT[grep(paste0(task,"_fd"),names(CONTENT))]<-NULL
+				CONTENT[grep(paste0(task,"_dvars"),names(CONTENT))]<-NULL
+			}
 			CONTENT<-merge(CONTENT,QADATA,by=c("sub"),all=TRUE)
 		}
-	}
+	colnames(CONTENT)<-gsub(".0","-0",colnames(CONTENT))
 	suppressMessages(suppressWarnings(write.csv(CONTENT, file=MASTER, row.names=FALSE)))
+	}
 	Sys.chmod(list.files(path=DIR_LOCAL_DATA , pattern="*", full.names = TRUE, recursive = TRUE), mode = "0775")
 }
 
