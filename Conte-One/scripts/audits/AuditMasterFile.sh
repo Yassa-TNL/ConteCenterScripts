@@ -207,42 +207,6 @@ for seq in $sequences ; do
 	AuditBIDsData $folder $name
 done
 
-###################################
-### Add Demographic Information ###
-###################################
-
-DEMO=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/predictors/n424_Age+Sex_20200320.csv
-Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
-	${DEMO} \
-	| sed s@' '@','@g \
-	| sed s@'"'@''@g \
-	| tail -n+2`
-
-header_og=`head -n1 ${FINAL_OUTPUT}`
-header_new=`echo ${header_og},AgeAtScan,Gender`
-cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
-mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-
-rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
-for row in $rows ; do
-	sub=`echo $row | cut -d ',' -f1`
-	ses=`echo $row | cut -d ',' -f2`
-	demo=`echo $Demo_GoogleDrive |	tr ' ' '\n' | grep "^${sub},${ses}," | cut -d ' ' -f1 | cut -d ',' -f3,4`
-	echo ""
-	echo "subject: $sub session: $ses demo: $demo"
-	if [ -z $demo ] ; then
-		newrow=`echo $row,NA,NA`
-		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-		echo "Demographic Data MISSING for subject: $sub ses: $ses"
-	else
-		newrow=`echo ${row},${demo}`
-		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
-		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
-		echo "Demographic Data Added for subject: $sub ses: $ses"
-	fi
-done
-
 ############################################################################
 ### Add Inclusion Variable Based On Dr. Glynn's Cross-sectional Criteria ###
 ############################################################################
@@ -282,7 +246,41 @@ for row in $rows ; do
 	fi
 done
 
+###################################
+### Add Demographic Information ###
+###################################
 
+DEMO=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/predictors/n424_Age+Sex_20200320.csv
+Demo_GoogleDrive=`awk -F "\"*,\"*" '{print $1,$2,$3,$4}' \
+	${DEMO} \
+	| sed s@' '@','@g \
+	| sed s@'"'@''@g \
+	| tail -n+2`
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},AgeAtScan,Gender`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+rows=`cat ${FINAL_OUTPUT} | grep -v 'sub' | tr '\n' ' '`
+for row in $rows ; do
+	sub=`echo $row | cut -d ',' -f1`
+	ses=`echo $row | cut -d ',' -f2`
+	demo=`echo $Demo_GoogleDrive |	tr ' ' '\n' | grep "^${sub},${ses}," | cut -d ' ' -f1 | cut -d ',' -f3,4`
+	echo ""
+	echo "subject: $sub session: $ses demo: $demo"
+	if [ -z $demo ] ; then
+		newrow=`echo $row,NA,NA`
+		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+		echo "Demographic Data MISSING for subject: $sub ses: $ses"
+	else
+		newrow=`echo ${row},${demo}`
+		cat ${FINAL_OUTPUT} | sed s@"${row}"@"${newrow}"@g > ${FINAL_OUTPUT}_NEW
+		mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+		echo "Demographic Data Added for subject: $sub ses: $ses"
+	fi
+done
 
 echo "Master File Created Successfully"
 chmod ug+wrx $FINAL_OUTPUT
