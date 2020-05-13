@@ -268,9 +268,28 @@ for (task in ALLSCANS){
 		suppressMessages(suppressWarnings(write.csv(FINAL, QADataset)))
 		suppressMessages(suppressWarnings(write.csv(VOLUMES, VolumesDataset)))
 	} else {
-		suppressMessages(suppressWarnings(write.csv(FINAL, QADataset)))
-		suppressMessages(suppressWarnings(write.csv(VOLUMES, VolumesDataset)))
+		suppressMessages(suppressWarnings(write.csv(FINAL, file=QADataset, row.names=FALSE)))
+		suppressMessages(suppressWarnings(write.csv(VOLUMES, file=VolumesDataset, row.names=FALSE)))
 	}
+
+###############################################################
+##### Append QA Data to Aggregated DataFrame For Analyses #####
+###############################################################
+
+	MASTER<-list.files(path = DIR_LOCAL_DATA, full.names=TRUE, pattern = "aggregate_df.csv")
+	if (file.exists(MASTER)){
+		CONTENT <- read.csv(MASTER)
+		if (any(names(FINAL)=="ses")){
+			colnames(FINAL)[-c(1:2)] <- paste(task, colnames(FINAL)[-c(1:2)], sep = "_")
+			QADATA<-FINAL[c(1:6)]
+			CONTENT<-merge(CONTENT,QADATA,by=c("sub","ses"),all=TRUE)
+		} else {
+			colnames(FINAL)[-c(1)] <- paste(task, colnames(FINAL)[-c(1)], sep = "_")
+			QADATA<-FINAL[c(1:5)]
+			CONTENT<-merge(CONTENT,QADATA,by=c("sub"),all=TRUE)
+		}
+	}
+	suppressMessages(suppressWarnings(write.csv(CONTENT, file=MASTER, row.names=FALSE)))
 	Sys.chmod(list.files(path=DIR_LOCAL_DATA , pattern="*", full.names = TRUE, recursive = TRUE), mode = "0775")
 }
 
