@@ -43,6 +43,7 @@ if [[ ! -f ~/.condarc || ! -f ~/Settings/MyCondaEnv.sh ]] ; then
 	pip install --upgrade dcm2bids
 	pip install https://github.com/INCF/BIDS2NDA/archive/master.zip
 	pip install csvkit
+	easy_install xlsx2csv
 
 fi
 
