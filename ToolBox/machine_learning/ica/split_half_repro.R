@@ -55,9 +55,10 @@ write.csv(bblidsScanids_test, file="/data/jux/BBL/projects/jirsaraieStructuralIr
 
 
 
-CovaDataset <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/Audit_Master_ConteMRI.csv"
-InterestVar <- c('sub','ses','AgeAtScan','Gender')
-ExcludeVar <- c('Inclusion_Cross')
+MASTER_DATAFRAME <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/aggregate_df.csv"
+OPT_COVARS <- c('AgeAtScan','Gender','REST_run.01_fdMEAN')
+OPT_INCLUSION <- c('IntraFlux_Inclusion')
+
 #!/usr/bin/env Rscript
 #$ -q yassalab,free*
 #$ -pe openmp 16-64
@@ -66,9 +67,9 @@ ExcludeVar <- c('Inclusion_Cross')
 ################
 
 args <- commandArgs(trailingOnly=TRUE)
-CovaDataset = args[1]
-InterestVar = args[2]
-ExcludeVar = args[3]
+MASTER_DATAFRAME = args[1]
+OPT_COVARS = args[2]
+OPT_INCLUSION = args[3]
 
 require('caret')
 
@@ -76,13 +77,26 @@ require('caret')
 ##### Read in Processed/Denoised fMRI Scans from XCPEngine Output Directory #####
 #################################################################################
 
-CONTENT<-read.csv(CovaDataset)
-
-if (){
-
-	which(names(CONTENT) == ExcludeVar)
-
+CONTENT<-read.csv(MASTER_DATAFRAME)
+if (any(names(CONTENT) == OPT_INCLUSION)){
+	CONTENT <- CONTENT[which(CONTENT[,OPT_INCLUSION] == 1),OPT_COVARS]
+	CONTENT<-CONTENT[complete.cases(CONTENT),]
 }
+
+set.seed(1234)
+
+
+
+trainIndex <- createDataPartition(dataNoNA$TP2_ZariTotal, p=0.5, list=F, times=1)
+#Pull the variables into the new train and test matrices.
+dataTrain <- dataNoNA[trainIndex,]
+dataTest <- dataNoNA[-trainIndex,]
+
+
+
+
+dataToSplit <- subjData[,c('bblid','scanid','ageatscan','sex','rating','T1exclude','Zari_total')]
+
 
 
 subjData <- readRDS("/data/jux/BBL/projects/jirsaraieStructuralIrrit/data/NMF_Loadings/n288_Demo+ARI+QA_20180305.rds")
