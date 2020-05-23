@@ -17,6 +17,11 @@ Use
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
 
+source=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/sources/ConteMRI_All_Timepoints_Original.csv
+FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/aggregate_df.csv
+dir_temp=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/logs
+dos2unix ${source}
+
 module purge ; module load anaconda/2.7-4.3.1 afni/v19.0.01
 source ~/Settings/MyPassCodes.sh
 source ~/Settings/MyCondaEnv.sh
@@ -25,11 +30,6 @@ conda activate local
 ##############################################################
 ### Tranform the Source File So Each Row is an MRI Session ###
 ##############################################################
-
-source=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/sources/ConteMRI_All_Timepoints_Original.csv
-FINAL_OUTPUT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/datasets/aggregate_df.csv
-dir_temp=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/logs
-dos2unix ${source}
 
 awk -F "\"*,\"*" '{print $1,$5,$6}' $source > ${dir_temp}/TEMP_MRI0
 awk -F "\"*,\"*" '{print $1,$7,$8}' $source > ${dir_temp}/TEMP_MRI1
@@ -205,6 +205,41 @@ for seq in $sequences ; do
 	folder=`echo $seq | cut -d '@' -f1`
 	name=`echo $seq | cut -d '@' -f2`
 	AuditBIDsData $folder $name
+done
+
+#####################################################
+### Add Columns Auditing the Amygdala Event Files ###
+#####################################################
+
+SUBIDS=`cat ${FINAL_OUTPUT} | csvcut -c "sub","ses" | grep -v sub`
+BIDS_DIR=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/bids
+AUDITS_DIR=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/audits/rawdata/StimFiles_AMG
+
+header_og=`head -n1 ${FINAL_OUTPUT}`
+header_new=`echo ${header_og},AMG_Events`
+cat ${FINAL_OUTPUT} | sed s@"${header_og}"@"${header_new}"@g > ${FINAL_OUTPUT}_NEW
+mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
+
+for SUBID in $SUBIDS ; do
+	SUB=`echo $SUBID | cut -d ',' -f1`
+	SES=`echo $SUBID | cut -d ',' -f2`
+	NIFTI=`find $BIDS_DIR -iname "*AMG*.nii.gz" | grep sub-${SUB}_ses-${SES}`
+	EVENT=`find $AUDITS_DIR  -iname "*AMG*.tsv" | grep sub-${SUB}_ses-${SES}`
+	if [ -z "${NIFTI}" ] ; then
+		echo "Sub-${SUB}_Ses-${SES} Does Not Have Amygdala NIFTI"
+		ROW_OLD=$(cat $FINAL_OUTPUT | grep ^$SUB,$SES)
+		ROW_NEW=$(echo `cat $FINAL_OUTPUT | grep ^$SUB,$SES`,NA)
+	elif [ -z "${EVENT}" ] ; then
+		echo "Sub-${SUB}_Ses-${SES} is Missing Amygdala Event File"
+		ROW_OLD=$(cat $FINAL_OUTPUT | grep ^$SUB,$SES)
+		ROW_NEW=$(echo `cat $FINAL_OUTPUT | grep ^$SUB,$SES`,0)
+	else
+		echo "Sub-${SUB}_Ses-${SES} Has An Amygdala Event File"
+		ROW_OLD=$(cat $FINAL_OUTPUT | grep ^$SUB,$SES)
+		ROW_NEW=$(echo `cat $FINAL_OUTPUT | grep ^$SUB,$SES`,1)
+	fi
+	cat $FINAL_OUTPUT | sed s@"${ROW_OLD}"@${ROW_NEW}@g> ${FINAL_OUTPUT}_NEW
+	mv ${FINAL_OUTPUT}_NEW ${FINAL_OUTPUT}
 done
 
 ############################################################################
