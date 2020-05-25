@@ -47,11 +47,21 @@ for FILE in `echo ${DIR_LOCAL_AUDITS}/rawdata/StimFiles_AMG/sub-*_ses-*_task-AMG
 	SES=`basename $FILE | cut -d '_' -f2 | cut -d '-' -f2`
 	REFORMAT=$(echo $DIR_LOCAL_BIDS/sub-${SUB}/ses-${SES}/func/`basename $FILE`)
 	tail -n +2 "$FILE" > $REFORMAT
-	sed 
+	ONSET_TIME=`cat $REFORMAT | tr '\t' ',' | csvcut -c fix.OnsetTime | grep -o '[[:digit:]]*'`
+	cat $REFORMAT | tr '\t' ',' | csvcut -c face.OnsetTime,face,emotion,face.RESP,face.RT | sed s@'\\'@''@g > ${REFORMAT}_NEW
+	cat ${REFORMAT}_NEW | sed s@'facesAF'@''@g | sed s@'.bmp'@''@g | sed s@',,'@',0,'@g | tr ' ' '\n' | grep -v ^,NaN > ${REFORMAT}
 
-		
+
 	
 done
+
+
+
+
+
+
+
+
 
 ExperimentName	Subject	Session	Age	Clock.Information	Display.RefreshRate	GoodBye.ACC	GoodBye.CRESP	GoodBye.DurationError	GoodBye.OnsetDelay	GoodBye.OnsetTime	GoodBye.RESP	GoodBye.RT	GoodBye.RTTime	Group	Handedness	Name	RandomSeed	SessionDate	SessionTime	SessionTimeUtc	Sex	Block	MenuItem	ProcedureÆBlocRunList	RunList.Cycle	RunList.Sample	RunningÆBlockÅ	TriggerTime	Trial	BlockList	BlockList.Cycle	BlockList.Sample	ProcedureÆTrialÅ	RunningÆTrialÅ	SubTrial	DummyFix.Duration	DummyFix.DurationError	DummyFix.FinishTime	DummyFix.OffsetDelay	DummyFix.OffsetTime	DummyFix.OnsetDelay	DummyFix.OnsetTime	fix.ACC	fix.CRESP	fix.DurationError	fix.OffsetDelay	fix.OffsetTime	fix.OnsetDelay	fix.OnsetTime	fix.RESP	fix.RT	fix.RTTime	FixList2	FixList2.Cycle	FixList2.Sample	PeriodListNeutFear	PeriodListNeutFear.Cycle	PeriodListNeutFear.Sample	ProcedureÆSubTrialÅ	RunningÆSubTrialÅ	LogLevel5	cresp	emotion	face	face.ACC	face.DurationError	face.OffsetDelay	face.OffsetTime	face.OnsetDelay	face.OnsetTime	face.RESP	face.RT	face.RTTime	Fix3413.ACC	Fix3413.CRESP	Fix3413.DurationError	Fix3413.OffsetDelay	Fix3413.OffsetTime	Fix3413.OnsetDelay	Fix3413.OnsetTime	Fix3413.RESP	Fix3413.RT	Fix3413.RTTime	Fix3981.ACC	Fix3981.CRESP	Fix3981.DurationError	Fix3981.OffsetDelay	Fix3981.OffsetTime	Fix3981.OnsetDelay	Fix3981.OnsetTime	Fix3981.RESP	Fix3981.RT	Fix3981.RTTime	Fix4550.ACC	Fix4550.CRESP	Fix4550.DurationError	Fix4550.OffsetDelay	Fix4550.OffsetTime	Fix4550.OnsetDelay	Fix4550.OnsetTime	Fix4550.RESP	Fix4550.RT	Fix4550.RTTime	Fix5688.ACC	Fix5688.CRESP	Fix5688.DurationError	Fix5688.OffsetDelay	Fix5688.OffsetTime	Fix5688.OnsetDelay	Fix5688.OnsetTime	Fix5688.RESP	Fix5688.RT	Fix5688.RTTime	Fix6825.ACC	Fix6825.CRESP	Fix6825.DurationError	Fix6825.OnsetDelay	Fix6825.OnsetTime	Fix6825.RESP	Fix6825.RT	Fix6825.RTTime	Fix9100.ACC	Fix9100.CRESP	Fix9100.DurationError	Fix9100.OffsetDelay	Fix9100.OffsetTime	Fix9100.OnsetDelay	Fix9100.OnsetTime	Fix9100.RESP	Fix9100.RT	Fix9100.RTTime	ProcedureÆLogLevel5Å	RunningÆLogLevel5Å	TrialListNeutNTFear	TrialListNeutNTFear.Cycle	TrialListNeutNTFear.Sample	TriallistNeutTFear	TriallistNeutTFear.Cycle	TriallistNeutTFear.Sample
 
