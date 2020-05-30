@@ -81,8 +81,17 @@ for FILE in `echo ${DIR_LOCAL_AUDITS}/rawdata/StimFiles_AMG/Xtra_TXT/sub-*_ses-*
 	cat ${FILE} | grep face.RT: | awk '{print $2}' | awk '{for(i=1;i<=NF;i++)$i/=1000}1' > ${RESTRUCT}_TIME
 	paste -d ',' ${RESTRUCT}_ONSET ${RESTRUCT}_DURATION ${RESTRUCT}_EMOTIONS ${RESTRUCT}_FACES ${RESTRUCT}_CONDITION ${RESTRUCT}_RESPONCE ${RESTRUCT}_TIME > ${RESTRUCT}_TEMP
 	sed -i '1 i\onset,duration,emotion,face,trail_type,responce,responce_type' ${RESTRUCT}_TEMP
-	
 	mv ${RESTRUCT}_TEMP ${RESTRUCT}
+done
+
+###########################################
+### Clean Final Files Prior to Analysis ###
+###########################################
+
+rm `find ${DIR_LOCAL_BIDS} -iname *tsv_*`
+for FILE in `find ${DIR_LOCAL_BIDS} -iname *tsv` ; do
+	cat ${FILE} | tr ',' '\t' | tr ' ' '\t' > ${FILE}_TEMP
+	mv ${FILE}_TEMP $FILE ; chmod 740 ${FILE}
 done
 
 ###################################################################################################
