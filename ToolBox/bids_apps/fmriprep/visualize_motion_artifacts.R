@@ -8,8 +8,7 @@
 print("Reading Arguments")
 
 args <- commandArgs(trailingOnly=TRUE)
-DIR_LOCAL_APPS = args[1]
-DIR_LOCAL_DATA = args[2]
+DIR_PROJECT = args[1]
 
 ###############################################
 ##### Find All Task Names To Be Processed #####
@@ -17,10 +16,11 @@ DIR_LOCAL_DATA = args[2]
 
 print(paste0("Searching For Data To Be Processed"))
 
-INPUTFILES<-list.files(path = paste0(DIR_LOCAL_APPS,"/fmriprep"), full.names=TRUE, pattern = "_desc-confounds_regressors.tsv", recursive=TRUE)
+INPUTFILES<-list.files(path = paste0(DIR_PROJECT,"/apps/fmriprep"), full.names=TRUE, pattern = "_desc-confounds_regressors.tsv", recursive=TRUE)
 ALLTASKS<-gsub("task-","",unique(unlist(strsplit(INPUTFILES, '_'))[grep("task-",unlist(strsplit(INPUTFILES, '_')))]))
 ALLSCANS=as.character(ALLTASKS)
-setwd(DIR_LOCAL_DATA)
+DIR_DATA=paste0(DIR_PROJECT,"/datasets/")
+setwd(DIR_DATA)
 
 for (task in ALLTASKS){
 	if(length(grep("_run-",INPUTFILES[grep(task,INPUTFILES)])) != 0){
@@ -136,7 +136,7 @@ for (task in ALLSCANS){
 #################################################################
 
 	print(paste0("Defining Output File Names and Paths"))
-	DIR_ROOT<-paste0(DIR_LOCAL_DATA,"/func-",task,"/prestats")
+	DIR_ROOT<-paste0(DIR_DATA,"/func-",task,"/prestats")
 	suppressWarnings(dir.create(DIR_ROOT, recursive=TRUE))
 	SubjectVols<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Histogram_task-",task,".pdf")
 	SubjectFD<-paste0(DIR_ROOT,"/n",nrow(OUTPUT),"_FD-Boxplot_task-",task,".pdf")
@@ -276,7 +276,7 @@ for (task in ALLSCANS){
 ##### Append QA Data to Aggregated DataFrame For Analyses #####
 ###############################################################
 
-	MASTER<-list.files(path = DIR_LOCAL_DATA, full.names=TRUE, pattern = "aggregate_df.csv")
+	MASTER<-list.files(path = DIR_DATA, full.names=TRUE, pattern = "aggregate_df.csv")
 	if (file.exists(MASTER)){
 		CONTENT <- read.csv(MASTER)
 		if (any(names(FINAL)=="ses")){
@@ -296,10 +296,10 @@ for (task in ALLSCANS){
 			}
 			CONTENT<-merge(CONTENT,QADATA,by=c("sub"),all=TRUE)
 		}
-	colnames(CONTENT)<-gsub(".0","-0",colnames(CONTENT))
+	colnames(CONTENT)<-gsub("-0",".0",colnames(CONTENT))
 	suppressMessages(suppressWarnings(write.csv(CONTENT, file=MASTER, row.names=FALSE)))
 	}
-	Sys.chmod(list.files(path=DIR_LOCAL_DATA , pattern="*", full.names = TRUE, recursive = TRUE), mode = "0775")
+	Sys.chmod(list.files(path=DIR_DATA , pattern="*", full.names = TRUE, recursive = TRUE), mode = "0775")
 }
 
 ###################################################################################################
