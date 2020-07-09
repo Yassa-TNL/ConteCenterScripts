@@ -13,8 +13,15 @@ conda activate local
 ### Resample Yeo 7-ROI Atlas ###
 ################################
 
-DIR_ATLAS=/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox/bids_apps/dependencies/atlases/atl-7Yeo_ALL.nii.gz
-fslmaths $ATLAS -thr 1 output.nii.gz
+ATLAS=${DIR_TOOLBOX}/bids_apps/dependencies/atlases/atl-Yeo_ALL-bin_1-7.nii.gz
+INDEX=0
+for LABEL in `echo 'Visual Somatomotor DorsalAttention VentralAttention Limbic Frontoparietal Default'` ; do
+	INDEX=$((INDEX + 1))
+	OUTPUT=`echo $ATLAS | sed s@'ALL'@"${LABEL}"@g | sed s@'_1-7'@"_${INDEX}"@g`
+	fslmaths ${ATLAS} -thr ${INDEX} -uthr ${INDEX} $OUTPUT
+	fslmaths ${OUTPUT} -bin ${OUTPUT}
+	chmod 750 $OUTPUT 
+done
 
 ##########################################################
 ### Create Function To Extract Contrats on a ROI Basis ###
@@ -25,9 +32,7 @@ ROIextraction () {
 }
 
 DIRS_FEAT=`find $DIR_PROJECT/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.lvl-1 -type d -iname *.feat | tr '\n' ' '`
-DIR_ATLAS=`ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-brainconnect_AMG_211-214.nii.gz`
-
-for ATLAS in $DIR_ATLAS ; do
+for ATLAS in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-*` ; do
 	NUM_DIRS=`echo $DIRS_FEAT | wc -w`
 	LABEL_ATLAS=`basename $ATLAS | sed s@.nii.gz@''@g`
 
