@@ -23,16 +23,32 @@ for LABEL in `echo 'Visual Somatomotor DorsalAttention VentralAttention Limbic F
 	chmod 750 $OUTPUT 
 done
 
+########################################################
+### Create Data Driven Atlas From Voxelwise Contrast ###
+########################################################
+
+CLUSTER=${DIR_PROJECT}/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.gfeat/cope3.feat/rendered_thresh_zstat1.nii.gz
+MASK=${DIR_PROJECT}/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.gfeat/cope3.feat/cluster_mask_zstat1.nii.gz
+TEMPLATE=${DIR_TOOLBOX}/bids_apps/dependencies/atlases/atl-brainnetome_AMG-pro_211-214.nii.gz
+OUTPUT=`echo $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-datadriven_AMG-pro_cope3.nii.gz`
+TEMPLATE_BINARY=`echo $TEMPLATE | sed s@.nii.gz@_BINARY.nii.gz@g`
+
+fslmaths ${TEMPLATE} -bin $TEMPLATE_BINARY
+fslmaths $MASK -mul $TEMPLATE_BINARY $OUTPUT
+fslmaths ${OUTPUT} -bin ${OUTPUT} -force
+fslmaths $OUTPUT -mul $CLUSTER $OUTPUT
+rm $TEMPLATE_BINARY
+
 ##########################################################
 ### Create Function To Extract Contrats on a ROI Basis ###
 ##########################################################
 
-ROIextraction () {
+function ROIextraction {
 	featquery $1 $2 6 stats/tstat1 stats/tstat2 stats/tstat3 stats/zstat1 stats/zstat2 stats/zstat3 $3 -p -s -w -b $4
 }
 
-DIRS_FEAT=`find $DIR_PROJECT/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.lvl-1 -type d -iname *.feat | tr '\n' ' '`
-for ATLAS in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-*` ; do
+DIRS_FEAT=`find $DIR_PROJECT/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.lvl-1 | grep .feat$  | tr '\n' ' '`
+for ATLAS in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-* | grep -v Yeo_ALL` ; do
 	NUM_DIRS=`echo $DIRS_FEAT | wc -w`
 	LABEL_ATLAS=`basename $ATLAS | sed s@.nii.gz@''@g`
 
@@ -42,4 +58,3 @@ done
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
-
