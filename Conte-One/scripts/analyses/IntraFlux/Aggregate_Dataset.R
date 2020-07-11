@@ -4,8 +4,7 @@
 print("Reading Arguments")
 
 args <- commandArgs(trailingOnly=TRUE)
-DIR_PROJECT = args[1]
-
+#DIR_PROJECT = args[1]
 DIR_PROJECT="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One"
 
 suppressMessages(require(reshape))
@@ -54,6 +53,8 @@ for (ROW in 1:nrow(CONTENT)){
 		CONTENT[ROW,Z_COL]<-OUTPUT[6,6]
 	}
 }
+
+write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv",row.names=FALSE))
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
