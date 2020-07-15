@@ -2,14 +2,16 @@
 ######################
 
 print("Reading Arguments")
-
-args <- commandArgs(trailingOnly=TRUE)
-#DIR_PROJECT = args[1]
 DIR_PROJECT="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One"
 
+suppressMessages(require(mgcv))
+suppressMessages(require(visreg))
+suppressMessages(require(svglite))
+suppressMessages(require(cowplot))
 suppressMessages(require(reshape))
-suppressMessages(require(gtools))
 suppressMessages(require(ggplot2))
+suppressMessages(require(corrplot))
+suppressMessages(require(RColorBrewer))
 TODAY=gsub("-","",Sys.Date())
 
 ####################################################################################################
@@ -37,7 +39,7 @@ names(CONTENT)[10]<-"FD_MEAN_REST2"
 FEATQUERY<-list.files(path=paste0(DIR_PROJECT,"/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group"), full.names=T, recursive=T, pattern = "report.txt")
 ATLASES<-unique(unlist(strsplit(FEATQUERY,"/"))[grep("atl-",unlist(strsplit(FEATQUERY,"/")))])
 for (ATLAS in ATLASES){
-	HEADER<-gsub("atl-","",ATLAS)
+	HEADER<-gsub("-","_",gsub("atl-","",ATLAS))
 	CONTENT[,paste0(HEADER,"_tstat")]<-NA
 	CONTENT[,paste0(HEADER,"_zstat")]<-NA
 }
@@ -47,14 +49,49 @@ for (ROW in 1:nrow(CONTENT)){
 	SES<-CONTENT[ROW,2]
 	for (ATLAS in ATLASES){
 		OUTPUT<-read.table(FEATQUERY[grep(paste0("sub-",SUB,"_ses-",SES,".feat/",ATLAS),FEATQUERY)])
-		T_COL<-grep(gsub("atl-","",ATLAS),names(CONTENT))[1]
-		Z_COL<-grep(gsub("atl-","",ATLAS),names(CONTENT))[2]
+		T_COL<-grep(gsub("-","_",gsub("atl-","",ATLAS)),names(CONTENT))[1]
+		Z_COL<-grep(gsub("-","_",gsub("atl-","",ATLAS)),names(CONTENT))[2]
 		CONTENT[ROW,T_COL]<-OUTPUT[3,6]
 		CONTENT[ROW,Z_COL]<-OUTPUT[6,6]
 	}
 }
 
-write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv",row.names=FALSE))
+write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv"),row.names=FALSE)
+
+##############################################################################################################
+##### Analyze Individual Differences in Depression and Amygdala Reactivity to Fearful Facial Expressions #####
+##############################################################################################################
+
+m1<-lm(datadriven_AMG_pro_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m2<-lm(brainnetome_AMG_pro_211_214_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+MODELS<-list(m1,m2)
+OUTPUT <- lapply(MODELS, summary)
+
+plotdata <- visreg(MODELS[[2]],'scl.CDI_MD',type = "conditional",scale = "linear", plot = FALSE)
+smooths <- data.frame(Variable = plotdata$meta$x,
+                      x=plotdata$fit[[plotdata$meta$x]],
+                      smooth=plotdata$fit$visregFit,
+                      lower=plotdata$fit$visregLwr,
+                      upper=plotdata$fit$visregUpr)
+predicts <- data.frame(Variable = "dim1",
+                       x=plotdata$res$scl.CDI_MD,
+                       y=plotdata$res$visregRes)
+
+figures<-ggplot() +
+	geom_point(data = predicts, aes(x, y, colour = x), alpha= 1) +
+	scale_colour_gradientn(colours = "#15ff00",  name = "") +
+	geom_line(data = smooths, aes(x = x, y = smooth), colour = "#15ff00",size=3) +
+	geom_line(data = smooths, aes(x = x, y=lower), linetype="dashed", colour = "#15ff00", alpha = 0.9, size = 2) +
+	geom_line(data = smooths, aes(x = x, y=upper), linetype="dashed",colour = "#15ff00", alpha = 0.9, size = 2) +
+	theme(legend.position = "none") +
+	labs(x = "Depression Severity (CDI Scale)", y = "Amydala Reactivity to Fearful Faces (z-score)") +
+	theme(axis.title=element_text(size=24,face="bold"), axis.text=element_text(size=18), axis.title.x=element_text(color = "black"), axis.title.y=element_text(color = "black")) + 
+	theme_classic()
+
+SUBSET<-CONTENT[,c(3,5:8)]
+names(SUBSET)<-c("Age","MoodEnt","MoodLvl","Depression","Motion")
+MATRIX<-cor(SUBSET, use="pairwise.complete.obs")
+corrplot.mixed(MATRIX, lower.col = "black", number.cex = 1.75)
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
