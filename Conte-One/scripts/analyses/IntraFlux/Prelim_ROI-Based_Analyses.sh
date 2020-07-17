@@ -23,9 +23,9 @@ for LABEL in `echo 'Visual Somatomotor DorsalAttention VentralAttention Limbic F
 	chmod 750 $OUTPUT 
 done
 
-########################################################
-### Create Data Driven Atlas From Voxelwise Contrast ###
-########################################################
+##########################################################
+### Create Data Driven Atlases From Voxelwise Contrast ###
+##########################################################
 
 CLUSTER=${DIR_PROJECT}/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.gfeat/cope3.feat/rendered_thresh_zstat1.nii.gz
 MASK=${DIR_PROJECT}/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.gfeat/cope3.feat/cluster_mask_zstat1.nii.gz
@@ -39,20 +39,22 @@ fslmaths ${OUTPUT} -bin ${OUTPUT} -force
 fslmaths $OUTPUT -mul $CLUSTER $OUTPUT
 rm $TEMPLATE_BINARY
 
-##########################################################
-### Create Function To Extract Contrats on a ROI Basis ###
-##########################################################
 
-function ROIextraction {
-	featquery $1 $2 6 stats/tstat1 stats/tstat2 stats/tstat3 stats/zstat1 stats/zstat2 stats/zstat3 $3 -p -s -w -b $4
-}
+for INDEX in `seq 1 6` ; do
+	OUTPUT_CLUSTER=`echo $OUTPUT | sed s@'AMG-pro'@"clust${INDEX}-bin"@g`
+	fslmaths ${MASK} -thr ${INDEX} -uthr ${INDEX} $OUTPUT_CLUSTER
+	chmod 740 $OUTPUT_CLUSTER
+done
+
+########################################
+### Extract Contrasts on a ROI Basis ###
+########################################
 
 DIRS_FEAT=`find $DIR_PROJECT/apps/xcp-feat/pipe-aromaXcluster_task-AMG_emotion/group/n138_IntraFlux.lvl-1 | grep .feat$  | tr '\n' ' '`
-for ATLAS in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-* | grep -v Yeo_ALL` ; do
+for ATLAS in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/atl-* | grep -v Yeo_ALL | grep 'datadriven_clust'` ; do
 	NUM_DIRS=`echo $DIRS_FEAT | wc -w`
 	LABEL_ATLAS=`basename $ATLAS | sed s@.nii.gz@''@g`
-
-	ROIextraction ${NUM_DIRS} ${DIRS_FEAT} ${LABEL_ATLAS} ${ATLAS}
+	featquery ${NUM_DIRS} ${DIRS_FEAT} 6 stats/tstat1 stats/tstat2 stats/tstat3 stats/zstat1 stats/zstat2 stats/zstat3 ${LABEL_ATLAS} -p -s -w -b ${ATLAS}
 done
 
 ###################################################################################################
