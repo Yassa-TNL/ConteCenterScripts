@@ -64,10 +64,17 @@ write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv"
 
 m1<-lm(datadriven_AMG_pro_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
 m2<-lm(brainnetome_AMG_pro_211_214_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-MODELS<-list(m1,m2)
+m3<-lm(datadriven_clust1_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m4<-lm(datadriven_clust2_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m5<-lm(datadriven_clust3_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m6<-lm(datadriven_clust4_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m7<-lm(datadriven_clust5_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+m8<-lm(datadriven_clust6_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+
+MODELS<-list(m1,m2,m3,m4,m5,m6,m7,m8)
 OUTPUT <- lapply(MODELS, summary)
 
-plotdata <- visreg(MODELS[[2]],'scl.CDI_MD',type = "conditional",scale = "linear", plot = FALSE)
+plotdata <- visreg(MODELS[[6]],'scl.CDI_MD',type = "conditional",scale = "linear", plot = FALSE)
 smooths <- data.frame(Variable = plotdata$meta$x,
                       x=plotdata$fit[[plotdata$meta$x]],
                       smooth=plotdata$fit$visregFit,
@@ -79,12 +86,12 @@ predicts <- data.frame(Variable = "dim1",
 
 figures<-ggplot() +
 	geom_point(data = predicts, aes(x, y, colour = x), alpha= 1) +
-	scale_colour_gradientn(colours = "#15ff00",  name = "") +
-	geom_line(data = smooths, aes(x = x, y = smooth), colour = "#15ff00",size=3) +
-	geom_line(data = smooths, aes(x = x, y=lower), linetype="dashed", colour = "#15ff00", alpha = 0.9, size = 2) +
-	geom_line(data = smooths, aes(x = x, y=upper), linetype="dashed",colour = "#15ff00", alpha = 0.9, size = 2) +
+	scale_colour_gradientn(colours = "#000000",  name = "") +
+	geom_line(data = smooths, aes(x = x, y = smooth), colour = "#000000",size=3) +
+	geom_line(data = smooths, aes(x = x, y=lower), linetype="dashed", colour = "#000000", alpha = 0.9, size = 2) +
+	geom_line(data = smooths, aes(x = x, y=upper), linetype="dashed",colour = "#000000", alpha = 0.9, size = 2) +
 	theme(legend.position = "none") +
-	labs(x = "Depression Severity (CDI Scale)", y = "Amydala Reactivity to Fearful Faces (z-score)") +
+	labs(x = "Symptoms of Depression (CDI Scale)", y = "Reactivity to Fearful Faces (z-score)") +
 	theme(axis.title=element_text(size=24,face="bold"), axis.text=element_text(size=18), axis.title.x=element_text(color = "black"), axis.title.y=element_text(color = "black")) + 
 	theme_classic()
 
