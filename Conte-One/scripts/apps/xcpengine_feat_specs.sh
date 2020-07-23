@@ -47,11 +47,11 @@ fi
 
 SCRIPT_XCP_FEAT=$DIR_TOOLBOX/bids_apps/xcp-feat/pipeline_feat_xcpengine.sh
 DESIGN_CONFIG=$DIR_TOOLBOX/bids_apps/dependencies/designs_fsf/lvl-1_evs-2.fsf
-TEMPLATE_SPACE=$DIR_TOOLBOX/bids_apps/dependencies/atlases/tpl-MNI152NLin6Asym_res-02_desc-brain_mask.nii.gz
+TEMPLATE_SPACE=$DIR_TOOLBOX/bids_apps/atlases/tpl-MNI152NLin6Asym_res-02_desc-brain_T1w.nii.gz
 DENOISE_PIPELINE="fc-aroma.dsn"
 CONTRAST_HEADER="emotion"
 TASK_LABEL="AMG"
-OPT_THRESH_TYPE="cluster"
+OPT_THRESH_TYPE=""
 OPT_THRESH_MASK=""
 
 if [[ -f $SCRIPT_XCP_FEAT && ! -z $TASK_LABEL && ! -z $DENOISE_PIPELINE && -f $DESIGN_CONFIG && -d $DIR_PROJECT/apps/fmriprep ]] ; then
@@ -72,15 +72,15 @@ if [[ -f $SCRIPT_XCP_FEAT && ! -z $TASK_LABEL && ! -z $DENOISE_PIPELINE && -f $D
 	done
 	if [[ ! -f $TEMPLATE_SPACE && $TEMPLATE_LABEL != 'fsnative' && $TEMPLATE_LABEL != 'anat' ]] ; then
 		TEMPLATE_LABEL=$(basename $TEMPLATE_SPACE | cut -d '_' -f1 | cut -d '-' -f2)
-		mkdir -p $DIR_TOOLBOX/bids_apps/dependencies/atlases
+		mkdir -p $DIR_TOOLBOX/bids_apps/atlases
 		python -m pip install templateflow
 		python -c "from templateflow import api; api.get('${TEMPLATE_LABEL}')"
-		cp -r $HOME/.cache/templateflow/tpl-${TEMPLATE_LABEL}/*.nii.gz $DIR_TOOLBOX/bids_apps/dependencies/atlases
+		cp -r $HOME/.cache/templateflow/tpl-${TEMPLATE_LABEL}/*.nii.gz $DIR_TOOLBOX/bids_apps/atlases
 		DIM1=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep ${TASK_LABEL} | head -n1` | grep ^dim1  | awk '{print $2}')
 		DIM2=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep ${TASK_LABEL} | head -n1` | grep ^dim2  | awk '{print $2}')
 		DIM3=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep ${TASK_LABEL} | head -n1` | grep ^dim3  | awk '{print $2}')
 		module load mrtrix/3.0_RC3
-		for NIFTI in `ls $DIR_TOOLBOX/bids_apps/dependencies/atlases/tpl-${TEMPLATE_LABEL}*T1w.nii.gz` ; do
+		for NIFTI in `ls $DIR_TOOLBOX/bids_apps/atlases/tpl-${TEMPLATE_LABEL}*T1w.nii.gz` ; do
 			mrresize -size ${DIM1},${DIM2},${DIM3} ${NIFTI} ${NIFTI} -force
 		done
 		if [[ ! -f $TEMPLATE_SPACE ]] ; then
@@ -114,23 +114,6 @@ if [[ -f $SCRIPT_XCP_FEAT && ! -z $TASK_LABEL && ! -z $DENOISE_PIPELINE && -f $D
 		fi
 	done
 fi
-
-##########################################################
-### Submit XCP-FEAT Job For All Level-3 Group Analyses ###
-##########################################################
-
-SCRIPT_XCP_FEAT=$DIR_TOOLBOX/bids_apps/xcp-feat/pipeline_feat_xcpengine.sh
-DESIGN_CONFIG=$DIR_TOOLBOX/bids_apps/dependencies/designs_fsf/lvl-1_evs-2.fsf
-TEMPLATE_SPACE=$DIR_TOOLBOX/bids_apps/dependencies/atlases/tpl-MNI152NLin6Asym_res-02_desc-brain_mask.nii.gz
-DENOISE_PIPELINE="fc-aroma.dsn"
-CONTRAST_HEADER="emotion"
-TASK_LABEL="AMG"
-OPT_THRESH_TYPE="cluster"
-OPT_THRESH_MASK=""
-
-
-
-
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
