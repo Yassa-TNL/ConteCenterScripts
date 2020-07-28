@@ -100,6 +100,22 @@ names(SUBSET)<-c("Age","MoodEnt","MoodLvl","Depression","Motion")
 MATRIX<-cor(SUBSET, use="pairwise.complete.obs")
 corrplot.mixed(MATRIX, lower.col = "black", number.cex = 1.75)
 
+####################################################################################################
+##### Find All Processed Scans And Extract Signal Using Every Available Atlas For Each Subject #####
+####################################################################################################
+
+for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim")){
+	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis/",DIM)
+	OUT_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated")
+	MASTER<-data.frame(matrix(ncol = dim(read.csv(OUT_FILES[1]))[2], nrow = 0))
+	colnames(MASTER)<-names(read.csv(OUT_FILES[1]))
+	for (INDEX in 1:length(OUT_FILES)){
+		print(paste0(WORKING: ,OUT_FILES[INDEX]))
+		CONTENT<-read.csv(OUT_FILES[INDEX])
+		MASTER<-rbind(MASTER,CONTENT)
+	}
+}
+
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####
 ###################################################################################################
