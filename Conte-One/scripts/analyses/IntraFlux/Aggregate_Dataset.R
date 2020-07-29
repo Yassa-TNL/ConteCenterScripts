@@ -106,14 +106,26 @@ corrplot.mixed(MATRIX, lower.col = "black", number.cex = 1.75)
 
 for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim")){
 	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis/",DIM)
-	OUT_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated")
-	MASTER<-data.frame(matrix(ncol = dim(read.csv(OUT_FILES[1]))[2], nrow = 0))
-	colnames(MASTER)<-names(read.csv(OUT_FILES[1]))
-	for (INDEX in 1:length(OUT_FILES)){
-		print(paste0(WORKING: ,OUT_FILES[INDEX]))
-		CONTENT<-read.csv(OUT_FILES[INDEX])
+	IN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated")
+	MASTER<-data.frame(matrix(ncol = dim(read.csv(IN_FILES[1]))[2], nrow = 0))
+	colnames(MASTER)<-names(read.csv(IN_FILES[1]))
+	for (INDEX in 1:length(IN_FILES)){
+		print(paste0("WORKING: ",IN_FILES[INDEX]))
+		CONTENT<-read.csv(IN_FILES[INDEX])
 		MASTER<-rbind(MASTER,CONTENT)
 	}
+	MASTER$X<-NULL
+	AMG<-MASTER[,c(1,grep("_AMG",names(MASTER)))]
+	REST1<-MASTER[,c(1,grep("_REST1",names(MASTER)))]
+	REST2<-MASTER[,c(1,grep("_REST2",names(MASTER)))]
+	colnames(AMG)[2:ncol(AMG)] <- sub("_AMG", "", colnames(AMG)[2:ncol(AMG)])
+	colnames(REST1)[2:ncol(REST1)] <- sub("_REST1", "", colnames(REST1)[2:ncol(REST1)])
+	colnames(REST2)[2:ncol(REST2)] <- sub("_REST2", "", colnames(REST2)[2:ncol(REST2)])
+	AMG$TASK<-"AMG" ; REST1$TASK<-"REST1" ; REST2$TASK<-"REST2"
+	FIGURE<-rbind(REST1,AMG,REST2)
+	FIGURE<-FIGURE[,c(1,ncol(FIGURE),2:(ncol(FIGURE)-1))]
+	FIGURE$TASK<-factor(FIGURE$TASK, levels=c("REST1","AMG","REST2"))
+
 }
 
 ###################################################################################################
