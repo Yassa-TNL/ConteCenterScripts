@@ -48,7 +48,7 @@ for (ROW in 1:nrow(CONTENT)){
 	SUB<-CONTENT[ROW,1]
 	SES<-CONTENT[ROW,2]
 	for (ATLAS in ATLASES){
-		OUTPUT<-read.table(FEATQUERY[grep(paste0("sub-",SUB,"_ses-",SES,".feat/",ATLAS),FEATQUERY)])
+		OUTPUT<-read.table(FEATQUERY[grep(paste0("sub-",SUB,"_ses-",SES,".feat/",ATLAS,"/"),FEATQUERY)])
 		T_COL<-grep(gsub("-","_",gsub("atl-","",ATLAS)),names(CONTENT))[1]
 		Z_COL<-grep(gsub("-","_",gsub("atl-","",ATLAS)),names(CONTENT))[2]
 		CONTENT[ROW,T_COL]<-OUTPUT[3,6]
@@ -104,6 +104,9 @@ corrplot.mixed(MATRIX, lower.col = "black", number.cex = 1.75)
 ##### Find All Processed Scans And Extract Signal Using Every Available Atlas For Each Subject #####
 ####################################################################################################
 
+MDD<-read.csv(paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv"))
+MDD<-MDD[,c("sub","scl.CDI_MD")]
+
 for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim")){
 	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis/",DIM)
 	IN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated")
@@ -125,6 +128,13 @@ for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress
 	FIGURE<-rbind(REST1,AMG,REST2)
 	FIGURE<-FIGURE[,c(1,ncol(FIGURE),2:(ncol(FIGURE)-1))]
 	FIGURE$TASK<-factor(FIGURE$TASK, levels=c("REST1","AMG","REST2"))
+	FIGURE<-merge(FIGURE,MDD,by='sub')
+
+	myPalette <- colorRampPalette(rev(brewer.pal(10, "RdBu")))
+	ggplot(data = FIGURE, mapping = aes(x = TASK, y = COMP4, group = sub)) + 
+		geom_line(alpha=0.70,aes(color = scl.CDI_MD)) + 
+		scale_colour_gradientn(colours = myPalette(100)) +
+		theme_classic()
 
 }
 
