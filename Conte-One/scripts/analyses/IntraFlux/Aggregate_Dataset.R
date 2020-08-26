@@ -3,7 +3,6 @@
 
 print("Reading Arguments")
 DIR_PROJECT="/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One"
-
 suppressMessages(require(mgcv))
 suppressMessages(require(visreg))
 suppressMessages(require(svglite))
@@ -11,12 +10,16 @@ suppressMessages(require(cowplot))
 suppressMessages(require(reshape))
 suppressMessages(require(ggplot2))
 suppressMessages(require(corrplot))
+suppressMessages(require(interactions))
 suppressMessages(require(RColorBrewer))
+suppressMessages(require(gamm4))
+suppressMessages(require(nlme))
+suppressMessages(require(lme4))
 TODAY=gsub("-","",Sys.Date())
 
-####################################################################################################
-##### Find All Processed Scans And Extract Signal Using Every Available Atlas For Each Subject #####
-####################################################################################################
+#################################################################################################
+##### Find T-values and Z-values Extracted From the Contrasts Maps Calculated with FSL FEAT #####
+#################################################################################################
 
 CONTENT<-read.csv(list.files(path=paste0(DIR_PROJECT,"/datasets"), full.names=T, recursive=T, pattern = "aggregate_df.csv"))
 CONTENT<-CONTENT[which(CONTENT$IntraFlux_Inclusion == 1),c(1:2,17,18,20:22)]
@@ -56,68 +59,36 @@ for (ROW in 1:nrow(CONTENT)){
 	}
 }
 
-write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv"),row.names=FALSE)
+write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_EVCont_AMG.csv"),row.names=FALSE)
 
 ##############################################################################################################
-##### Analyze Individual Differences in Depression and Amygdala Reactivity to Fearful Facial Expressions #####
+##### Find Mean and Eigenvariate Values From the Dual Regression Stage 2 Maps Cacluated with FSL MELODIC #####
 ##############################################################################################################
 
-m1<-lm(datadriven_AMG_pro_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m2<-lm(brainnetome_AMG_pro_211_214_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m3<-lm(datadriven_clust1_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m4<-lm(datadriven_clust2_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m5<-lm(datadriven_clust3_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m6<-lm(datadriven_clust4_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m7<-lm(datadriven_clust5_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
-m8<-lm(datadriven_clust6_bin_cope3_zstat~scl.CDI_MD+AgeAtScan+Gender+FD_MEAN_AMG, data=CONTENT)
+MDD<-read.csv(paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_EVCont_AMG.csv"))
+MDD<-MDD[,c("sub","AgeAtScan","Gender","PreMood_Ent","PreMood_Lvl","scl.CDI_MD","FD_MEAN_AMG","FD_MEAN_REST1","FD_MEAN_REST2")]
 
-MODELS<-list(m1,m2,m3,m4,m5,m6,m7,m8)
-OUTPUT <- lapply(MODELS, summary)
-
-plotdata <- visreg(MODELS[[6]],'scl.CDI_MD',type = "conditional",scale = "linear", plot = FALSE)
-smooths <- data.frame(Variable = plotdata$meta$x,
-                      x=plotdata$fit[[plotdata$meta$x]],
-                      smooth=plotdata$fit$visregFit,
-                      lower=plotdata$fit$visregLwr,
-                      upper=plotdata$fit$visregUpr)
-predicts <- data.frame(Variable = "dim1",
-                       x=plotdata$res$scl.CDI_MD,
-                       y=plotdata$res$visregRes)
-
-figures<-ggplot() +
-	geom_point(data = predicts, aes(x, y, colour = x), alpha= 1) +
-	scale_colour_gradientn(colours = "#000000",  name = "") +
-	geom_line(data = smooths, aes(x = x, y = smooth), colour = "#000000",size=3) +
-	geom_line(data = smooths, aes(x = x, y=lower), linetype="dashed", colour = "#000000", alpha = 0.9, size = 2) +
-	geom_line(data = smooths, aes(x = x, y=upper), linetype="dashed",colour = "#000000", alpha = 0.9, size = 2) +
-	theme(legend.position = "none") +
-	labs(x = "Symptoms of Depression (CDI Scale)", y = "Reactivity to Fearful Faces (z-score)") +
-	theme(axis.title=element_text(size=24,face="bold"), axis.text=element_text(size=18), axis.title.x=element_text(color = "black"), axis.title.y=element_text(color = "black")) + 
-	theme_classic()
-
-SUBSET<-CONTENT[,c(3,5:8)]
-names(SUBSET)<-c("Age","MoodEnt","MoodLvl","Depression","Motion")
-MATRIX<-cor(SUBSET, use="pairwise.complete.obs")
-corrplot.mixed(MATRIX, lower.col = "black", number.cex = 1.75)
-
-####################################################################################################
-##### Find All Processed Scans And Extract Signal Using Every Available Atlas For Each Subject #####
-####################################################################################################
-
-MDD<-read.csv(paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_Dataset.csv"))
-MDD<-MDD[,c("sub","scl.CDI_MD")]
-
-for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim")){
+for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim-12_sm3")){
 	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis/",DIM)
-	IN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated")
-	MASTER<-data.frame(matrix(ncol = dim(read.csv(IN_FILES[1]))[2], nrow = 0))
-	colnames(MASTER)<-names(read.csv(IN_FILES[1]))
-	for (INDEX in 1:length(IN_FILES)){
-		print(paste0("WORKING: ",IN_FILES[INDEX]))
-		CONTENT<-read.csv(IN_FILES[INDEX])
-		MASTER<-rbind(MASTER,CONTENT)
+	MEAN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated_mean")
+	EIGEN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated_eigen")
+	MEAN_MASTER<-data.frame(matrix(ncol = dim(read.csv(MEAN_FILES[1]))[2], nrow = 0))
+	EIGEN_MASTER<-data.frame(matrix(ncol = dim(read.csv(EIGEN_FILES[1]))[2], nrow = 0))
+	colnames(MEAN_MASTER)<-names(read.csv(MEAN_FILES[1]))
+	colnames(EIGEN_MASTER)<-names(read.csv(EIGEN_FILES[1]))
+	for (INDEX in 1:length(MEAN_FILES)){
+		print(paste0("WORKING: ",MEAN_FILES[INDEX]))
+		MEAN_CONTENT<-read.csv(MEAN_FILES[INDEX])
+		MEAN_MASTER<-rbind(MEAN_MASTER,MEAN_CONTENT)
+		print(paste0("WORKING: ",EIGEN_FILES[INDEX]))
+		EIGEN_CONTENT<-read.csv(EIGEN_FILES[INDEX])
+		EIGEN_MASTER<-rbind(EIGEN_MASTER,EIGEN_CONTENT)
 	}
-	MASTER$X<-NULL
+	MEAN_MASTER$X<-NULL
+	EIGEN_MASTER$X<-NULL
+	names(MEAN_MASTER)<-gsub("_","_MEAN_",names(MEAN_MASTER))
+	names(EIGEN_MASTER)<-gsub("_","_EIGEN_",names(EIGEN_MASTER))
+	MASTER<-merge(MEAN_MASTER,EIGEN_MASTER,by=c("sub"))
 	AMG<-MASTER[,c(1,grep("_AMG",names(MASTER)))]
 	REST1<-MASTER[,c(1,grep("_REST1",names(MASTER)))]
 	REST2<-MASTER[,c(1,grep("_REST2",names(MASTER)))]
@@ -126,15 +97,27 @@ for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress
 	colnames(REST2)[2:ncol(REST2)] <- sub("_REST2", "", colnames(REST2)[2:ncol(REST2)])
 	AMG$TASK<-"AMG" ; REST1$TASK<-"REST1" ; REST2$TASK<-"REST2"
 	FIGURE<-rbind(REST1,AMG,REST2)
-	FIGURE<-FIGURE[,c(1,ncol(FIGURE),2:(ncol(FIGURE)-1))]
 	FIGURE$TASK<-factor(FIGURE$TASK, levels=c("REST1","AMG","REST2"))
 	FIGURE<-merge(FIGURE,MDD,by='sub')
-
-	myPalette <- colorRampPalette(rev(brewer.pal(10, "RdBu")))
-	ggplot(data = FIGURE, mapping = aes(x = TASK, y = COMP4, group = sub)) + 
-		geom_line(alpha=0.70,aes(color = scl.CDI_MD)) + 
-		scale_colour_gradientn(colours = myPalette(100)) +
-		theme_classic()
+	REST1<-FIGURE[which(FIGURE$TASK == "REST1"),]
+	REST1$FD_MEAN<-REST1$FD_MEAN_REST1
+	REST1<-REST1[,!grepl("FD_MEAN_",names(REST1))]
+	AMG<-FIGURE[which(FIGURE$TASK == "AMG"),]
+	AMG$FD_MEAN<-AMG$FD_MEAN_AMG
+	AMG<-AMG[,!grepl("FD_MEAN_",names(AMG))]
+	REST2<-FIGURE[which(FIGURE$TASK == "REST2"),]
+	REST2$FD_MEAN<-REST2$FD_MEAN_REST2
+	REST2<-REST2[,!grepl("FD_MEAN_",names(REST2))]
+	REST1FD<-REST1[,c("sub","TASK","FD_MEAN")]
+	AMGFD<-AMG[,c("sub","TASK","FD_MEAN")]
+	REST2FD<-REST2[,c("sub","TASK","FD_MEAN")]
+	MOTION<-rbind(REST1FD,AMGFD,REST2FD)
+	FIGURE<-merge(FIGURE,MOTION,by=c("sub","TASK"),all=TRUE)
+	FIGURE<-FIGURE[,!grepl("FD_MEAN_",names(FIGURE))]
+	write.csv(REST1,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_NetStr_REST1.csv"),row.names=FALSE)
+	write.csv(AMG,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_NetStr_AMG.csv"),row.names=FALSE)
+	write.csv(REST2,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_NetStr_REST2.csv"),row.names=FALSE)
+	write.csv(FIGURE,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_NetStr_Longitudinal.csv"),row.names=FALSE)
 
 }
 
