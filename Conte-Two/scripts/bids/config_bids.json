@@ -9,14 +9,6 @@
     },
         {
             "dataType": "anat",
-            "modalityLabel": "T1w",
-            "customLabels": "acq-PU",
-            "criteria": {
-                "SidecarFilename": "*PUanat-T1w*"
-            }
-    },
-        {
-            "dataType": "anat",
             "modalityLabel": "T2w",
             "customLabels": "acq-TSEcor",
             "criteria": {
@@ -28,7 +20,7 @@
             "modalityLabel": "epi",
             "customLabels": "dir-PA",
             "criteria": {
-                "SidecarFilename": "*fmap-magnitude1_acq-dirPA*"
+                "SidecarFilename": "*fmap_dir_PA_epi*"
             }
     },
         {
@@ -36,7 +28,7 @@
             "modalityLabel": "dwi",
             "customLabels": "dir-PA",
             "criteria": {
-                "SidecarFilename": "*fmap-magnitude2_acq-dirPA*"
+                "SidecarFilename": "*fmap_dir_PA_dwi*"
             }
     },
         {
@@ -73,17 +65,9 @@
         {
             "dataType": "dwi",
             "modalityLabel": "dwi",
-            "customLabels": "acq-TRACE",
-            "criteria": {
-                "SeriesDescription": "dwi_TRACEW_SKIP_THIS_TIME"
-            }
-    },
-        {
-            "dataType": "dwi",
-            "modalityLabel": "dwi",
             "customLabels": "acq-ZOOMcor",
             "criteria": {
-                "SeriesDescription": "*dwi_acq-ZOOMcor*"
+                "SeriesDescription": "dwi_acq-ZOOMcor"
             }
     },
         {
@@ -113,33 +97,41 @@
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-REST",
+            "customLabels": "task-rest",
             "criteria": {
-                "SeriesDescription": "*func_task-REST_bold*"
+                "SeriesDescription": "func_task-rest_bold"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors_run-01",
+            "customLabels": "task-bandit_run-01",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run*01_bold*"
+                "SeriesDescription": "func_task-bandit_run-01_bold"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors_run-02",
+            "customLabels": "task-bandit_run-02",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run*02_bold*"
+                "SeriesDescription": "func_task-bandit_run-02_bold"
             }
     },
         {
             "dataType": "func",
             "modalityLabel": "bold",
-            "customLabels": "task-doors_run-03",
+            "customLabels": "task-bandit_run-03",
             "criteria": {
-                "SeriesDescription": "*func_task-Doors_run*03_bold*"
+                "SeriesDescription": "func_task-bandit_run-03_bold"
+            }
+    },
+        {
+            "dataType": "func",
+            "modalityLabel": "bold",
+            "customLabels": "task-bandit_run-04",
+            "criteria": {
+                "SeriesDescription": "func_task-bandit_run-04_bold"
             }
         }
     ]
