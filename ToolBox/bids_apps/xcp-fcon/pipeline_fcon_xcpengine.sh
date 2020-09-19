@@ -1,6 +1,6 @@
 #!/bin/bash
 #$ -q yassalab,pub*,free*
-#$ -pe openmp 8-24
+#$ -pe openmp 1-16
 #$ -R y
 #$ -ckpt restart
 ################
@@ -9,7 +9,7 @@ module load singularity/3.0.0 fsl/6.0.1
 
 DIR_TOOLBOX=$1
 DIR_PROJECT=$2
-TEMPLATE_SPACE=$3
+TEMPLATE_SPACE=$(basename $3 | cut -d '_' -f1 | cut -d '-' -f2)
 PIPE_LABELS="${4}"
 SUBJECT=$5
 TASK_LABEL=$6
@@ -92,10 +92,24 @@ for PIPE in `echo $PIPE_LABELS | tr '@' ' '` ; do
 
 		${DIR_ROOT}/logs/${TODAY}/sub-${SUBJECT}_command.sh > /dev/null 2>&1
 
+		echo "Cleaning Output Directories and Smoothing Preproc Files"
 		chmod -R 775 ${DIR_ROOT}/sub-${SUBJECT}
-		rmdir ${DIR_ROOT}/workflows/single_subject_${SUBJECT}/task-${TASK_LABEL}
-		rmdir ${DIR_ROOT}/workflows/single_subject_${SUBJECT}
 		find ${DIR_ROOT}/sub-${SUBJECT} -size 0 -delete
+		rm -rf ${DIR_ROOT}/workflows/single_subject_${SUBJECT}
+		for SCAN in `find ${DIR_ROOT} -iname *_residualised.nii.gz`; do
+			if [[ ! -f `echo $SCAN | sed s@.nii@_sm2.nii@g` ]] ; then 
+				MASK=`echo $SCAN | sed s@'regress/'@'prestats/'@g | sed s@'_residualised.nii.gz'@'_mask.nii.gz'@g`
+				fslmaths $SCAN -s 2 `echo $SCAN | sed s@.nii@_sm2.nii@g`
+				fslmaths `echo $SCAN | sed s@.nii@_sm2.nii@g` -mul $MASK `echo $SCAN | sed s@.nii@_sm2.nii@g`
+				chmod ug+wrx `echo $SCAN | sed s@.nii@_sm2.nii@g` 
+			fi
+			if [[ ! -f `echo $SCAN | sed s@.nii@_sm3.nii@g` ]] ; then 
+				MASK=`echo $SCAN | sed s@'regress/'@'prestats/'@g | sed s@'_residualised.nii.gz'@'_mask.nii.gz'@g`
+				fslmaths $SCAN -s 3 `echo $SCAN | sed s@.nii@_sm3.nii@g`
+				fslmaths `echo $SCAN | sed s@.nii@_sm3.nii@g` -mul $MASK `echo $SCAN | sed s@.nii@_sm3.nii@g`
+				chmod ug+wrx `echo $SCAN | sed s@.nii@_sm3.nii@g` 
+			fi
+		done
 
 		echo "Extract Signal From Tissue Segmentations"
 		for SEGMENT_NIFTI in `find ${DIR_ROOT}/sub-${SUBJECT} -type f | grep prestats | grep segmentation.nii.gz` ; do

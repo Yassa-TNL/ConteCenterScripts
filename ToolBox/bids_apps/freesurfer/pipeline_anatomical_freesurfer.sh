@@ -5,7 +5,7 @@
 #$ -ckpt restart
 ################
 
-module load singularity/3.0.0
+module load singularity/3.0.0 freesurfer/6.0
 
 DIR_LOCAL_SCRIPTS=$1
 DIR_LOCAL_BIDS=$2
