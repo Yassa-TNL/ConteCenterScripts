@@ -1,0 +1,113 @@
+#!/bin/csh -f
+#############
+
+### Load Software and Login to Flywheel with User-specific API Key
+if ( ! -f /data/asimmons/data/Conte/rawdata/flywheel/fw-login_${USER}.txt) then
+	echo '!       User-Specifc API Token Not Found - Login to Flywheel to Find it thrn Use commands Below      !'
+	echo '! echo set FW_API_KEY="YOURTOKEN" > /data/asimmons/data/Conte/rawdata/flywheel/fw-login_${USER}.txt  !'
+	echo '! chmod 700 /data/asimmons/data/Conte/rawdata/flywheel/fw-login_${USER}.txt                          !'
+	exit
+else
+	setenv PATH ${PATH}:"/data/asimmons/data/Conte/rawdata/flywheel"
+	source /data/asimmons/data/Conte/rawdata/flywheel/fw-login_${USER}.txt ; fw login "${FW_API_KEY}"
+endif
+
+foreach DIR (`echo /data/asimmons/data/Conte/rawdata/dicoms/*`)
+	set DICOM=`ls $DIR/e*/s*/*.MRDC.* | head -n1`
+	set SUBID=`dicom_hdr $DICOM | grep 'PAT Patient ID' | awk '{print $9}' | cut -d '/' -f3`
+	if ( ! -f `echo $DIR/sub-${SUBID}/ses-UCSD/*/*.nii.gz | tr ' ' '\n' | head -n1` ) then
+		echo "############################################"
+		echo "###        NOW WORKING ON $SUBID         ###"
+		echo "############################################"
+		set OUTDIR=$DIR/sub-${SUBID}/ses-UCSD ;  mkdir -p $OUTDIR/temp
+		
+		### Converting Dicoms to Niftis
+		foreach SEQUENCE (`echo $DIR/e*/s*`)
+			dcm2niix $SEQUENCE >& /tmp/fl
+			mv `ls -t $SEQUENCE/* | grep .nii | head -n1` $OUTDIR/temp
+			mv `ls -t $SEQUENCE/* | grep .json | head -n1` $OUTDIR/temp
+			if ( -f `ls $SEQUENCE/* | grep .bval |head -n1` ) then
+				mv `ls -t $SEQUENCE/* | grep .bval | head -n1` $OUTDIR/temp
+				mv `ls -t $SEQUENCE/* | grep .bvec | head -n1` $OUTDIR/temp	
+			endif
+		end
+		mkdir -p $OUTDIR/anat $OUTDIR/fmap $OUTDIR/func $OUTDIR/dwi
+		rm `find $DIR/e*/s* -type f | grep -v .MRDC.`
+
+		### Relabing Files Into BIDs Data Structure
+		foreach SCAN (`echo $OUTDIR/temp/*.nii`)
+			if ( $SCAN =~ "*anat-T1w*" ) then
+				cp $SCAN $OUTDIR/anat/sub-${SUBID}_ses-UCSD_T1w.nii.gz
+				cp `echo $SCAN | sed s@.nii@.json@g` $OUTDIR/anat/sub-${SUBID}_ses-UCSD_T1w.nii.gz.json
+			else if ( $SCAN =~ "*topup_rvs*" ) then
+				cp $SCAN $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dir-AP_epi.nii.gz
+				cp `echo $SCAN | sed s@.nii@.json@g` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dir-AP_epi.json
+			else if ( $SCAN =~ "*topup_fwd*" ) then
+				cp $SCAN $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dir-PA_epi.nii.gz
+				cp `echo $SCAN | sed s@.nii@.json@g` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dir-PA_epi.json
+			endif
+		end
+
+		foreach SCAN (`echo $DIR/*Diffusion_Field_Map*.nii.gz | head -n1`)
+			cp ${SCAN} $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dwi.nii.gz
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*Diffusion_Field_Map*.json | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dwi.json
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*Diffusion_Field_Map*.bval | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dwi.bval
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*Diffusion_Field_Map*.bvec | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_dwi.bvec
+		end
+
+		foreach SCAN (`echo $DIR/*fmap-magnitude1*.nii.gz | head -n1`)
+			cp ${SCAN} $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_acq-phase_dir-PA_dwi.nii.gz
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*magnitude1_acq-dirPA*.json | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_acq-phase_dir-PA_dwi.json
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*magnitude1_acq-dirPA*.bval | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_acq-phase_dir-PA_dwi.bval
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*magnitude1_acq-dirPA*.bvec | tail -n1` $OUTDIR/fmap/sub-${SUBID}_ses-UCSD_acq-phase_dir-PA_dwi.bvec
+		end
+
+		foreach SCAN (`echo $DIR/*DWI_acq*.nii.gz`)
+			if ( $SCAN =~ "*DWI_acq-b500*" ) then
+				cp `ls $DIR/*DWI_acq-b500*.nii.gz | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b500_dwi.nii.gz
+				cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*DWI_acq-b500*.json | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b500_dwi.json
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b500_bvals.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b500_dwi.bval
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b500_bvecs.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b500_dwi.bvec
+			else if ( $SCAN =~ "*DWI_acq-b1500*" ) then
+				cp `ls $DIR/*DWI_acq-b1500*.nii.gz | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b1500_dwi.nii.gz
+				cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*DWI_acq-b1500*.json | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b1500_dwi.json
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b1500_bvals.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b1500_dwi.bval
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b1500_bvecs.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b1500_dwi.bvec
+			else if ( $SCAN =~ "*DWI_acq-b3000*" ) then
+				cp `ls $DIR/*DWI_acq-b3000*.nii.gz | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b3000_dwi.nii.gz
+				cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*DWI_acq-b3000*.json | tail -n1` $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b3000_dwi.json
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b3000_bvals.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b3000_dwi.bval
+				cp /data/asimmons/data/Conte/rawdata/flywheel/conte_b3000_bvecs.1D $OUTDIR/dwi/sub-${SUBID}_ses-UCSD_acq-b3000_dwi.bvec
+			endif
+		end
+
+		foreach SCAN (`echo $DIR/*func_task-REST_bold*.nii.gz | head -n1`)
+			cp ${SCAN} $OUTDIR/func/sub-${SUBID}_ses-UCSD_task-rest_bold.nii.gz
+			cp `echo $DIR/sub-${SUBID}/ses-UCSD/temp/*func_task-REST_bold*.json | tail -n1` $OUTDIR/func/sub-${SUBID}_ses-UCSD_task-rest_bold.json
+		end
+
+		set INDEX=0
+		foreach SCAN (`echo $DIR/*_task-Bandit_*.nii.gz`)
+			set INDEX=`expr $INDEX + 1`
+			set JSON=`echo $DIR/sub-${SUBID}/ses-UCSD/temp/*_task-Bandit_*.json | tr ' ' '\n' | head -n${INDEX} | tail -n1`
+			cp $SCAN $OUTDIR/func/sub-${SUBID}_ses-UCSD_task-bandit_run-${INDEX}_bold.nii.gz
+			cp ${JSON} $OUTDIR/func/sub-${SUBID}_ses-UCSD_task-bandit_run-${INDEX}_bold.json
+		end
+		if ( -f `find $DIR/behav -iname *.txt | tail -n1` ) then
+			cp `find $DIR/behav -iname *.txt | tail -n1` $OUTDIR/func/sub-${SUBID}_ses-UCSD_task-bandit_run-${INDEX}_events.tsv
+		endif
+
+		### Uploading BIDs Data Structure to Flywheel
+		set UPLOAD=/data/asimmons/data/Conte/rawdata/bids/spooling 
+		find $OUTDIR -type d -empty -delete ; rm -rf $OUTDIR/temp
+		mkdir -p ${UPLOAD} ; cp -r ${DIR}/sub-${SUBID} ${UPLOAD}
+		#fw import folder ${UPLOAD} --group "yassalab" --project "Conte-Two-UCSD" #Enable if you want to manually upload each subject
+		expect /data/asimmons/data/Conte/rawdata/FW-Process.exp ${UPLOAD} yassalab Conte-Two-UCSD
+		rm -rf /data/asimmons/data/Conte/rawdata/bids/sub-${SUBID} ; rm audit*.csv
+		mv ${UPLOAD}/sub-${SUBID} /data/asimmons/data/Conte/rawdata/bids ; rmdir ${UPLOAD}
+	endif
+end
+
+###################################################################################
+#####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡ #####
+###################################################################################
