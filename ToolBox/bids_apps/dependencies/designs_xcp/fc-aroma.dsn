@@ -89,7 +89,7 @@ regress_smo[3]=6
 regress_sptf[3]=susan
 regress_usan[3]=default
 regress_usan_space[3]=
-regress_rerun[3]=0
+regress_rerun[3]=1
 regress_cleanup[3]=1
 regress_process[3]=DMT-TMP-REG
 
