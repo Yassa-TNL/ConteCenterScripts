@@ -11,12 +11,10 @@ import warnings, operator, subprocess, nipype, nibabel as nib
 import re, os, os.path, sys, glob, json, fnmatch, shutil
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-DIR_LOCAL_DICOMS=str(sys.argv[1])
-DIR_LOCAL_BIDS=str(sys.argv[2])
-OPT_MERGE_TASKxRUNS=str(sys.argv[3])
-OPT_GEN_FMAP_FUNC=str(sys.argv[4])
-OPT_GEN_FMAP_DWI=str(sys.argv[5])
-OPT_ADD_DEFAULT_ST=str(sys.argv[6])
+DIR_PROJECT=str(sys.argv[1])
+OPT_GEN_FMAP_FUNC=str(sys.argv[2])
+OPT_GEN_FMAP_DWI=str(sys.argv[3])
+OPT_ADD_DEFAULT_ST=str(sys.argv[4])
 
 ########################################################
 ### Define Data Structure and Files For All Subjects ###
@@ -37,38 +35,12 @@ def directory_structure(directory):
 			file_paths.append(filepath)
 	return file_paths
 
-for DIR_SUB in glob.glob("{}/*/sub-*".format(DIR_LOCAL_DICOMS)):
+for DIR_SUB in glob.glob("{}/bids/sub-*".format(DIR_PROJECT)):
 	ANAT_SCANS=list(filter(lambda x:'/anat/sub-' in x, directory_structure(DIR_SUB)))
 	DWI_SCANS=list(filter(lambda x:'/dwi/sub-' in x, directory_structure(DIR_SUB)))
 	FMAP_SCANS=list(filter(lambda x:'/fmap/sub-' in x, directory_structure(DIR_SUB)))
 	FUNC_SCANS=list(filter(lambda x:'/func/sub-' in x, directory_structure(DIR_SUB)))
-	
-######################################################################
-### If Specified Combine FUNC Scans Into Single 4D BOLD NIFTI File ###
-######################################################################
-	
-	try:
-		for COMBINE_RUN in OPT_MERGE_TASKxRUNS.split(" "):
-			FILES=list(filter(lambda x: COMBINE_RUN.split("x")[0] in x, FUNC_SCANS))
-			if COMBINE_RUN == TRUE and len(FILES)/2 == float(COMBINE_RUN.split("x")[1]):
-				M = Merge()
-				M.inputs.in_files=list(filter(lambda x: ".nii.gz" in x, FILES))
-				M.inputs.dimension= 't'
-				M.inputs.output_type= 'NIFTI_GZ'
-				M.inputs.merged_file="_".join([x for x in M.inputs.in_files[0].split("_") if "run-" not in x])
-				M.run()
-				JSON_OLD_LABEL=FILES[0].replace(".nii.gz",".json")	
-				JSON_NEW_LABEL=M.inputs.merged_file.replace(".nii.gz",".json")
-				CONTENT=json.load(open(JSON_OLD_LABEL), object_pairs_hook=OrderedDict)
-				CONTENT["ProtocolName"] = "_".join([x for x in CONTENT.get("ProtocolName").split("_") if "run-" not in x])
-				CONTENT["SeriesDescription"] = "_".join([x for x in CONTENT.get("SeriesDescription").split("_") if "run-" not in x])
-				json.dump(CONTENT, open(JSON_NEW_LABEL, "w"), indent=12)
-				for FILE in FILES:
-					os.remove(FILE)
-				FUNC_SCANS=list(filter(lambda x:'/func/sub-' in x, directory_structure(DIR_SUB)))
-	except (NameError) as error:
-		pass
-	
+		
 ######################################################
 ### If Specified Create FMAP From FUNC NIFTI Files ###
 ######################################################
@@ -214,12 +186,14 @@ for DIR_SUB in glob.glob("{}/*/sub-*".format(DIR_LOCAL_DICOMS)):
 #################################################################
 
 	for TYPE in " ".join(list(set([x for x in "_".join(FMAP_SCANS).split("_") if ".nii.gz" in x]))).replace(".nii.gz","").split(" "):
+		if TYPE == "":
+			break
 		if TYPE == "epi" and FMAP_SCANS and FUNC_SCANS:
 			FILES=[x for x in FUNC_SCANS if ".nii.gz" in x]
 		if TYPE == "dwi" and FMAP_SCANS and DWI_SCANS:	
 			FILES=[x for x in DWI_SCANS if ".nii.gz" in x]
 		SUBID=os.path.basename(DIR_SUB).replace("sub-","")
-		INTENT="@".join(FILES).replace("{}/{}/sub-{}/".format(DIR_LOCAL_DICOMS,SUBID,SUBID),"").split("@")
+		INTENT="@".join(FILES).replace("{}/sub-{}/sub-{}/".format(DIR_PROJECT,SUBID,SUBID),"").split("@")
 		for JSON in [x for x in FMAP_SCANS if "{}.json".format(TYPE) in x]:
 			CONTENT=json.load(open(JSON), object_pairs_hook=OrderedDict)
 			CONTENT["IntendedFor"] = INTENT
@@ -266,13 +240,13 @@ for DIR_SUB in glob.glob("{}/*/sub-*".format(DIR_LOCAL_DICOMS)):
 	
 	for FILE in directory_structure(DIR_SUB):
 		os.chmod(FILE, 0o773)
-	shutil.move(DIR_SUB, DIR_LOCAL_BIDS)
+	shutil.move(DIR_SUB, "{}/bids".format(DIR_PROJECT))
 	
 #############################################
 ### Create Dataset Description If Missing ###
 #############################################
 	
-DATASET_DESCRIPTION="{}/dataset_description.json".format(DIR_LOCAL_BIDS)
+DATASET_DESCRIPTION="{}/bids/dataset_description.json".format(DIR_PROJECT)
 if not os.path.exists(DATASET_DESCRIPTION):
 	print("Creating Blank Dataset Description -- Please Update!")
 	DESCRIPTION = {'Name': 'BLANK', "BIDSVersion": "1.0.2", "Authors": [ "BLANK" ], "Acknowledgements":[ "BLANK" ], "HowToAcknowledge": "BLANK", "Funding": [ "BLANK" ], "ReferencesAndLinks": [ "BLANK" ], "DatasetDOI": "BLANK" }

@@ -1,7 +1,7 @@
 #!/bin/bash
 ###########
 
-DIR_LOCAL_DICOMS=$1
+DIR_PROJECT=$1
 FILE_CONFIG=$2
 OPT_LONGITUDINAL=$3
 OPT_RM_DICOMS=$4
@@ -11,17 +11,15 @@ OPT_RM_DICOMS=$4
 #######################################
 
 x=0 ; i=0
-for ROOT_DIR in `echo ${DIR_LOCAL_DICOMS}/*/Dicoms | sed s@"/Dicoms"@""@g` ; do
-
+for ROOT_DIR in `echo ${DIR_PROJECT}/sub-*/dicoms | tr ' ' '\n' | sed s@"/dicoms$"@""@g` ; do
 	if [ ! -d $ROOT_DIR/sub-* ] ; then
-		
-		NEEDS_COVERTING[i]=`echo $ROOT_DIR/Dicoms`
+		NEEDS_COVERTING[i]=`echo $ROOT_DIR/dicoms`
 		SUBJECTS[x]=`basename $ROOT_DIR`
 		(( i++ ))
 		(( x++ ))
 	fi
 done
-echo "Subjects To Be Coverted: ${SUBJECTS[@]}" | tr '\n' ' '
+echo "Subjects To Be Coverted: ${SUBJECTS[@]}"
 echo
 
 ####################################
@@ -29,39 +27,32 @@ echo
 ####################################
 
 for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
-
-	SUBID=`echo $DICOMS | rev | cut -d '/' -f2 | rev`
+	SUBID=`echo $DICOMS | rev | cut -d '/' -f2 | rev | cut -d '-' -f2`
 	echo "Now Coverting Dicoms to BIDS for ${SUBID}"
 	if [[ -z $OPT_LONGITUDINAL || $OPT_LONGITUDINAL == "FALSE" ]] ; then
-
-		dcm2bids -d ${DIR_LOCAL_DICOMS}/${SUBID}/Dicoms \
+		dcm2bids -d ${DIR_PROJECT}/sub-${SUBID}/dicoms \
 			-p ${SUBID} \
 			-c ${FILE_CONFIG} \
-			-o ${DIR_LOCAL_DICOMS}/${SUBID} \
+			-o ${DIR_PROJECT}/sub-${SUBID} \
 			--forceDcm2niix \
 			--clobber 
-
 	elif [[ $OPT_LONGITUDINAL == *sub* && $OPT_LONGITUDINAL == *ses* ]] ; then
-
 		delimiter=`echo $OPT_LONGITUDINAL | sed s@'sub'@@g | sed s@"ses"@@g`
 		sub=`echo $SUBID | cut -d "delimiter" -f1`
 		ses=`echo $SUBID | cut -d "delimiter" -f2`
-		
-		dcm2bids -d ${DIR_LOCAL_DICOMS}/${SUBID}/Dicoms \
+		dcm2bids -d ${DIR_PROJECT}/sub-${SUBID}/dicoms \
 			-p ${sub} \
 			-s ${ses} \
 			-c ${FILE_CONFIG} \
-			-o ${DIR_LOCAL_DICOMS}/${SUBID} \
+			-o ${DIR_PROJECT}/sub-${SUBID} \
 			--forceDcm2niix \
 			--clobber 
-
 	else
-
-		dcm2bids -d ${DIR_LOCAL_DICOMS}/${SUBID}/Dicoms \
+		dcm2bids -d ${DIR_PROJECT}/sub-${SUBID}/dicoms \
 			-p ${SUBID} \
 			-s ${OPT_LONGITUDINAL} \
 			-c ${FILE_CONFIG} \
-			-o ${DIR_LOCAL_DICOMS}/${SUBID} \
+			-o ${DIR_PROJECT}/sub-${SUBID} \
 			--forceDcm2niix \
 			--clobber 
 	fi
@@ -71,7 +62,7 @@ for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
 ######################################################
 
 	echo "Checking Phase Encoding Directions of Field Maps For ${SUBID}"
-	DIR_LOCAL_FMAP=`find ${DIR_LOCAL_DICOMS}/${SUBID}/sub-${SUBID} -iname fmap`
+	DIR_LOCAL_FMAP=`find ${DIR_PROJECT}/sub-${SUBID}/sub-${SUBID} -iname fmap`
 	if [[ -d ${DIR_LOCAL_FMAP} && -f `echo $DIR_LOCAL_FMAP/*_dir-* | cut -d ' ' -f1` ]] ; then
 		PHASE_DIRECTIONS="AP_j- PA_j"
 		for DIRECTION in $PHASE_DIRECTIONS ; do
@@ -82,8 +73,8 @@ for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
 					FILE_PHASE=`cat $JSON | grep "PhaseEncodingDir" | grep -v "InPlane" | awk '{$1=$1;print}' | cut -d ' ' -f2 | sed s@'"'@@g | sed s@','@@g`
 					if [[ $FILE_PHASE != ${DIRECTION} ]] ; then
 						PROBLEMATIC_FILES=`echo $JSON | sed s@'json'@'*'@g`
-						mkdir -p ${DIR_LOCAL_DICOMS}/${SUBID}/tmp_wrongphase
-						mv $PROBLEMATIC_FILES ${DIR_LOCAL_DICOMS}/${SUBID}/tmp_wrongphase/
+						mkdir -p ${DIR_PROJECT}/sub-${SUBID}/tmp_wrongphase
+						mv $PROBLEMATIC_FILES ${DIR_PROJECT}/sub-${SUBID}/tmp_wrongphase
 					elif [[ $JSON == *"_run-"* ]] ; then
 						FILEINDEX=`basename ${JSON} |  awk '{A=gsub(/_/,X,$0)} END {print A}'`
 						if [ ${FILEINDEX} == 3 ] ; then
@@ -100,7 +91,7 @@ for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
 			done
 		done
 		if [[ ! "$(ls -A $DIR_LOCAL_FMAP)" ]] ; then 
-			rm -rf DIR_LOCAL_FMAP
+			rm -rf $DIR_LOCAL_FMAP
 		fi
 	fi
 
@@ -109,10 +100,9 @@ for DICOMS in `echo ${NEEDS_COVERTING[@]}` ; do
 ######################################
 
 	echo "Reorganizing Directory Structure for ${SUBID}"
-	rm -rf ${DIR_LOCAL_DICOMS}/${SUBID}/scitran
-	chmod -R ug+wrx ${DIR_LOCAL_DICOMS}/${SUBID}
+	chmod -R ug+wrx  ${DIR_PROJECT}/sub-${SUBID}
 	if [[ $OPT_RM_DICOMS == TRUE ]] ; then
-		rm -rf ${DIR_LOCAL_DICOMS}/${SUBID}/DICOMs
+		rm -rf ${DIR_PROJECT}/sub-${SUBID}/dicoms
 	fi
 
 done
