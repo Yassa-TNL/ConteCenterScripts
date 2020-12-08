@@ -68,8 +68,8 @@ write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_EVCont_AMG.c
 MDD<-read.csv(paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_EVCont_AMG.csv"))
 MDD<-MDD[,c("sub","AgeAtScan","Gender","PreMood_Ent","PreMood_Lvl","scl.CDI_MD","FD_MEAN_AMG","FD_MEAN_REST1","FD_MEAN_REST2")]
 
-for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis"), pattern="dim-12_sm3")){
-	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/Dual_Regress_Analysis/",DIM)
+for (DIM in list.files(path=paste0(DIR_PROJECT,"/analyses/IntraFlux/n138_IntraFlux.dualreg"), pattern="dim-12_sm3")){
+	BASE_DIR=paste0(DIR_PROJECT,"/analyses/IntraFlux/n138_IntraFlux.dualreg/",DIM)
 	MEAN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated_mean")
 	EIGEN_FILES=list.files(path=BASE_DIR,full.names=T, recursive=T,pattern="aggregated_eigen")
 	MEAN_MASTER<-data.frame(matrix(ncol = dim(read.csv(MEAN_FILES[1]))[2], nrow = 0))
