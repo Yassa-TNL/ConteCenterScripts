@@ -38,6 +38,7 @@ for DIR in `echo ${DIR_PROJECT}/bids/* | tr ' ' '\n' | grep sub-` ; do
 	fi
 done
 
+
 if [[ -f ${OPT_GUID_FILE} ]] ; then
 	echo "Generating NDA Upload Report"
 	bids2nda ${DIR_PROJECT}/bids ${OPT_GUID_FILE} ${OUTPUT_DIR}

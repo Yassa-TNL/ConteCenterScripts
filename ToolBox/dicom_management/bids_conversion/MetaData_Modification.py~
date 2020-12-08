@@ -209,6 +209,11 @@ for DIR_SUB in glob.glob("{}/sub-*/sub-*".format(DIR_PROJECT)):
 #######################################################
 ### Ensure FMAPS Consist of Single Volume Per NIFTI ###
 #######################################################
+try:
+	NIFTI=nib.load("/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-Two/dicoms/UCSD/sub-1178/sub-1178/ses-UCSD/fmap/sub-1178_ses-UCSD_dir-PA_epi.nii.gz")
+except:
+	pass
+
 
 	if list(filter(lambda x: "epi.nii.gz" in x, FMAP_SCANS)):
 		for FMAP_NIFTI in list(filter(lambda x: "epi.nii.gz" in x, FMAP_SCANS)):

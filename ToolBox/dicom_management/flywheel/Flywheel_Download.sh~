@@ -13,14 +13,12 @@ fw login ${FLYWHEEL_API_TOKEN}
 ##################################################
 
 ls -l ${DIR_PROJECT}/bids | grep '^d' | awk '{print $9}' | sed s@'sub-'@@g > SUBS_LOCAL.txt
-for UPLOAD in `fw ls ${DIR_FLYWHEEL} | grep -v files  | awk {'print $2'}` ; do
-	if [[ ! -z `echo $UPLOAD | cut -d '-' -f2` ]] ; then
-		fw ls ${DIR_FLYWHEEL}/${UPLOAD} | tr ' ' ',' | grep -v files > temp.txt
-		if [ -s temp.txt ] ; then
-			echo $UPLOAD >> SUBS_FLYWHEEL.txt
-		fi
-		rm temp.txt
+for UPLOAD in `fw ls ${DIR_FLYWHEEL} | awk {'print $2'}  | grep -v files` ; do
+	fw ls ${DIR_FLYWHEEL}/${UPLOAD} | tr ' ' ',' | grep -v files > temp.txt
+	if [ -s temp.txt ] ; then
+		echo $UPLOAD >> SUBS_FLYWHEEL.txt
 	fi
+	rm temp.txt
 done
 
 if [ ! -z `echo ${OPT_SUB_EXCLUDE} | cut -d ' ' -f1` ] ; then
