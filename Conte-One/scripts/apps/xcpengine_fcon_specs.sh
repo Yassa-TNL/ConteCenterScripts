@@ -5,9 +5,9 @@ DIR_TOOLBOX=/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox
 DIR_PROJECT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One
 
 mkdir -p $DIR_PROJECT/apps/xcp-fcon $DIR_PROJECT/datasets
-module purge ; module load anaconda/2.7-4.3.1 singularity/3.3.0 R/3.5.3 fsl/6.0.1
-source ~/Settings/MyPassCodes.sh
-source ~/Settings/MyCondaEnv.sh
+module purge ; module load anaconda singularity R fsl
+#source ~/Settings/MyPassCodes.sh
+#source ~/Settings/MyCondaEnv.sh
 #conda activate local
 
 ########################################################
@@ -69,7 +69,7 @@ if [[ -f $SCRIPT_XCP_FCON && ! -z $TASK_LABELS && -d $DIR_PROJECT/apps/fmriprep 
 		DIM1=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep space-${TEMPLATE_LABEL}_desc-preproc_bold.nii.gz | head -n1` | grep ^dim1  | awk '{print $2}')
 		DIM2=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep space-${TEMPLATE_LABEL}_desc-preproc_bold.nii.gz | head -n1` | grep ^dim2  | awk '{print $2}')
 		DIM3=$(fslinfo `find ${DIR_PROJECT}/apps/fmriprep | grep space-${TEMPLATE_LABEL}_desc-preproc_bold.nii.gz | head -n1` | grep ^dim3  | awk '{print $2}')
-		module load mrtrix/3.0_RC3
+		module load mrtrix3/3.0.2
 		for NIFTI in `ls $DIR_TOOLBOX/bids_apps/atlases/tpl-${TEMPLATE_LABEL}*T1w.nii.gz` ; do
 			mrresize -size ${DIM1},${DIM2},${DIM3} ${NIFTI} ${NIFTI} -force
 		done
@@ -96,7 +96,7 @@ if [[ -f $SCRIPT_XCP_FCON && ! -z $TASK_LABELS && -d $DIR_PROJECT/apps/fmriprep 
 				echo "########################################################"
 				echo "Submitting XCPEngine Job ${JOBNAME} For Post-Processing "
 				echo "########################################################"
-				qsub -N $JOBNAME $SCRIPT_XCP_FCON $DIR_TOOLBOX $DIR_PROJECT $TEMPLATE_SPACE "${PIPE_LABELS}" $SUBJECT $TASK_LABEL
+				echo "qsub -N $JOBNAME $SCRIPT_XCP_FCON $DIR_TOOLBOX $DIR_PROJECT $TEMPLATE_SPACE "${PIPE_LABELS}" $SUBJECT $TASK_LABEL"
 			fi
 		done
 	done
