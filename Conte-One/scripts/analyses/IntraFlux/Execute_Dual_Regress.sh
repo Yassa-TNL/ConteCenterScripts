@@ -1,8 +1,8 @@
 #! /bin/bash
 ############
 
-DIR_TOOLBOX=/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox
-DIR_PROJECT=/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One
+DIR_TOOLBOX=/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/ToolBox
+DIR_PROJECT=/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One
 
 module purge ; module load anaconda/2.7-4.3.1 singularity/3.3.0 R/3.5.3 fsl/6.0.1
 source ~/Settings/MyPassCodes.sh
@@ -27,7 +27,7 @@ unset SGE_ROOT ; module purge ; module load fsl/6.0.1
 
 for SUBJECT in `cat $FILE_COHORT  | cut -d '/' -f10 | sort | uniq` ; do
 
-	dual_regression $GROUP_ICA_NIFTI 1 -1 5000 $OUTPUT_DIR/$SUBJECT `cat $FILE_COHORT | grep "regress/${SUBJECT}_"`
+	#dual_regression $GROUP_ICA_NIFTI 1 -1 5000 $OUTPUT_DIR/$SUBJECT `cat $FILE_COHORT | grep "regress/${SUBJECT}_"`
 
 	DATAFRAME1=`echo $OUTPUT_DIR/$SUBJECT/stats/aggregated_mean_${SUBJECT}.csv`
 	DATAFRAME2=`echo $OUTPUT_DIR/$SUBJECT/stats/aggregated_eigen_${SUBJECT}.csv`
@@ -39,8 +39,9 @@ for SUBJECT in `cat $FILE_COHORT  | cut -d '/' -f10 | sort | uniq` ; do
 	INDEX=0
 	for NETWORK in $OUTPUT_DIR/$SUBJECT/dr_stage2_ic*.nii.gz ; do
 		INDEX=$((INDEX+1))
-		fslmeants -i $NETWORK -o $OUTPUT_DIR/$SUBJECT/stats/network${INDEX}.txt
-		fslmeants -i $NETWORK --eig -o $OUTPUT_DIR/$SUBJECT/stats/network_eig_${INDEX}.txt
+		ALLMASK=$(ls `dirname $NETWORK`/maskALL.nii.gz)
+		fslmeants -i $NETWORK -m $ALLMASK -o $OUTPUT_DIR/$SUBJECT/stats/network${INDEX}.txt
+		fslmeants -i $NETWORK -m $ALLMASK --eig -o $OUTPUT_DIR/$SUBJECT/stats/network_eig_${INDEX}.txt
 		HEADER=`echo COMP${INDEX}_REST1,COMP${INDEX}_AMG,COMP${INDEX}_REST2,`
 		DATA1=`cat $OUTPUT_DIR/$SUBJECT/stats/network${INDEX}.txt | tr '\n' ',' | sed s@' '@''@g`
 		sed -i "s@`head -n1 ${DATAFRAME1}`@`echo $(head -n1 ${DATAFRAME1})$HEADER`@g" ${DATAFRAME1} > /dev/null 2>&1

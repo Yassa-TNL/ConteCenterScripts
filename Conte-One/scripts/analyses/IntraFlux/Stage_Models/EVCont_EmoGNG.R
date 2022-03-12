@@ -3,14 +3,14 @@
 
 print("Reading Arguments")
 
-covaPath <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/EVCont.csv" 
-inputPath <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/EmoGNG.csv"
-OutDirRoot <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods"
-DATASETS<-list.files("/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux",pattern="Aggregate",full.names=TRUE)
+covaPath <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/EVCont.csv" 
+inputPath <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/EmoGNG.csv"
+OutDirRoot <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods"
+DATASETS<-list.files("/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux",pattern="Aggregate",full.names=TRUE)
 DATASETS<-DATASETS[grepl("EVCont_AMG",DATASETS)]
-m1 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl"
-m2 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Ent"
-m3 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl+PreMood_Ent"
+m1 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl+ME_INR"
+m2 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Ent+ME_INR"
+m3 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl+PreMood_Ent+ME_INR"
 m4 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl+Gender*PreMood_Ent"
 m5 <- "~AgeAtScan+Gender+FD_MEAN_AMG+PreMood_Lvl+AgeAtScan*PreMood_Ent"
 MODELS <- list(m1,m2,m3,m4,m5)
@@ -51,7 +51,7 @@ for (covsFormula in MODELS){
 
 	print("Loading Covariates Dataset")
 	covaData<-read.csv(DATASETS)
-	covaData<-covaData[,c("sub","ses","AgeAtScan","Gender","FD_MEAN_AMG","scl.CDI_MD","PreMood_Lvl","PreMood_Ent")]
+	covaData<-covaData[,c("sub","ses","AgeAtScan","Gender","FD_MEAN_AMG","scl.CDI_MD","PreMood_Lvl","PreMood_Ent","ME_INR")]
 	if (any(colnames(covaData) == "X")) {
 		covaData$X<-NULL
 	}

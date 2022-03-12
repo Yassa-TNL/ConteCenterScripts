@@ -184,42 +184,40 @@ write.csv(AMG,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_TIME_AMG.csv"),r
 write.csv(REST2,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_TIME_REST2.csv"),row.names=FALSE)
 write.csv(LONG,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_ALFF_Longitudinal.csv"),row.names=FALSE)
 
-#########################################################
-##### Calculate the Standarad Deviation Per Network #####
-#########################################################
+##############################################################
+##### Calculate Timeseries Metrics Across All fMRI Tasks #####
+##############################################################
 
-TIMESERIES <- data.frame(matrix(NA,nrow=0,ncol=9))
+CONTENT<-read.csv(list.files(path=paste0(DIR_PROJECT,"/datasets"), full.names=T, recursive=T, pattern = "aggregate_df.csv"))
+CONTENT<-CONTENT[which(CONTENT$IntraFlux_Inclusion == 1),c(1:2,17,18,20:22)]
+CONTENT$scl.CDI_MD<-as.numeric(CONTENT$scl.CDI_MD)
+CONTENT$Gender<-as.factor(CONTENT$Gender)
+TIMESERIES <- data.frame(matrix(NA,nrow=0,ncol=10))
 load(paste0(DIR_PROJECT,"/analyses/IntraFlux/GrowthCurveModeling/Final_LGCM_results.Rdata"))
-colnames(TIMESERIES)<-c("sub","AgeAtScan","Gender","PreMood_Ent","PreMood_Lvl","scl.CDI_MD","class.rchg.2.comp6","BOLD","Volume")
+colnames(TIMESERIES)<-c("sub","AgeAtScan","Gender","PreMood_Ent","PreMood_Lvl","scl.CDI_MD","class.rchg.2.comp6","FD_MEAN","BOLD","Volume")
 for (FILE in list.files(paste0(DIR_PROJECT,"/analyses/IntraFlux/n138_IntraFlux.time"),full.names=T,pattern="6_concat.csv")){
 	SUBID<-gsub("sub-","",unlist(strsplit(basename(FILE),"_"))[1]) ; REFINE<-data2[which(data2$sub == SUBID),][1,]
 	REFINE<-REFINE[,c("sub","AgeAtScan","Gender","PreMood_Ent","PreMood_Lvl","scl.CDI_MD","class.rchg.2.comp6")]
+	REFINE$FD_MEAN<-NULL ; REFINE[1,"FD_MEAN"]<-mean(data2[which(data2$sub == SUBID),"FD_MEAN"])
 	REFINE<-REFINE[rep(1,430),] ; row.names(REFINE)<-NULL
 	TIME<-as.data.frame(t(suppressWarnings(read.table(FILE))))
 	TIME[,"Volume"]<-as.numeric(gsub("V","",row.names(TIME)))
-	row.names(TIME)<-NULL ; FINAL<-cbind(REFINE,TIME) ; names(FINAL)[8]<-"BOLD"
+	row.names(TIME)<-NULL ; FINAL<-cbind(REFINE,TIME) ; names(FINAL)[9]<-"BOLD"
 	TIMESERIES<-rbind(TIMESERIES,FINAL) 
 }
-
 TIMESERIES$class.rchg.2.comp6<-as.factor(TIMESERIES$class.rchg.2.comp6)
-ggplot(TIMESERIES, aes(x=Volume,y=BOLD,group=sub,color=class.rchg.2.comp6)) + geom_line(size=0.2,alpha=0.8) + geom_abline(intercept=0,slope=0) + theme_classic() + scale_color_manual(values=c("#000000","#FF0000"))
-
 TIMESERIES$COLOR<-0
 TIMESERIES[which(TIMESERIES$Volume < 151),"COLOR"]<-1
 TIMESERIES[which(TIMESERIES$Volume > 150),"COLOR"]<-2
 TIMESERIES[which(TIMESERIES$Volume > 280),"COLOR"]<-3
 TIMESERIES$COLOR<-as.factor(TIMESERIES$COLOR)
-ggplot(TIMESERIES, aes(x=Volume,y=BOLD,group=sub,color=COLOR)) + geom_line(size=0.1,alpha=0.8) + geom_abline(intercept=0,slope=0) + theme_classic() + facet_wrap(~class.rchg.2.comp6) + scale_color_manual(values=c("#0000FF","#FF0000","#008000"))
-
-###
-
 CONTENT$VARIABLE_CLUSTER<-1
 for (SUBID in unique(TIMESERIES$sub)){
 	CONTENT[which(CONTENT$sub == SUBID),"VARIABLE_CLUSTER"]<-data2[which(data2$sub == SUBID)[1],"class.rchg.2.comp6"]
+	CONTENT[which(CONTENT$sub == SUBID),"FD_MEAN"]<-TIMESERIES[which(TIMESERIES$sub == SUBID)[1],"FD_MEAN"]
 }
 CONTENT[which(CONTENT$VARIABLE_CLUSTER==2),"VARIABLE_CLUSTER"]<-0
 CONTENT$VARIABLE_CLUSTER<-as.factor(CONTENT$VARIABLE_CLUSTER)
-
 CONTENT$TIME_SD<-0 ; CONTENT$ALFF_MEAN<-0
 ALFF<-read.csv("/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/Aggregate_ALFF_Longitudinal.csv")
 for (FILE in list.files(paste0(DIR_PROJECT,"/analyses/IntraFlux/n138_IntraFlux.time"),full.names=T,pattern="6_concat.csv")){
@@ -227,14 +225,9 @@ for (FILE in list.files(paste0(DIR_PROJECT,"/analyses/IntraFlux/n138_IntraFlux.t
 	CONTENT[which(CONTENT$sub==SUBID),"TIME_SD"]<-sd(t(suppressWarnings(read.table(FILE)))[,1])
 	CONTENT[which(CONTENT$sub==SUBID),"ALFF_MEAN"]<-mean(ALFF[which(ALFF$sub == SUBID),"COMP6_ALFF"])
 }
-t.test(CONTENT$ALFF_MEAN~CONTENT$VARIABLE_CLUSTER) ; t.test(CONTENT$ALFF_MEAN~CONTENT$VARIABLE_CLUSTER)
-ggplot(CONTENT,aes(x=TIME_SD,y=brainage_DBN,group=sub))
 
-ggplot(CONTENT, aes(x=TIME_SD, fill=VARIABLE_CLUSTER)) + geom_density(alpha=.8) +scale_fill_manual(values=c("#FF0000","#000000")) + theme_classic()
-ggplot(CONTENT, aes(x=ALFF_MEAN, fill=VARIABLE_CLUSTER)) + geom_density(alpha=.8) +scale_fill_manual(values=c("#FF0000","#000000")) + theme_classic()
-
-write.csv(CONTENT,"/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/Aggregate_MASTER_20201216.csv",row.names=F)
-write.csv(TIMESERIES,"/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/Aggregate_TIME_20201216.csv",row.names=F)
+write.csv(CONTENT,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_MASTER_20201216.csv"),row.names=F)
+write.csv(TIMESERIES,paste0(DIR_PROJECT,"/analyses/IntraFlux/Aggregate_TIME_20201216.csv"),row.names=F)
 
 ###################################################################################################
 #####  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  ⚡  #####

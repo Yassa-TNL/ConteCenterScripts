@@ -20,7 +20,7 @@ for MASK in `ls $DIR_PROJECT/analyses/IntraFlux/n138_IntraFlux.gica/dim-12_sm3/s
 	fslmaths $MASK -thr 0.4 -bin $MASK_BIN
 done
 
-for INPUT in `cat $FILE_COHORT | cut -d '/' -f10,11 | sort | uniq | head -n69` ; do
+for INPUT in `cat $FILE_COHORT | cut -d '/' -f10,11 | sort | uniq` ; do
 	SUB=`echo $INPUT | cut -d '/' -f1 | sed s@'sub-'@''@g`
 	SES=`echo $INPUT | cut -d '/' -f2 | sed s@'ses-'@''@g`
 	SUBJECTS_DIR=$(echo `find $DIR_PROJECT/apps/freesurfer -maxdepth 2 -iname ${SUB}_tp${SES}` | sed s@"/${SUB}_tp${SES}"@""@g)

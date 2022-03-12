@@ -30,11 +30,11 @@ for NCOMP in `seq 1 1 12` ; do
 		INPUT3=$DIR_STUDY/apps/xcp-fcon/pipe-aroma_task-REST_run-2/sub-${SUB}/ses-${SES}/alff/*_alff.nii.gz
 		ALFF3=`fslmeants -i $INPUT3 -m $MASK -w`
 		echo $ALFF1 $ALFF2 $ALFF3 | tr ' ' '\n' > $DIR_PROJECT/n138_IntraFlux.alff/sub-${SUB}_net-${NCOMP}.csv
-		NIFTI1=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-REST_run-1`)
+		NIFTI1=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-REST_run-1 | sed s@_sm3@''@g`)
 		TIME1=`fslmeants -i $NIFTI1 -m $MASK -w`
-		NIFTI2=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-REST_run-1`)
+		NIFTI2=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-AMG | sed s@_sm3@''@g`)
 		TIME2=`fslmeants -i $NIFTI2 -m $MASK -w`
-		NIFTI3=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-REST_run-1`)
+		NIFTI3=$(echo /dfs7`cat $FILE_COHORT | grep $INPUT | grep task-REST_run-2 | sed s@_sm3@''@g`)
 		TIME3=`fslmeants -i $NIFTI3 -m $MASK -w`	
 		echo ${TIME1},${TIME2},${TIME3} | tr ',' '\n' > $DIR_PROJECT/n138_IntraFlux.time/sub-${SUB}_net-${NCOMP}.csv
 	done

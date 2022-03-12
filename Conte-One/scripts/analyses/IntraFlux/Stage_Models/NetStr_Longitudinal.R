@@ -2,15 +2,14 @@
 ######################
 
 print("Reading Arguments")
-
-covaPath <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/NetStr.csv" 
-inputPath <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/LONG.csv"
-OutDirRoot <- "/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods"
-DATASETS<-list.files("/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux",pattern="Aggregate",full.names=TRUE)
-DATASETS<-DATASETS[grepl("Longitudinal",DATASETS)]
-m1 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl"
-m2 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Ent"
-m3 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+PreMood_Ent"
+covaPath <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/NetStr.csv" 
+inputPath <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods/LONG.csv"
+OutDirRoot <- "/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux/n138_IntraFlux.mods"
+DATASETS<-list.files("/dfs7/dfs2/yassalab/rjirsara/ConteCenterScripts/Conte-One/analyses/IntraFlux",pattern="Aggregate",full.names=TRUE)
+DATASETS<-DATASETS[grepl("NetStr_Longitudinal.csv",DATASETS)]
+m1 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+ME_INR"
+m2 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Ent+ME_INR"
+m3 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+PreMood_Ent+ME_INR"
 m4 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+Gender*PreMood_Ent"
 m5 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+AgeAtScan*PreMood_Ent"
 m6 <- "~AgeAtScan+Gender+FD_MEAN+PreMood_Lvl+TASK*PreMood_Ent"
@@ -27,7 +26,6 @@ SaveDatasets=FALSE
 #####################
 
 print("Loading Libraries")
-
 suppressMessages(require(ggplot2))
 suppressMessages(require(base))
 suppressMessages(require(reshape2))
@@ -54,7 +52,7 @@ for (covsFormula in MODELS){
 	print(covsFormula)
 	print("Loading Covariates Dataset")
 	covaData<-read.csv(DATASETS)
-	covaData<-covaData[,c("sub","AgeAtScan","Gender","FD_MEAN","scl.CDI_MD","PreMood_Lvl","PreMood_Ent","TASK")]
+	covaData<-covaData[,c("sub","AgeAtScan","Gender","FD_MEAN","scl.CDI_MD","PreMood_Lvl","PreMood_Ent","TASK","ME_INR")]
 	if (any(colnames(covaData) == "X")) {
 		covaData$X<-NULL
 	}
@@ -73,7 +71,7 @@ for (covsFormula in MODELS){
 
 	print("Merging Datasets")
 	dataSubj <- cbind(covaData, inputData)
-	dataSubj<-dataSubj[-c(which(dataSubj$FD_MEAN > 0.5)),]
+	#dataSubj<-dataSubj[-c(which(dataSubj$FD_MEAN > 0.25)),]
 
 	print("Remove Missing Observations")
 	Predictors<-gsub("~", "",covsFormula)
