@@ -5,7 +5,7 @@
 #$ -ckpt restart
 ################
 
-module load singularity/3.0.0 fsl/6.0.1 
+module load singularity fsl 
 
 DIR_TOOLBOX=$1
 DIR_PROJECT=$2
@@ -80,7 +80,7 @@ for PIPE in `echo $PIPE_LABELS | tr '@' ' '` ; do
 
 	echo "Executing XCPEngine Pipeline"
 	for DIR_ROOT in `echo ${DIR_ROOT[@]} | tr ' ' '\n' | sort | uniq` ; do
-		echo "singularity run --cleanenv `ls -t $DIR_TOOLBOX/bids_apps/dependencies/xcpengine_v*.simg | head -n1` \
+		echo "singularity run --bind /dfs2,/data:/mnt --cleanenv `ls -t $DIR_TOOLBOX/bids_apps/dependencies/xcpengine_v*.simg | head -n1` \
 			-d $DIR_TOOLBOX/bids_apps/dependencies/designs_xcp/${PIPE} \
 			-c ${DIR_ROOT}/logs/${TODAY}/sub-${SUBJECT}_cohort.csv \
 			-o ${DIR_ROOT} \
