@@ -10,7 +10,7 @@ OPT_GUID_FILE=$2
 
 echo "Generating BIDs Validation Report"
 TODAY=`date "+%Y%m%d"` ; VERSION=`bids-validator -version`
-OUTPUT_DIR=$(echo `dirname $DIR_PROJECT`/audits) ; mkdir -p ${OUTPUT_DIR}
+OUTPUT_DIR=$DIR_PROJECT/audits ; mkdir -p ${OUTPUT_DIR}
 bids-validator ${DIR_PROJECT}/bids > ${OUTPUT_DIR}/${TODAY}_Report_v${VERSION}.txt
 chmod ug+wrx ${OUTPUT_DIR}/${TODAY}_Report_v${VERSION}.txt
 

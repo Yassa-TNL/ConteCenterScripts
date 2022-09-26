@@ -5,11 +5,6 @@
 #$ -ckpt restart
 ################
 
-module purge ; module load anaconda/2.7-4.3.1 singularity/3.3.0 R/3.5.3 fsl/6.0.1
-source ~/Settings/MyPassCodes.sh
-source ~/Settings/MyCondaEnv.sh
-conda activate local 
-
 DIR_TOOLBOX=$1
 DIR_PROJECT=$2
 DESIGN_CONFIG=$3
@@ -27,8 +22,6 @@ OPT_THRESH_MASK=$10
 
 #unset SGE_ROOT
 TODAY=`date "+%Y%m%d"`
-rm `echo ${TASK_LABEL}${SUBJECT} | cut -c1-10`.*
-rm ${DIR_PROJECT}/scripts/apps/sub-${SUBJECT}*_structmask.nii.gz
 if [[ $OPT_THRESH_TYPE == 'uncorrected' ]] ; then
 	THRESH_TYPE=1
 elif [[ $OPT_THRESH_TYPE == 'voxel' ]] ; then
@@ -93,7 +86,7 @@ for PIPE in `echo $DENOISE_PIPELINE | sed s@fc-@''@g | sed s@.dsn@''@g` ; do
 				FILE_COHORT=${DIR_ROOT[i]}/logs/${TODAY}/sub-${SUBJECT}_cohort.csv
 				mkdir -p ${DIR_ROOT[i]}/logs/${TODAY}/
 				INDEX_CONTRAST=0
-				for CONDITION in `cat ${TSV_FILE}_TEMP | awk '{print $3}' | sort | uniq` ; do
+				for CONDITION in `cat ${TSV_FILE}_TEMP | awk '{print $3}' | sort | uniq | grep -v 0` ; do
 					INDEX_CONTRAST=$((INDEX_CONTRAST + 1))
 					if [[ $DATA_STRUC != "Longitudinal"* ]] ; then
 						COHORT_HEADER=`echo "id0,img,task_design"`
@@ -116,7 +109,7 @@ for PIPE in `echo $DENOISE_PIPELINE | sed s@fc-@''@g | sed s@.dsn@''@g` ; do
 						cp $DESIGN_CONFIG $FILE_DESIGN
 					fi
 					cat $FILE_DESIGN | sed s@"EV${INDEX_CONTRAST}_FILE"@"${FILE_EVENT}"@g > ${FILE_DESIGN}_TEMP ; mv ${FILE_DESIGN}_TEMP ${FILE_DESIGN}
-					cat ${TSV_FILE}_TEMP | grep ${CONDITION} | sed s@$CONDITION@$INDEX_CONTRAST@g > $FILE_EVENT
+					cat ${TSV_FILE}_TEMP | grep ${CONDITION}$ | sed s@$CONDITION@$INDEX_CONTRAST@g > $FILE_EVENT
 				done
 				echo $COHORT_CONTENT >> $FILE_COHORT ; rm ${TSV_FILE}_TEMP
 				cat $DIR_TOOLBOX/bids_apps/dependencies/designs_xcp/task.dsn | sed s@'rps'@"${PIPE}"@g > ${DIR_ROOT[i]}/logs/${TODAY}/design.dsn
