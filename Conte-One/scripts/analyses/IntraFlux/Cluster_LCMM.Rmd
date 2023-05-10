@@ -1,0 +1,471 @@
+---
+title: "LCA on network strength data"
+output:
+  pdf_document: default
+  word_document:
+    reference_docx: RMD-word-styles-reference.docx
+---
+
+
+__Author__: Anton Palma, PhD, MPH  
+UC Irvine, Institute for Clinical and Translational Sciences  
+[Biostatistics, Epidemiology and Research Design (BERD) Unit](https://icts.uci.edu/services/berd1.php)  
+__Date__: `r format(Sys.Date(), "%B %e, %Y")`  
+
+***
+
+```{r load, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+
+fp.drive <- ifelse(file.exists("/Volumes/SANDISK/"), "/Volumes/SANDISK/", ifelse(file.exists("D:/3a. ICAP"), "D:/", ifelse(file.exists("E:/3a. ICAP"), "E:/", ifelse(file.exists("F:/3a. ICAP"), "F:/", NULL))))
+#source(paste0(fp.drive,"6. Resources/Software/R/libraries.R"))
+fp.root <- paste0(fp.drive,"3d. UCI/1. BERD/2. Projects/202007 Jirsaraie, Robert - Network strength/")
+fp.data <- paste0(fp.root,"Data/")
+fp.analysis <- paste0(fp.root,"Analysis/")
+
+require(readxl); require(tidyr); require(dplyr); require(plyr); require(knitr); require(pander); require(kableExtra); require(tables); require(ggplot2); require(cowplot); require(directlabels); require(viridis); require(RColorBrewer); require(ggsci); require(grid); require(gridExtra); require(rms); require(geepack); require(spind); require(doBy); require(emmeans); library(lme4); library(merTools); require(ggforce); require(epiDisplay); require(poLCA); require(lcmm)
+
+# Custom function to create empty list to store <gjrm> model objects from all models
+rec.list <- function(len){
+  if(length(len) == 1) vector("list", len) else lapply(1:len[1], function(...) rec.list(len[-1]))
+}
+
+#################
+### Load Data ###
+#################
+
+#read.csv()
+#data <- read.csv(paste0(fp.data,"n138_NetStr_20200729.csv"))
+data <- read.csv(paste0(fp.data,"Aggregate_NetStr_Longitudinal AP.csv"))
+
+
+
+### Recode
+data <- data %>% mutate(
+  timepoint = case_when(
+    TASK=="REST1" ~ 1,
+    TASK=="AMG" ~ 2,
+    TASK=="REST2" ~ 3
+  )
+) %>%
+  arrange(sub,timepoint) %>%
+  dplyr::rename(
+    COMP1 = COMP1_MEAN,
+    COMP2 = COMP2_MEAN,
+    COMP3 = COMP3_MEAN,
+    COMP4 = COMP4_MEAN,
+    COMP5 = COMP5_MEAN,
+    COMP6 = COMP6_MEAN,
+    COMP7 = COMP7_MEAN,
+    COMP8 = COMP8_MEAN,
+    COMP9 = COMP9_MEAN,
+    COMP10 = COMP10_MEAN,
+    COMP11 = COMP11_MEAN,
+    COMP12 = COMP12_MEAN,
+  )
+
+# Recode variable for change between time points
+data <- data %>%
+  mutate(
+    COMP1.chg = case_when(TASK!="REST1" ~ COMP1 - lag(COMP1)),
+    COMP2.chg = case_when(TASK!="REST1" ~ COMP2 - lag(COMP2)),
+    COMP3.chg = case_when(TASK!="REST1" ~ COMP3 - lag(COMP3)),
+    COMP4.chg = case_when(TASK!="REST1" ~ COMP4 - lag(COMP4)),
+    COMP5.chg = case_when(TASK!="REST1" ~ COMP5 - lag(COMP5)),
+    COMP6.chg = case_when(TASK!="REST1" ~ COMP6 - lag(COMP6)),
+    COMP7.chg = case_when(TASK!="REST1" ~ COMP7 - lag(COMP7)),
+    COMP8.chg = case_when(TASK!="REST1" ~ COMP8 - lag(COMP8)),
+    COMP9.chg = case_when(TASK!="REST1" ~ COMP9 - lag(COMP9)),
+    COMP10.chg = case_when(TASK!="REST1" ~ COMP10 - lag(COMP10)),
+    COMP11.chg = case_when(TASK!="REST1" ~ COMP11 - lag(COMP11)),
+    COMP12.chg = case_when(TASK!="REST1" ~ COMP12 - lag(COMP12)),
+    
+    # change data with baseline
+    COMP1.chg.wbl = case_when(TASK!="REST1" ~ COMP1 - lag(COMP1),TRUE ~ COMP1),
+    COMP2.chg.wbl = case_when(TASK!="REST1" ~ COMP2 - lag(COMP2),TRUE ~ COMP1),
+    COMP3.chg.wbl = case_when(TASK!="REST1" ~ COMP3 - lag(COMP3),TRUE ~ COMP1),
+    COMP4.chg.wbl = case_when(TASK!="REST1" ~ COMP4 - lag(COMP4),TRUE ~ COMP1),
+    COMP5.chg.wbl = case_when(TASK!="REST1" ~ COMP5 - lag(COMP5),TRUE ~ COMP1),
+    COMP6.chg.wbl = case_when(TASK!="REST1" ~ COMP6 - lag(COMP6),TRUE ~ COMP1),
+    COMP7.chg.wbl = case_when(TASK!="REST1" ~ COMP7 - lag(COMP7),TRUE ~ COMP1),
+    COMP8.chg.wbl = case_when(TASK!="REST1" ~ COMP8 - lag(COMP8),TRUE ~ COMP1),
+    COMP9.chg.wbl = case_when(TASK!="REST1" ~ COMP9 - lag(COMP9),TRUE ~ COMP1),
+    COMP10.chg.wbl = case_when(TASK!="REST1" ~ COMP10 - lag(COMP10),TRUE ~ COMP1),
+    COMP11.chg.wbl = case_when(TASK!="REST1" ~ COMP11 - lag(COMP11),TRUE ~ COMP1),
+    COMP12.chg.wbl = case_when(TASK!="REST1" ~ COMP12 - lag(COMP12),TRUE ~ COMP1),
+  )
+
+
+### For LCA data, may need to transpose long to wide
+COMPS <- c(paste0("COMP",1:12),paste0("COMP",1:12,".chg"),paste0("COMP",1:12,"_EIGEN"))
+data.wide <- data %>% dplyr::select(-c(X,TASK)) %>% reshape(v.names = COMPS,
+                              idvar = "sub", timevar = "timepoint", direction = "wide")
+
+
+
+# Normalize outcome data (see if it fixes any issues)
+# Not sure if this actually makes sense. Do you normalize over the entire dataset or within each timepoint?
+#data$COMP5 <- (data$COMP5 - mean(data$COMP5))/sd(data$COMP5)
+
+
+
+### Subset to eligible observations (universe)
+### Combine multiple datasets
+### Reformat variables
+### Set parameters
+
+
+```
+
+# Methods
+
+
+
+#####
+
+# Results
+
+## Table 1
+
+```{r table1, echo=FALSE}
+# For COMP6 (salience network)
+scplot6 <- ggplot(data=data.wide,aes(x=COMP6.1,y=COMP6.2),color=COMP6.3) +
+  geom_point() +
+  geom_abline(slope=1,intercept=0) +
+  scale_x_continuous(name="REST1",limits=c(-25,50)) +
+  scale_y_continuous(name="AMG",limits=c(-25,50)) +
+  scale_color_gradient2() + # positive and negative are scaled blue and red
+  geom_smooth(method="lm", se=FALSE) + # regression line
+  ggtitle("COMP6")
+png(filename=paste0(fp.analysis,"Figures/scplot-COMP6.png"),width=900,height=900,units="px",res=100)
+  scplot6
+dev.off()
+
+chgplot6 <- ggplot(data=data.wide,aes(x=COMP6.chg.2,y=COMP6.chg.3,color=COMP6.1)) +
+  geom_point() +
+  geom_abline(slope=1,intercept=0) +
+  scale_x_continuous(name="REST1 -> AMG", limits=c(-50,50)) +
+  scale_y_continuous(name="AMG -> REST2", limits=c(-50,50)) +
+  geom_smooth(method="lm")
+png(filename=paste0(fp.analysis,"Figures/chgplot-COMP6.png"),width=900,height=900,units="px",res=100)
+  chgplot6
+dev.off()
+
+
+
+### The loop for ggplots doesn't work because it doesn't get rendered as it's saved as a ggplot object but rather when it's run, making all of the plots equal to the last saved settings
+if(FALSE){
+scplot <- chgplot <- rec.list(length(COMPS)/2)
+
+### Scatterplot of each COMP values
+for(ii in 1:(length(COMPS)/2)){
+  COMP.var <- COMPS[ii]
+  scplot[[ii]] <- ggplot(data=data.wide,aes(x=get(paste0(COMPS[ii],".1")),y=get(paste0(COMPS[ii],".2")),color=get(paste0(COMPS[ii],".3")))) +
+    geom_point() +
+    geom_abline(slope=1,intercept=0) +
+    scale_x_continuous(name="REST1",limits=c(-25,50)) +
+    scale_y_continuous(name="AMG",limits=c(-25,50)) +
+    scale_color_gradient2() + # positive and negative are scaled blue and red
+    geom_smooth(method="lm", se=FALSE) + # regression line
+    ggtitle(COMP.var)
+  #scplot[[ii]]
+  png(filename=paste0(fp.analysis,"Figures/scplot-COMP",ii,".png"),width=900,height=900,units="px",res=100)
+    scplot[[ii]]
+  dev.off()
+}
+### Scatterplot of change for COMP values
+for(ii in 1:(length(COMPS)/2)){
+  COMP.var <- COMPS[ii]
+  chgplot[[ii]] <- ggplot(data=data.wide,aes(x=get(paste0(COMPS[ii],".chg.2")),y=get(paste0(COMPS[ii],".chg.3")),color=get(paste0(COMPS[ii],".1")))) +
+    geom_point() +
+    geom_abline(slope=1,intercept=0) +
+    scale_x_continuous(name="REST1 -> AMG", limits=c(-50,50)) +
+    scale_y_continuous(name="AMG -> REST2", limits=c(-50,50)) +
+    geom_smooth(method="lm")
+  png(filename=paste0(fp.analysis,"Figures/chgplot-COMP",ii,".png"),width=900,height=900,units="px",res=100)
+    chgplot[[ii]]
+  dev.off()
+}
+}
+
+```
+
+#####
+
+
+
+### Latent class growth modeling (lgcm) on network strength data
+This is essentially a multilevel model but with cluster classification. Joni said that she would have done this using <lavaan> for a growth curve model and latent class analysis, putting it within the SEM framework. That procedure allows estimation of fit indices.
+
+
+### Latent change score models - LGCM on the change between REST1-AMG and AMG-REST2.
+
+Random intercept and slope model on change outcome adjusted for covariates, by outcome.
+Salience network (COMP6)
+```{r lgcm.chg.comp6, echo=FALSE}
+set.seed(123)
+
+# Basic LCA model with Component 5 (salience) network strength values at each time point (data in original long format)
+lgcm1.rchg.comp6 = hlme(COMP6.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                  random = ~1 + timepoint,
+                  subject="sub", ng=1, data=data, verbose=FALSE)
+lgcm2.rchg.comp6 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp6,
+                        hlme(COMP6.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=2, nwg=T, verbose=FALSE))
+lgcm3.rchg.comp6 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp6,
+                        hlme(COMP6.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=3, nwg=T, verbose=FALSE))
+lgcm4.rchg.comp6 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp6,
+                        hlme(COMP6.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=4, nwg=T, verbose=FALSE))
+
+# Results indicate a 2-class model fits best, the 3-class models only yielding 2 groups anyway
+summary.lgcm.rchg.comp6 <- summarytable(lgcm1.rchg.comp6, lgcm2.rchg.comp6, lgcm3.rchg.comp6, lgcm4.rchg.comp6,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "SABIC", "entropy", "%class"))
+
+write.csv(summary.lgcm.rchg.comp6,paste0(fp.analysis,"Figures/Summary RS change models - COMP 6 Salience network.csv"))
+
+# Get predicted classes and merge back onto original dataset
+pred.rchg.2.comp6 <- lgcm2.rchg.comp6$pprob %>% dplyr::rename(class.rchg.2.comp6 = class)
+pred.rchg.4.comp6 <- lgcm4.rchg.comp6$pprob %>% dplyr::rename(class.rchg.4.comp6 = class)
+data2 <- 
+  left_join(data,pred.rchg.2.comp6,by="sub") %>%
+  left_join(.,pred.rchg.4.comp6,by="sub")
+
+# Then graph trajectories of predicted 2-class solution
+plot.COMP6.rchg.2 <- ggplot(data=data2, aes(x=timepoint, y=COMP6, group=sub, color=as.factor(class.rchg.2.comp6))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.2.comp6) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Salience network (2-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP6.rchg.2
+dev.off()
+
+# Then graph trajectories of predicted 4-class solution
+#   This model does generate larger groups 3 and 4 (sort of) but I still don't find them to be distinctly meaningful
+plot.COMP6.rchg.4 <- ggplot(data=data2, aes(x=timepoint, y=COMP6, group=sub, color=as.factor(class.rchg.4.comp6))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.4.comp6) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Salience network (4-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP6.rchg.4
+dev.off()
+
+
+```
+Default mode network (COMP3)
+```{r lgcm.chg.comp3, echo=FALSE}
+set.seed(123)
+
+# Basic LCA model with Component 5 (salience) network strength values at each time point (data in original long format)
+lgcm1.rchg.comp3 = hlme(COMP3.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                  random = ~1 + timepoint,
+                  subject="sub", ng=1, data=data, verbose=FALSE)
+lgcm2.rchg.comp3 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp3,
+                        hlme(COMP3.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=2, nwg=T, verbose=FALSE))
+lgcm3.rchg.comp3 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp3,
+                        hlme(COMP3.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=3, nwg=T, verbose=FALSE))
+lgcm4.rchg.comp3 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp3,
+                        hlme(COMP3.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=4, nwg=T, verbose=FALSE))
+
+# Results indicate a 2-class model fits best, the 3-class models only yielding 2 groups anyway
+summary.lgcm.rchg.comp3 <- summarytable(lgcm1.rchg.comp3, lgcm2.rchg.comp3, lgcm3.rchg.comp3, lgcm4.rchg.comp3,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "SABIC", "entropy", "%class"))
+
+write.csv(summary.lgcm.rchg.comp3,paste0(fp.analysis,"Figures/Summary RS change models - COMP 3 Default mode network.csv"))
+
+# Get predicted classes and merge back onto original dataset
+pred.rchg.2.comp3 <- lgcm2.rchg.comp3$pprob %>% dplyr::rename(class.rchg.2.comp3 = class)
+pred.rchg.4.comp3 <- lgcm4.rchg.comp3$pprob %>% dplyr::rename(class.rchg.4.comp3 = class)
+data2 <- 
+  left_join(data,pred.rchg.2.comp3,by="sub") %>%
+  left_join(.,pred.rchg.4.comp3,by="sub")
+
+# Then graph trajectories of predicted 2-class solution
+plot.COMP3.rchg.2 <- ggplot(data=data2, aes(x=timepoint, y=COMP3, group=sub, color=as.factor(class.rchg.2.comp3))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.2.comp3) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Default mode network (2-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP3.rchg.2
+dev.off()
+
+# Then graph trajectories of predicted 4-class solution
+#   This model does generate larger groups 3 and 4 (sort of) but I still don't find them to be distinctly meaningful
+plot.COMP3.rchg.4 <- ggplot(data=data2, aes(x=timepoint, y=COMP3, group=sub, color=as.factor(class.rchg.4.comp3))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.4.comp3) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Default mode network (4-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP3.rchg.4
+dev.off()
+
+
+```
+
+
+Ventral attrition network (COMP4)
+```{r lgcm.chg.comp4, echo=FALSE}
+set.seed(123)
+
+# Basic LCA model with Component 5 (salience) network strength values at each time point (data in original long format)
+lgcm1.rchg.comp4 = hlme(COMP4.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                  random = ~1 + timepoint,
+                  subject="sub", ng=1, data=data, verbose=FALSE)
+lgcm2.rchg.comp4 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp4,
+                        hlme(COMP4.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=2, nwg=T, verbose=FALSE))
+lgcm3.rchg.comp4 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp4,
+                        hlme(COMP4.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=3, nwg=T, verbose=FALSE))
+lgcm4.rchg.comp4 = gridsearch(rep=100, maxiter=10, minit=lgcm1.rchg.comp4,
+                        hlme(COMP4.chg ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             mixture = ~timepoint,
+                             classmb = ~ timepoint + AgeAtScan + Gender + PreMood_Ent,
+                             random = ~1 + timepoint,
+                             subject="sub", data=data, ng=4, nwg=T, verbose=FALSE))
+
+# Results indicate a 2-class model fits best, the 3-class models only yielding 2 groups anyway
+summary.lgcm.rchg.comp4 <- summarytable(lgcm1.rchg.comp4, lgcm2.rchg.comp4, lgcm3.rchg.comp4, lgcm4.rchg.comp4,
+             which = c("G", "loglik", "conv", "npm", "AIC", "BIC", "SABIC", "entropy", "%class"))
+
+write.csv(summary.lgcm.rchg.comp4,paste0(fp.analysis,"Figures/Summary RS change models - COMP 4 Ventral attrition network.csv"))
+
+# Get predicted classes and merge back onto original dataset
+pred.rchg.2.comp4 <- lgcm2.rchg.comp4$pprob %>% dplyr::rename(class.rchg.2.comp4 = class)
+pred.rchg.4.comp4 <- lgcm4.rchg.comp4$pprob %>% dplyr::rename(class.rchg.4.comp4 = class)
+data2 <- 
+  left_join(data,pred.rchg.2.comp4,by="sub") %>%
+  left_join(.,pred.rchg.4.comp4,by="sub")
+
+# Then graph trajectories of predicted 2-class solution
+plot.COMP4.rchg.2 <- ggplot(data=data2, aes(x=timepoint, y=COMP4, group=sub, color=as.factor(class.rchg.2.comp4))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.2.comp4) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Ventral attrition network (2-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP4.rchg.2
+dev.off()
+
+# Then graph trajectories of predicted 4-class solution
+#   This model does generate larger groups 3 and 4 (sort of) but I still don't find them to be distinctly meaningful
+plot.COMP4.rchg.4 <- ggplot(data=data2, aes(x=timepoint, y=COMP4, group=sub, color=as.factor(class.rchg.4.comp4))) +
+  geom_line(alpha=1) + 
+  facet_grid(. ~ class.rchg.4.comp4) +
+  scale_x_continuous(breaks=1:3, labels=c("REST1","AMG","REST2"), limits=c(.85,3.15)) +
+  theme(legend.position="none") +
+  ggtitle("Clusters")
+
+png(filename=paste0(fp.analysis,"Figures/Cluster trajectory plot - Ventral attrition network (4-class).png"),width=900,height=600,units="px",res=100)
+  plot.COMP4.rchg.4
+dev.off()
+
+
+```
+
+
+Combine all models
+```{r all.2class.models}
+# Save results
+if(FALSE){
+  save(lgcm1.fe,lgcm2.fe,lgcm3.fe,lgcm4.fe,lgcm5.fe,
+     lgcm1.fe.adj,lgcm2.fe.adj,lgcm3.fe.adj,lgcm4.fe.adj,lgcm5.fe.adj,
+     lgcm1.ri,lgcm2.ri,lgcm3.ri,lgcm4.ri,lgcm5.ri,
+     lgcm1.ri.adj,lgcm2.ri.adj,lgcm3.ri.adj,lgcm4.ri.adj,lgcm5.ri.adj,
+     lgcm1.rs,lgcm2.rs,lgcm3.rs,lgcm4.rs,lgcm5.rs,
+     lgcm1.rs.adj,lgcm2.rs.adj,lgcm3.rs.adj,lgcm4.rs.adj,lgcm5.rs.adj,
+     lgcm1.rchg,lgcm2.rchg,lgcm3.rchg,lgcm4.rchg,lgcm5.rchg,
+     lgcm1.rchg.adj,lgcm2.rchg.adj,lgcm3.rchg.adj,lgcm4.rchg.adj,lgcm5.rchg.adj,
+     lgcm1.rchgwbl.adj,lgcm2.rchgwbl.adj,lgcm3.rchgwbl.adj,lgcm4.rchgwbl.adj,lgcm5.rchgwbl.adj,
+     pred.fe.2,pred.fe.adj.2,pred.ri.2,pred.ri.adj.2,
+     pred.rs.2,pred.rs.adj.2,pred.rchg.2,pred.rchg.adj.2,pred.rchgwbl.adj.2,
+     data2,
+     file=paste0(fp.analysis,'/All LGCM results.Rdata'))
+  load(file=paste0(fp.analysis,'/All LGCM results.Rdata'))
+}
+
+
+# Combined dataset with all results and predicted clusters
+data2 <- 
+  left_join(data.wide,pred.rchg.2.comp3,by="sub") %>%
+  left_join(.,pred.rchg.4.comp3,by="sub") %>%
+  left_join(.,pred.rchg.2.comp4,by="sub") %>%
+  left_join(.,pred.rchg.4.comp4,by="sub") %>%
+  left_join(.,pred.rchg.2.comp6,by="sub") %>%
+  left_join(.,pred.rchg.4.comp6,by="sub")
+
+
+
+
+# Assess the degree of re-classification across models
+data2 %>% dplyr::count(class.rchg.2.comp3,class.rchg.2.comp4,class.rchg.2.comp6)
+# Then assess the demographic profiles of each class
+data2 %>%
+  dplyr::group_by(class.rchg.2.comp6) %>%
+  dplyr::summarize(prop.sex1 = mean(Gender),
+                   mean.age = mean(AgeAtScan),
+                   median.age = median(AgeAtScan),
+                   mean.mood.entr = mean(PreMood_Ent),
+                   median.mood.entr = median(PreMood_Ent),
+                   mean.mood.lvl = mean(PreMood_Lvl),
+                   median.mood.lvl = median(PreMood_Lvl),
+                   mean.cdi = mean(scl.CDI_MD),
+                   median.cdi = median(scl.CDI_MD),
+                   mean.fd = mean(FD_MEAN))
+
+
+chisq.test(table(data2$Gender,data2$class.rchg.2.comp6))
+t.test(AgeAtScan ~ class.rchg.2.comp6,data=data2)
+t.test(PreMood_Ent ~ class.rchg.2.comp6,data=data2)
+t.test(PreMood_Lvl ~ class.rchg.2.comp6,data=data2)
+t.test(scl.CDI_MD ~ class.rchg.2.comp6,data=data2)
+t.test(FD_MEAN ~ class.rchg.2.comp6,data=data2)
+
+# Then examine the model results more closely
+
+# Compare to lavaan() to do LGCM within SEM framework <https://urldefense.com/v3/__https://lavaan.ugent.be/tutorial/growth.html__;!!OLgoXmg!DZxFDCY4L48exFTkh8LtQcHZNVIAJW_Q3v2Nr94pecNW5kd_NgNdHyQL4Uu9YVE$ >
+```
+
