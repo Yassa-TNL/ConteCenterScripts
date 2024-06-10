@@ -1,0 +1,63 @@
+{
+    "descriptions": [
+        {
+            "datatype": "anat",
+            "suffix": "T1w",
+            "criteria": {
+                "SeriesDescription": "* MPRAGE *"
+            }
+    },
+        {
+            "datatype": "anat",
+            "suffix": "T2w",
+            "criteria": {
+                "SeriesDescription": "Sagittal 3D T2 SPACE MSV21"
+            }
+    },
+        {
+            "datatype": "anat",
+            "suffix": "FLAIR",
+            "criteria": {
+                "SeriesDescription": "* FLAIR *"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-AP",
+            "criteria": {
+                "SeriesDescription": "* DTI AP*"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-PA",
+            "criteria": {
+                "SeriesDescription": "* DTI PA*"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-rest",
+            "criteria": {
+                "SeriesDescription": "* rsfMRI *"
+            }
+    },
+            {
+            "datatype": "pet",
+            "suffix": "pet",
+            "criteria": {
+                "SeriesDescription": "PET*"
+            }
+    },
+        {
+            "datatype": "perf",
+            "suffix": "asl",
+            "criteria": {
+                "SeriesDescription": "* PASL *"
+            }
+        }
+    ]
+}
