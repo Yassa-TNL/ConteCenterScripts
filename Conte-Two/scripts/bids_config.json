@@ -1,0 +1,157 @@
+{
+    "descriptions": [
+        {
+            "datatype": "anat",
+            "suffix": "T1w",
+            "criteria": {
+                "SeriesDescription": "anat-T1w"
+            }
+    },
+        {
+            "datatype": "anat",
+            "suffix": "T2w",
+            "custom_entities": "acq-TSE",
+            "criteria": {
+                "SeriesDescription": "*T2w_acq-TSEcor*"
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "epi",
+            "custom_entities": "dir-PA",
+            "criteria": {
+                "SidecarFilename": "*fmap_dir_PA_epi*"
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "epi",
+            "custom_entities": "dir-AP",
+            "criteria": {
+                "SidecarFilename": "*fmap_dir_AP_epi*"
+            },
+             "sidecar_changes": {
+                "IntendedFor": ["task_rest","task_bandit"]
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "dwi",
+            "custom_entities": "dir-PA",
+            "criteria": {
+                "SidecarFilename": "*fmap_dir_PA_dwi*"
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "dwi",
+            "custom_entities": "dir-PA",
+            "criteria": {
+                "SidecarFilename": "*Diffusion_Field_Map*"
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "phasediff",
+            "custom_entities": "acq-fwd",
+            "criteria": {
+                "SidecarFilename": "*topup_fwd*"
+            }
+    },
+        {
+            "datatype": "fmap",
+            "suffix": "phasediff",
+            "custom_entities": "acq-rvs",
+            "criteria": {
+                "SidecarFilename": "*topup_rvs*"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "criteria": {
+                "SeriesDescription": "dwi"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-TRACE",
+            "criteria": {
+                "SeriesDescription": "dwi_TRACEW"
+            }
+    },
+            {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-ZOOM",
+            "criteria": {
+                "SeriesDescription": "dwi_acq-ZOOMcor"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-b500",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b500*"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-b1500",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b1500*"
+            }
+    },
+        {
+            "datatype": "dwi",
+            "suffix": "dwi",
+            "custom_entities": "acq-b3000",
+            "criteria": {
+                "SeriesDescription": "*DWI_acq-b3000*"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-rest",
+            "criteria": {
+                "SeriesDescription": "func_task-rest_bold"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-bandit_run-01",
+            "criteria": {
+                "SeriesDescription": "func_task-bandit_run-01_bold"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-bandit_run-02",
+            "criteria": {
+                "SeriesDescription": "func_task-bandit_run-02_bold"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-bandit_run-03",
+            "criteria": {
+                "SeriesDescription": "func_task-bandit_run-03_bold"
+            }
+    },
+        {
+            "datatype": "func",
+            "suffix": "bold",
+            "custom_entities": "task-bandit_run-04",
+            "criteria": {
+                "SeriesDescription": "func_task-bandit_run-04_bold"
+            }
+        }
+    ]
+}
